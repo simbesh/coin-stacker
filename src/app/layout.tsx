@@ -1,12 +1,17 @@
-import "@/styles/globals.css";
+import "@/styles/globals.css"
 
-import {Inter} from "next/font/google";
+import {Inter} from "next/font/google"
 import {Analytics} from "@vercel/analytics/react"
+import {ThemeProvider} from "@/components/theme-provider"
+import {ThemeToggle} from "@/components/theme-toggle"
+import Image from "next/image";
+import Link from "next/link";
+import NavBar from "@/components/NavBar";
 
 const inter = Inter({
     subsets: ["latin"],
-    variable: "--font-sans",
-});
+    variable: "--font-sans"
+})
 
 export const metadata = {
     title: "Coin Stacker",
@@ -18,7 +23,7 @@ export const metadata = {
                 // media: "(prefers-color-scheme: light)",
                 url: "/coinstacker-favicon-16.png",
                 href: "/coinstacker-favicon-16.png"
-            },
+            }
             // {
             //     media: "(prefers-color-scheme: dark)",
             //     url: "/favicon-dark.png",
@@ -26,21 +31,20 @@ export const metadata = {
             // }
         ]
     }
-};
+}
 
-export default function RootLayout({
-                                       children,
-                                   }: {
-    children: React.ReactNode;
-}) {
+export default function RootLayout({children}: { children: React.ReactNode }) {
     return (
-        <html lang="en">
-            <body className={`font-sans ${inter.variable}`}>
-                <main id="main">
-                    {children}
-                    <Analytics/>
-                </main>
-            </body>
+        <html lang="en" suppressHydrationWarning>
+        <body className={`font-sans ${inter.variable}`}>
+        <main id="main">
+            <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+                <NavBar/>
+                {children}
+            </ThemeProvider>
+            <Analytics/>
+        </main>
+        </body>
         </html>
-    );
+    )
 }
