@@ -203,7 +203,7 @@ const Example = () => {
     }, [])
 
 
-    // console.log("process.env.GIT_HASH", process.env.GIT_HASH)
+    console.log("process.env.GIT_HASH", process.env.GIT_HASH)
 
     const CustomTooltip = (props: TooltipProps<any, any>) => {
         const {active, payload, label} = props
