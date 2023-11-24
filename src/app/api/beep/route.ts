@@ -5,17 +5,17 @@ const umamiUrl = 'https://analytics.eu.umami.is'
 export async function POST(request: Request): Promise<any> {
     let headers: Record<string, string> = {}
     request.headers.forEach((v, k) => {
-        if (!k.startsWith('sec-fetch')) {
+        if (!k.startsWith('host')) {
             headers[k] = v
         }
     })
+
     const data = await request.json()
 
     const response = await fetch(umamiUrl + '/api/send', {
         method: 'POST',
         headers: {
-            'content-type': headers['content-type'],
-            'user-agent': headers['user-agent'],
+            ...headers,
         } as unknown as Record<string, string>,
         body: JSON.stringify(data),
     })
