@@ -109,7 +109,7 @@ type Best = {
     fees: number
 }
 
-export function getBestAsks(orderbooks: any, amountToBuy: number): Best[] {
+export function getBestAsks(orderbooks: any, amountToBuy: number, exchangeFees: Record<string, number>): Best[] {
     let sortedBests: Best[] = []
     let errors = []
     for (let exchange of Object.keys(orderbooks)) {
@@ -163,7 +163,7 @@ export function getBestAsks(orderbooks: any, amountToBuy: number): Best[] {
     return sortedBests
 }
 
-export function getBestBids(orderbooks: any, amountToSell: number): Best[] {
+export function getBestBids(orderbooks: any, amountToSell: number, exchangeFees: Record<string, number>): Best[] {
     let sortedBests: Best[] = []
     let errors = []
     for (let exchange of Object.keys(orderbooks)) {

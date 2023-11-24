@@ -18,6 +18,7 @@ const config = {
     env: {
         // add the package.json version and git hash to the environment
         APP_VERSION: pkg.version,
+        REPO_LINK: pkg.repo,
         COMMIT_HASH: commitHash,
         COLLECT_API_ENDPOINT: 'api/beep',
     }

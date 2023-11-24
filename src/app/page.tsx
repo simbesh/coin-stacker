@@ -1,4 +1,4 @@
-import Testform from '@/components/testform'
+import PriceLookup from '@/components/PriceLookup'
 import ClientOnly from '@/components/ClientOnly'
 
 export default function HomePage() {
@@ -8,7 +8,7 @@ export default function HomePage() {
                 <h3 className="text-center text-5xl font-bold">
                     <span className={'text-2xl'}>🇦🇺 </span>Crypto Price Aggregator
                 </h3>
-                <h2 className="mt-2 flex flex-wrap justify-center gap-2 text-2xl font-semibold text-slate-500">
+                <h2 className="mt-2 flex flex-wrap justify-center text-2xl font-semibold text-slate-500">
                     <div className={'whitespace-nowrap'}>Find the best price...</div>
                     <div className={'whitespace-nowrap text-right'}>
                         <span className={'text-yellow-400'}> Stack</span> more{' '}
@@ -17,7 +17,7 @@ export default function HomePage() {
                 </h2>
             </div>
             <ClientOnly>
-                <Testform />
+                <PriceLookup />
             </ClientOnly>
         </main>
     )

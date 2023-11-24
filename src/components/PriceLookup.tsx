@@ -1,22 +1,22 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Button } from './ui/button'
 import { cn, currencyFormat, exchangeFees, formatExchangeName } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import Coin from '@/components/CoinIcon'
-import { Settings2 } from 'lucide-react'
 import { round } from 'lodash'
 import { useLocalStorage, useWindowScroll } from '@uidotdev/usehooks'
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Card } from '@/components/ui/card'
 import ExchangeIcon from '@/components/ExchangeIcon'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { PriceHistoryDropdown } from '@/components/price-history-dropdown'
 import { PriceQueryParams } from '@/types/types'
 import Spinner from '@/components/Spinner'
 import { FeeParams } from '@/components/fee-params'
+import { LocalStorageKeys } from '@/lib/constants'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
 const markets = ['BTC', 'ETH', 'SOL', 'XRP', 'LTC', 'ADA', 'DOGE']
 
@@ -64,16 +64,33 @@ const headers = [
 
 const firstRowCellStyle = 'text-green-600 dark:text-green-500'
 
-const Testform = () => {
+const PriceLookup = () => {
     const [side, setSide] = useState<'buy' | 'sell'>('buy')
     const [amount, setAmount] = useState<string>('')
     const [coin, setCoin] = useState<string>('')
     const [isLoading, setIsLoading] = useState(false)
     const [bests, setBests] = useState<PriceQueryResult[]>([])
     const [resultInput, setResultInput] = useState<PriceQueryParams>()
-    const [{ x, y }, scrollTo] = useWindowScroll()
-    const [history, setHistory] = useLocalStorage<PriceQueryParams[]>('price-query-history', [])
+    const [{}, scrollTo] = useWindowScroll()
+    const [history, setHistory] = useLocalStorage<PriceQueryParams[]>(LocalStorageKeys.PriceQueryHistory, [])
+    const [fees] = useLocalStorage<Record<string, number>>(LocalStorageKeys.ExchangeFees, exchangeFees)
+    const [lowestFee, setLowestFee] = useState<number>()
+    const [bestAvgPrice, setBestAvgPrice] = useState<number>()
 
+    useEffect(() => {
+        if (bests?.length > 0) {
+            const lowestValue = bests.reduce((min, obj) => Math.min(min, obj.fees), Infinity)
+            setLowestFee(lowestValue)
+
+            if (side === 'buy') {
+                const lowestAvgPrice = bests.reduce((min, obj) => Math.min(min, obj.grossAveragePrice), Infinity)
+                setBestAvgPrice(lowestAvgPrice)
+            } else {
+                const highestAvgPrice = bests.reduce((min, obj) => Math.max(min, obj.grossAveragePrice), -Infinity)
+                setBestAvgPrice(highestAvgPrice)
+            }
+        }
+    }, [bests])
     async function getPrices({ side, amount, coin }: PriceQueryParams) {
         if (!amount) {
             return
@@ -89,7 +106,6 @@ const Testform = () => {
             query: `${side}_${floatAmount}_${coin}`,
         }
         umami.track('price-lookup', data)
-        // umamiTrack('price-lookup', data)
 
         function addToHistory(data: PriceQueryParams) {
             const exists = history.find((h) => h.coin === data.coin && h.side === data.side && h.amount && data.amount)
@@ -108,8 +124,17 @@ const Testform = () => {
         addToHistory({ side, amount, coin })
         setIsLoading(true)
         try {
-            const prices = await fetch(`api/test/data?base=${coin}&quote=AUD&side=${side}&amount=${floatAmount}`)
-            // const prices = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin%2Cethereum%2Csolana&vs_currencies=aud')
+            const prices = await fetch(`api/price-query`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    fees,
+                    base: coin,
+                    quote: 'AUD',
+                    side,
+                    amount: floatAmount,
+                }),
+            })
             const { best } = await prices.json()
             setBests(best)
             setResultInput({ side, amount, coin })
@@ -165,7 +190,12 @@ const Testform = () => {
                     className={'absolute left-2 top-2 bg-transparent'}
                     raiseHistory={handleHistoryClick}
                 />
-                <FeeParams />
+                <div className={'absolute right-2 top-2 flex gap-2'}>
+                    <Button variant="outline" className={'bg-transparent px-2'} disabled>
+                        {'AUD'}
+                    </Button>
+                    <FeeParams />
+                </div>
                 {'I want to...'}
                 <div>
                     <Button
@@ -200,11 +230,6 @@ const Testform = () => {
                         type={'number'}
                         className={'w-40 text-right text-lg ring-0 focus-visible:ring-0'}
                     />
-                    {/*</div>*/}
-                    {/*<div>*/}
-                    {/*    <Input value={amount} onChange={e => setAmount(e.target.value)} type={'number'} className={'border-white border-0 border-b-4 rounded-b-none text-lg ring-0 focus-visible:ring-0 text-right w-40'}></Input>*/}
-                    {/*</div>*/}
-                    {/*<div>*/}
                     <Select onValueChange={setCoin} value={coin}>
                         <SelectTrigger id="volumeFrom" className="w-[160px] text-lg">
                             <SelectValue placeholder="Coin" />
@@ -225,10 +250,6 @@ const Testform = () => {
                 </div>
                 <div className={'flex w-full justify-center'}>
                     <Button
-                        // data-umami-event="Price Lookup"
-                        // data-umami-event-side={side}
-                        // data-umami-event-amount={amount}
-                        // data-umami-event-coin={coin}
                         variant={'default'}
                         className={'mx-2 mt-4 w-full rounded-lg text-base text-black sm:mx-4 sm:w-28'}
                         onClick={() => getPrices({ side, amount, coin })}
@@ -251,7 +272,7 @@ const Testform = () => {
                 <Table>
                     {bests.length === 0 && <TableCaption className={'mb-4'}>{'No Data'}</TableCaption>}
                     <TableHeader>
-                        <TableRow>
+                        <TableRow className={'hover:bg-muted/0'}>
                             {headers.map((header) => (
                                 <TableHead key={header.id} className={cn(header.className)}>
                                     {header.title}
@@ -264,33 +285,37 @@ const Testform = () => {
                             <TableRow key={best.exchange} className={cn(i === 0 && 'border-2 border-green-500')}>
                                 <TableCell
                                     className={cn(
-                                        'flex items-center justify-start gap-2 whitespace-nowrap text-left',
+                                        'mr-2 flex items-center justify-start gap-2 whitespace-nowrap text-left',
                                         i === 0 ? firstRowCellStyle : ''
                                     )}
                                 >
                                     <ExchangeIcon exchange={best.exchange} />
                                     {formatExchangeName(best.exchange)}
                                 </TableCell>
-                                <TableCell className={cn('text-right', i === 0 ? firstRowCellStyle : '')}>
+                                <TableCell
+                                    className={cn(
+                                        'text-right',
+                                        bestAvgPrice === best.grossAveragePrice ? 'text-green-500' : ''
+                                    )}
+                                >
                                     {currencyFormat(best?.grossAveragePrice, 'AUD', best.grossAveragePrice < 5 ? 4 : 2)}
                                 </TableCell>
-                                <TableCell className={cn('text-right', i === 0 ? firstRowCellStyle : '')}>
-                                    {
-                                        <TooltipProvider>
-                                            <Tooltip delayDuration={0}>
-                                                <TooltipTrigger
-                                                    className={
-                                                        'cursor-help underline decoration-dashed underline-offset-2'
-                                                    }
-                                                >
-                                                    {currencyFormat(best?.fees)}
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    <p>{round((exchangeFees[best.exchange] ?? 0) * 100, 2) + '%'}</p>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </TooltipProvider>
-                                    }
+                                <TableCell
+                                    className={cn('text-right', lowestFee === best.fees ? 'text-green-500' : '')}
+                                >
+                                    <Popover>
+                                        <PopoverTrigger
+                                            className={'cursor-help underline decoration-dashed underline-offset-2'}
+                                        >
+                                            {currencyFormat(best?.fees)}
+                                        </PopoverTrigger>
+                                        <PopoverContent className={'w-fit p-2 text-sm'}>
+                                            <p>
+                                                {formatExchangeName(best.exchange)} fee:{' '}
+                                                {round((fees[best.exchange] ?? 0) * 100, 2) + '%'}
+                                            </p>
+                                        </PopoverContent>
+                                    </Popover>
                                 </TableCell>
                                 <TableCell className={cn('text-right', i === 0 ? firstRowCellStyle : '')}>
                                     {currencyFormat(best.netCost)}
@@ -310,4 +335,4 @@ const Testform = () => {
     )
 }
 
-export default Testform
+export default PriceLookup

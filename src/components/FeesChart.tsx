@@ -1,5 +1,6 @@
 'use client'
-import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
+
+import React, { useEffect, useState } from 'react'
 import { Area, AreaChart, Brush, Legend, ResponsiveContainer, Tooltip, TooltipProps, XAxis, YAxis } from 'recharts'
 import { cn, currencyFormat } from '@/lib/utils'
 import { useTheme } from 'next-themes'
@@ -83,20 +84,6 @@ const kr = [
     [250000000, 0.06],
     [500000000, 0.04],
 ]
-// const kr = [
-//     [0, 0.26],
-//     [50001, 0.24],
-//     [100001, 0.22],
-//     [250001, 0.2],
-//     [500001, 0.18],
-//     [1000001, 0.16],
-//     [2500001, 0.14],
-//     [5000001, 0.12],
-//     [10000001, 0.1],
-//     [100000000, 0.08],
-//     [250000000, 0.06],
-//     [500000000, 0.04]
-// ]
 const ln = [
     [0, 0.1],
     [350000, 0.09],
@@ -115,96 +102,100 @@ const br = [
     [5_000_000, 0.07],
     [10_000_000, 0.05],
 ]
+function fillDataPoints(dataMap: Record<string, Record<string, number>>, data: number[][], key: string) {
+    for (let i of data) {
+        if (i[0] !== undefined && i[1] !== undefined) {
+            if (!dataMap[i[0]]) {
+                dataMap[i[0]] = { name: i[0] }
+            }
+            dataMap[i[0]]![key] = i[1]
+        }
+    }
+}
+let dataMap: Record<string, Record<string, number>> = {}
+fillDataPoints(dataMap, ir, 'IndepRes')
+fillDataPoints(dataMap, btcm, 'BtcMarkets')
+fillDataPoints(dataMap, cj, 'CoinJar')
+fillDataPoints(dataMap, cs, 'CoinSpot')
+fillDataPoints(dataMap, kr, 'Kraken')
+fillDataPoints(dataMap, ln, 'Luno')
+fillDataPoints(dataMap, br, 'Bitaroo')
 
-// let data = [
-//     { name: "Page A", uv: 4000, xx: 3300 },
-//     { name: "Page B", uv: 3000, xx: 3000 },
-//     { name: "Page C", uv: 2000 },
-//     { name: "Page D" },
-//     { name: "Page E", uv: 1890 },
-//     { name: "Page F", uv: 2390, xx: 3400 },
-//     { name: "Page G", uv: 3490, xx: 3700 }
-// ]
-let dataMap: any = {}
-for (let i of ir) {
-    if (!dataMap[i[0]!]) {
-        dataMap[i[0]!] = { name: i[0] }
-    }
-    dataMap[i[0]!].IndepRes = i[1]
-}
-for (let i of btcm) {
-    if (!dataMap[i[0]!]) {
-        dataMap[i[0]!] = { name: i[0] }
-    }
-    dataMap[i[0]!].BtcMarkets = i[1]
-}
-for (let i of cj) {
-    if (!dataMap[i[0]!]) {
-        dataMap[i[0]!] = { name: i[0] }
-    }
-    dataMap[i[0]!].CoinJar = i[1]
-}
-for (let i of cs) {
-    if (!dataMap[i[0]!]) {
-        dataMap[i[0]!] = { name: i[0] }
-    }
-    dataMap[i[0]!].CoinSpot = i[1]
-}
-for (let i of kr) {
-    if (!dataMap[i[0]!]) {
-        dataMap[i[0]!] = { name: i[0] }
-    }
-    dataMap[i[0]!].Kraken = i[1]
-}
-for (let i of ln) {
-    if (!dataMap[i[0]!]) {
-        dataMap[i[0]!] = { name: i[0] }
-    }
-    dataMap[i[0]!].Luno = i[1]
-}
-for (let i of br) {
-    if (!dataMap[i[0]!]) {
-        dataMap[i[0]!] = { name: i[0] }
-    }
-    dataMap[i[0]!].Bitaroo = i[1]
-}
 let data: any[] = []
 let prev: any
+const labels = [
+    { key: 'BtcMarkets', colour: '#51e491', gradientKey: 'btcmarkets-gradient', gradientStop: '35%' },
+    { key: 'IndepRes', colour: '#4974ff', gradientKey: 'independentreserve-gradient', gradientStop: '35%' },
+    { key: 'Kraken', colour: '#9482ff', gradientKey: 'kraken-gradient', gradientStop: '35%' },
+    {
+        key: 'CoinJar',
+        colour: '#ff9719',
+        gradientKey: 'coinjar-gradient',
+        gradientStop: '35%',
+    },
+    {
+        key: 'CoinSpot',
+        colour: '#ec4f4f',
+        gradientKey: 'coinspot-gradient',
+        gradientStop: '65%',
+        strokeDasharray: '30 15',
+    },
+    { key: 'Luno', colour: '#2639f2', gradientKey: 'luno-gradient', gradientStop: '65%', strokeDasharray: '15 30' },
+    { key: 'Bitaroo', colour: '#f6740e', gradientKey: 'bitaroo-gradient', gradientStop: '65%' },
+]
 
 Object.keys(dataMap)
     .sort((a, b) => parseFloat(a) - parseFloat(b))
     .forEach((key) => {
         const value = dataMap[key]
-        if (!prev) {
-            prev = value
+        if (value !== undefined && value.name !== undefined) {
+            if (!prev) {
+                prev = value
+            }
+            let missing = Object.keys(prev).filter((v) => !Object.keys(value).includes(v))
+            missing.forEach((v) => (value[v] = prev[v]))
+            const dataPoint: Record<string, string | number> = { ...value }
+            dataPoint.value = value.name
+            dataPoint.name = currencyFormat(value.name, 'AUD', 0)
+            data.push(dataPoint)
+            Object.keys(value).forEach((v) => {
+                prev[v] = value[v]
+            })
         }
-        let missing = Object.keys(prev).filter((v) => !Object.keys(value).includes(v))
-        missing.forEach((v) => (value[v] = prev[v]))
-        const dataPoint = { ...value }
-        dataPoint.value = dataPoint.name
-        dataPoint.name = currencyFormat(dataPoint.name, 'AUD', 0)
-        data.push(dataPoint)
-        Object.keys(value).forEach((v) => {
-            prev[v] = value[v]
-        })
     })
 
 const selectOptions = data.map((x) => ({ label: x.name, value: x.value.toString() }))
 const allData = data
-// const defaultFrom = '0'
-// const defaultTo = '500000000'
 const axisStoke = '#4d5784'
-// const axisStoke = '#3d4468'
 const FeesChart = () => {
-    const [loaded, setLoaded] = useState(false)
+    const [seriesProps, setSeriesProps] = useState<Record<string, string | undefined | boolean>>(
+        labels.reduce(
+            (a: Record<string, undefined>, { key }: { key: string }) => {
+                a[key] = undefined
+                return a
+            },
+            { hover: undefined }
+        )
+    )
 
-    const { theme } = useTheme()
+    const handleLegendMouseEnter = (e: any) => {
+        navigator.vibrate(75)
+        if (!seriesProps[e.dataKey]) {
+            setSeriesProps({ ...seriesProps, hover: e.dataKey })
+        }
+    }
 
-    useEffect(() => {
-        setTimeout(() => {
-            setLoaded(true)
-        }, 100)
-    }, [])
+    const handleLegendMouseLeave = () => {
+        setSeriesProps({ ...seriesProps, hover: undefined })
+    }
+
+    const selectSeries = (e: any) => {
+        setSeriesProps({
+            ...seriesProps,
+            [e.dataKey]: !seriesProps[e.dataKey],
+            hover: undefined,
+        })
+    }
 
     const CustomTooltip = (props: TooltipProps<any, any>) => {
         const { active, payload, label } = props
@@ -242,121 +233,55 @@ const FeesChart = () => {
                     }}
                 >
                     <defs>
-                        <linearGradient id="colorBTCM" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#51e491" stopOpacity={0.35} />
-                            <stop offset="35%" stopColor="#51e491" stopOpacity={0} />
-                        </linearGradient>
-                        <linearGradient id="colorCJ" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#ff9719" stopOpacity={0.35} />
-                            <stop offset="65%" stopColor="#ff9719" stopOpacity={0} />
-                        </linearGradient>
-                        <linearGradient id="colorIR" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#4974ff" stopOpacity={0.35} />
-                            <stop offset="35%" stopColor="#4974ff" stopOpacity={0} />
-                        </linearGradient>
-                        <linearGradient id="colorKR" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#9482ff" stopOpacity={0.35} />
-                            <stop offset="35%" stopColor="#9482ff" stopOpacity={0} />
-                        </linearGradient>
-                        <linearGradient id="colorCS" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#ec4f4f" stopOpacity={0.35} />
-                            <stop offset="65%" stopColor="#ec4f4f" stopOpacity={0} />
-                        </linearGradient>
-                        <linearGradient id="colorLU" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#2639f2" stopOpacity={0.35} />
-                            <stop offset="65%" stopColor="#2639f2" stopOpacity={0} />
-                        </linearGradient>
-                        <linearGradient id="colorBR" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#f6740e" stopOpacity={0.35} />
-                            <stop offset="65%" stopColor="#f6740e" stopOpacity={0} />
-                        </linearGradient>
+                        {labels.map(({ colour, gradientKey, gradientStop }) => (
+                            <linearGradient id={gradientKey} x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor={colour} stopOpacity={0.35} />
+                                <stop offset={gradientStop} stopColor={colour} stopOpacity={0} />
+                            </linearGradient>
+                        ))}
                     </defs>
-                    {/*<CartesianGrid strokeDasharray="3 3" />*/}
                     <XAxis dataKey="name" allowDataOverflow={true} stroke={axisStoke} />
                     <YAxis stroke={axisStoke} />
-                    <Legend />
-                    {/*<Legend content={renderLegend}/>*/}
+                    <Legend
+                        wrapperStyle={{
+                            left: 0,
+                            bottom: 0,
+                            paddingTop: 16,
+                            userSelect: 'none',
+                        }}
+                        onClick={selectSeries}
+                        onMouseOver={handleLegendMouseEnter}
+                        onMouseOut={handleLegendMouseLeave}
+                    />
                     <Tooltip
                         content={CustomTooltip}
-                        formatter={(value, name, props) => {
+                        formatter={(value, name) => {
                             return [value + '%', name]
                         }}
                         position={{ x: 75, y: 0 }}
                         contentStyle={{
                             fontWeight: 'bold',
-                            // backgroundColor: tierBackgroundColor,
-                            // backgroundColor: "#0f182c",
-                            // color: 'white',
                             minWidth: '11rem',
                             borderColor: 'transparent',
                             borderRadius: '10px',
                         }}
                     />
-                    <Area
-                        connectNulls
-                        dot={false}
-                        strokeWidth={strokeWidth}
-                        type="stepAfter"
-                        dataKey="BtcMarkets"
-                        stroke="#51e491"
-                        fill="url(#colorBTCM)"
-                    />
-                    <Area
-                        connectNulls
-                        dot={false}
-                        strokeWidth={strokeWidth}
-                        type="stepAfter"
-                        dataKey="IndepRes"
-                        stroke="#4974ff"
-                        fill="url(#colorIR)"
-                    />
-                    <Area
-                        connectNulls
-                        dot={false}
-                        strokeWidth={strokeWidth}
-                        type="stepAfter"
-                        dataKey="Kraken"
-                        stroke="#9482ff"
-                        fill="url(#colorKR)"
-                    />
-                    <Area
-                        connectNulls
-                        dot={false}
-                        strokeWidth={strokeWidth}
-                        type="stepAfter"
-                        dataKey="CoinJar"
-                        stroke="#ff9719"
-                        fill="url(#colorCJ)"
-                    />
-                    <Area
-                        connectNulls
-                        dot={false}
-                        strokeWidth={strokeWidth}
-                        type="stepAfter"
-                        dataKey="CoinSpot"
-                        stroke="#ec4f4f"
-                        fill="url(#colorCS)"
-                        strokeDasharray="30 15"
-                    />
-                    <Area
-                        connectNulls
-                        dot={false}
-                        strokeWidth={strokeWidth}
-                        type="stepAfter"
-                        dataKey="Luno"
-                        stroke="#2639f2"
-                        fill="url(#colorLU)"
-                        strokeDasharray="15 30"
-                    />
-                    <Area
-                        connectNulls
-                        dot={false}
-                        strokeWidth={strokeWidth}
-                        type="stepAfter"
-                        dataKey="Bitaroo"
-                        stroke="#f6740e"
-                        fill="url(#colorBR)"
-                    />
+
+                    {labels.map(({ colour, gradientKey, key, strokeDasharray }) => (
+                        <Area
+                            connectNulls
+                            dot={false}
+                            strokeWidth={strokeWidth}
+                            type="stepAfter"
+                            dataKey={key}
+                            stroke={colour}
+                            fill={`url(#${gradientKey})`}
+                            hide={seriesProps[key] === true}
+                            fillOpacity={Number(seriesProps.hover === key || !seriesProps.hover ? 0.65 : 0.05)}
+                            strokeOpacity={Number(seriesProps.hover === key || !seriesProps.hover ? 1 : 0.3)}
+                            strokeDasharray={strokeDasharray}
+                        />
+                    ))}
                     <Brush
                         fill={'transparent'}
                         stroke={axisStoke}
@@ -364,9 +289,14 @@ const FeesChart = () => {
                         height={30}
                         data={allData}
                         dataKey={'name'}
+                        padding={{ top: 20 }}
                     />
                 </AreaChart>
             </ResponsiveContainer>
+            <div className={'text-muted-foreground mt-6 flex items-center justify-center gap-1'}>
+                <div className={'hidden sm:block'}>👆 Click to toggle. Hover to highlight</div>
+                <div className={'block sm:hidden'}>👆 Tap to toggle. Long-press to highlight</div>
+            </div>
         </div>
     )
 }

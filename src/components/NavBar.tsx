@@ -88,24 +88,23 @@ const NavBar = () => {
                     CoinStacker
                 </span>
             </Link>
-            <div className="ml-16 mr-auto hidden w-full items-center sm:flex sm:w-auto" id="navbar-default">
-                <ul className="mt-4 flex flex-col rounded-lg border border-gray-100 p-4 font-medium rtl:space-x-reverse dark:border-gray-700 sm:mt-0 sm:flex-row sm:space-x-8 sm:border-0 sm:p-0">
+            <div className="ml-12 mr-auto hidden w-full items-center sm:flex sm:w-auto" id="navbar-default">
+                <div className="mt-4 flex rounded-lg border border-gray-100 p-4 font-medium dark:border-gray-700 sm:mt-0 sm:flex-row sm:space-x-4 sm:border-0 sm:p-0">
                     {items.map((item) => (
-                        <li key={item.id}>
-                            <Link
-                                href={item.href}
-                                className={cn(
-                                    'rounded-md p-3 hover:bg-slate-200 dark:hover:bg-slate-800',
-                                    activeSegment === item.activeSegment
-                                        ? 'text-primary font-semibold'
-                                        : 'text-muted-foreground hover:text-secondary-foreground    '
-                                )}
-                            >
-                                {item.title}
-                            </Link>
-                        </li>
+                        <Link
+                            key={item.id}
+                            href={item.href}
+                            className={cn(
+                                'rounded-md p-3 hover:bg-slate-200 dark:hover:bg-slate-800',
+                                activeSegment === item.activeSegment
+                                    ? 'text-primary font-semibold'
+                                    : 'text-muted-foreground hover:text-secondary-foreground    '
+                            )}
+                        >
+                            {item.title}
+                        </Link>
                     ))}
-                </ul>
+                </div>
             </div>
             <div className={'ml-auto sm:ml-0'}>
                 <ThemeToggle />

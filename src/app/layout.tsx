@@ -5,6 +5,8 @@ import { Analytics } from '@vercel/analytics/react'
 import { ThemeProvider } from '@/components/theme-provider'
 import NavBar from '@/components/NavBar'
 import Script from 'next/script'
+import { Github } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 const inter = Inter({
     subsets: ['latin'],
@@ -46,6 +48,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                         >
                             <div>{'v' + process.env.APP_VERSION}</div>
                             <div>{process.env.COMMIT_HASH}</div>
+                            <Button variant={'ghost'} size={'icon-sm'}>
+                                <a href={process.env.REPO_LINK}>
+                                    <Github className={'icon-sm'} />
+                                </a>
+                            </Button>
                         </footer>
                     </ThemeProvider>
                     <Analytics />

@@ -49,12 +49,8 @@ const getBitarooOrderBook = async (base: string, quote: string) => {
     return parseBrOrderBook(json)
 }
 
-export async function GET(request: Request): Promise<NextResponse<any>> {
-    const { searchParams } = new URL(request.url)
-    const base = searchParams.get('base')
-    const quote = searchParams.get('quote')
-    const amount = searchParams.get('amount')
-    const side = searchParams.get('side')
+export async function POST(request: Request): Promise<NextResponse<any>> {
+    const { fees, base, quote, side, amount } = await request.json()
     let best
     if (base && quote && amount && side) {
         let exchanges = ['btcmarkets', 'independentreserve', 'kraken', 'luno', 'coinspot', 'coinjar', 'bitaroo']
@@ -86,7 +82,9 @@ export async function GET(request: Request): Promise<NextResponse<any>> {
         })
 
         best =
-            side === 'buy' ? getBestAsks(orderbooks, parseFloat(amount)) : getBestBids(orderbooks, parseFloat(amount))
+            side === 'buy'
+                ? getBestAsks(orderbooks, parseFloat(amount), fees)
+                : getBestBids(orderbooks, parseFloat(amount), fees)
     }
     6
 

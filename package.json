@@ -1,7 +1,8 @@
 {
   "name": "coin-stacker",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
+  "repo": "https://github.com/simbesh/coin-stacker",
   "scripts": {
     "build": "next build",
     "dev": "next dev",
@@ -19,7 +20,7 @@
     "@t3-oss/env-nextjs": "^0.7.1",
     "@uidotdev/usehooks": "^2.4.1",
     "@vercel/analytics": "^1.1.1",
-    "ccxt": "^4.1.60",
+    "ccxt": "^4.1.63",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "cryptocurrency-icons": "^0.18.1",

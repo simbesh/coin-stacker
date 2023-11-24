@@ -10,6 +10,7 @@ import { useLocalStorage } from '@uidotdev/usehooks'
 import { PriceQueryParams } from '@/types/types'
 import Coin from '@/components/CoinIcon'
 import { useState, useEffect } from 'react'
+import { LocalStorageKeys } from '@/lib/constants'
 
 interface Props {
     className?: string
@@ -18,7 +19,7 @@ interface Props {
 
 export function PriceHistoryDropdown({ className, raiseHistory }: Props) {
     const [historyOpen, setHistoryOpen] = useState(false)
-    const [history] = useLocalStorage<PriceQueryParams[]>('price-query-history', [])
+    const [history] = useLocalStorage<PriceQueryParams[]>(LocalStorageKeys.PriceQueryHistory, [])
     useEffect(() => {
         if (historyOpen) {
             umami.track('open-price-history', { 'history-count': history.length })
