@@ -217,21 +217,3 @@ export const formatExchangeName = (exchange: string): string => {
     }
     return exchange
 }
-
-export const umamiTrack = (eventName: string, data?: any) => {
-    const body = {
-        type: 'event',
-        payload: {
-            website: process.env.UMAMI_KEY,
-            hostname: window.location.host,
-            screen: '3440x1440',
-            language: 'en-AU',
-            title: 'Coin Stacker',
-            url: '/',
-            referrer: 'http://localhost:3000/',
-            name: eventName,
-            data,
-        },
-    }
-    fetch('/api/beep', { method: 'POST', body: JSON.stringify(body) })
-}

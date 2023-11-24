@@ -72,7 +72,10 @@ const NavBar = () => {
                                             ? 'text-primary font-semibold'
                                             : 'text-muted-foreground'
                                     )}
-                                    onClick={() => setSheetOpen(false)}
+                                    onClick={() => {
+                                        setSheetOpen(false)
+                                        umami.track('nav-' + item.href)
+                                    }}
                                 >
                                     {item.icon}
                                     {item.title}
@@ -82,7 +85,7 @@ const NavBar = () => {
                     </SheetContent>
                 </Sheet>
             </div>
-            <Link href={'/'} className={'ml-auto flex items-center gap-2 sm:ml-0'}>
+            <Link href={'/'} className={'ml-auto flex items-center gap-2 sm:ml-0'} onClick={() => umami.track('nav-/')}>
                 <Image src={'/coinstacker-logo.png'} alt={'coinstacker-logo'} width={40} height={24} />
                 <span className="self-center whitespace-nowrap text-2xl font-semibold dark:text-white">
                     CoinStacker
@@ -100,6 +103,7 @@ const NavBar = () => {
                                     ? 'text-primary font-semibold'
                                     : 'text-muted-foreground hover:text-secondary-foreground    '
                             )}
+                            onClick={() => umami.track('nav-' + item.href)}
                         >
                             {item.title}
                         </Link>
