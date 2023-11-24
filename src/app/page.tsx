@@ -3,7 +3,7 @@ import ClientOnly from '@/components/ClientOnly'
 
 export default function HomePage() {
     return (
-        <main className="flex min-h-[100svh] flex-col items-center justify-start bg-gradient-to-b from-slate-50 to-slate-100 p-2 dark:from-slate-900 dark:to-slate-950 sm:p-4">
+        <main className="flex flex-col items-center justify-start px-2 sm:px-4">
             <div className={'mt-5 select-none sm:mt-12'}>
                 <h3 className="text-center text-5xl font-bold">
                     <span className={'text-2xl'}>🇦🇺 </span>Crypto Price Aggregator

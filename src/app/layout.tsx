@@ -37,7 +37,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <html lang="en" suppressHydrationWarning>
             <Script async src="/api/beep" data-website-id={process.env.UMAMI_KEY} />
             <body className={`font-sans ${inter.variable}`}>
-                <main id="main">
+                <main
+                    id="main"
+                    className={
+                        'min-h-[100svh] bg-gradient-to-b from-slate-50 to-slate-100 p-2 dark:from-slate-900 dark:to-slate-950'
+                    }
+                >
                     <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
                         <NavBar />
                         {children}
