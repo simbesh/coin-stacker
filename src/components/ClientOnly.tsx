@@ -1,9 +1,9 @@
-"use client"
+'use client'
 
-import {useIsClient} from '@uidotdev/usehooks';
-import { type ReactNode } from 'react';
+import { useIsClient } from '@uidotdev/usehooks'
+import { type ReactNode } from 'react'
 
-const ClientOnly = ({children, placeholder}: { children: ReactNode; placeholder?: ReactNode; }) => {
+const ClientOnly = ({ children, placeholder }: { children: ReactNode; placeholder?: ReactNode }) => {
     const isClient = useIsClient()
 
     if (!isClient) {
@@ -13,4 +13,4 @@ const ClientOnly = ({children, placeholder}: { children: ReactNode; placeholder?
     return children
 }
 
-export default ClientOnly;
+export default ClientOnly

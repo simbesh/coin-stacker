@@ -1,6 +1,5 @@
 import React from 'react'
 import { cn } from '@/lib/utils'
-import { GeistSans } from 'geist/font/sans'
 
 const SplashScreen = ({ isLoading }: { isLoading: boolean }) => {
     return (
@@ -11,7 +10,7 @@ const SplashScreen = ({ isLoading }: { isLoading: boolean }) => {
                 isLoading ? 'z-50 opacity-100' : 'z-[-10] opacity-0'
             )}
         >
-                <img src={'/coinstacker-logo-256.png'} className={'m-auto'} alt={'coinstacker-logo'} />
+            <img src={'/coinstacker-logo-256.png'} className={'animate-breathe m-auto'} alt={'coinstacker-logo'} />
         </div>
     )
 }
