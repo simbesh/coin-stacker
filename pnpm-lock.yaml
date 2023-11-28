@@ -39,8 +39,8 @@ dependencies:
     specifier: ^1.1.1
     version: 1.1.1
   ccxt:
-    specifier: ^4.1.63
-    version: 4.1.63
+    specifier: ^4.1.67
+    version: 4.1.67
   class-variance-authority:
     specifier: ^0.7.0
     version: 0.7.0
@@ -1614,8 +1614,8 @@ packages:
   /caniuse-lite@1.0.30001561:
     resolution: {integrity: sha512-NTt0DNoKe958Q0BE0j0c1V9jbUzhBxHIEJy7asmGrpE0yG63KTV7PLHPnK2E1O9RsQrQ081I3NLuXGS6zht3cw==}
 
-  /ccxt@4.1.63:
-    resolution: {integrity: sha512-rd/a9SkLkRR/JgRGvK+ASBRPMXGydmCmM39IYl3oim1DQU91XFtoKQLhH/EBBi+UAcUQSxIN6R4myX9GZGOsJw==}
+  /ccxt@4.1.67:
+    resolution: {integrity: sha512-YiwlQtiXnCd11Knn2LNkaOQf/DXbyARAHnONEnLBVRSCqkn+bysBjTecHTGVowkV3AtKKp+zsWCcD4s8E6rcVg==}
     engines: {node: '>=15.0.0'}
     requiresBuild: true
     dependencies:
