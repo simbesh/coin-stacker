@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/button'
 import { useWindowScroll } from '@uidotdev/usehooks'
 import { cn } from '@/lib/utils'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
+import GeneralSettings from '@/components/GeneralSettings'
+import ClientOnly from '@/components/ClientOnly'
 
 const items = [
     {
@@ -114,7 +116,10 @@ const NavBar = () => {
                     ))}
                 </div>
             </div>
-            <div className={'ml-auto sm:ml-0'}>
+            <div className={'ml-auto flex gap-2 sm:ml-0'}>
+                <ClientOnly>
+                    <GeneralSettings />
+                </ClientOnly>
                 <ThemeToggle />
             </div>
         </nav>

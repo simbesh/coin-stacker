@@ -102,6 +102,19 @@ const br = [
     [5_000_000, 0.07],
     [10_000_000, 0.05],
 ]
+const sx = [
+    [0, 0.6],
+    [100_000, 0.55],
+    [300_000, 0.5],
+    [400_000, 0.45],
+    [500_000, 0.4],
+    [1_000_000, 0.35],
+    [3_000_000, 0.3],
+    [4_000_000, 0.25],
+    [5_000_000, 0.2],
+    [6_000_000, 0.1],
+]
+
 function fillDataPoints(dataMap: Record<string, Record<string, number>>, data: number[][], key: string) {
     for (let i of data) {
         if (i[0] !== undefined && i[1] !== undefined) {
@@ -120,6 +133,7 @@ fillDataPoints(dataMap, cs, 'CoinSpot')
 fillDataPoints(dataMap, kr, 'Kraken')
 fillDataPoints(dataMap, ln, 'Luno')
 fillDataPoints(dataMap, br, 'Bitaroo')
+fillDataPoints(dataMap, sx, 'Swyftx')
 
 let data: any[] = []
 let prev: any
@@ -142,6 +156,7 @@ const labels = [
     },
     { key: 'Luno', colour: '#2639f2', gradientKey: 'luno-gradient', gradientStop: '65%', strokeDasharray: '15 30' },
     { key: 'Bitaroo', colour: '#f6740e', gradientKey: 'bitaroo-gradient', gradientStop: '65%' },
+    { key: 'Swyftx', colour: '#7b7b7b', gradientKey: 'swyftx-gradient', gradientStop: '35%' },
 ]
 
 Object.keys(dataMap)

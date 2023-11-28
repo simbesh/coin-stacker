@@ -1,4 +1,3 @@
-
 export const FAVICON_URL = 'https://www.google.com/s2/favicons?sz=64&domain='
 export const EXCHANGE_URLS: Record<string, string> = {
     binance: 'https://www.binance.com',
@@ -12,6 +11,7 @@ export const EXCHANGE_URLS: Record<string, string> = {
     kraken: 'https://www.kraken.com',
     liquid: 'https://www.liquid.com',
     luno: 'https://www.luno.com',
+    swyftx: 'https://www.swyftx.com',
 }
 const ALT_EXCHANGE_URLS: Record<string, string> = {
     coinjar: 'https://exchange.coinjar.com/assets/favicons/favicon.ico',

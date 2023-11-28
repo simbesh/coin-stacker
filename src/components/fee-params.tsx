@@ -18,6 +18,22 @@ import ExchangeIcon from '@/components/ExchangeIcon'
 export function FeeParams() {
     const [open, setOpen] = useState(false)
     const [fees, setFees] = useLocalStorage<Record<string, number>>(LocalStorageKeys.ExchangeFees, exchangeFees)
+
+    useEffect(() => {
+        if (fees && exchangeFees) {
+            const defaultExchangeKeys = Object.keys(exchangeFees)
+            const currentExchangeKeys = Object.keys(fees)
+            const missingKeys = defaultExchangeKeys.filter((x) => !currentExchangeKeys.includes(x))
+
+            if (missingKeys.length > 0) {
+                setFees((prev) => ({
+                    ...prev,
+                    ...missingKeys.reduce((acc, curr) => ({ ...acc, [curr]: exchangeFees[curr] }), {}),
+                }))
+            }
+        }
+    }, [])
+
     useEffect(() => {
         if (open) {
             umami.track('open-fee-params')

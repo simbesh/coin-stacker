@@ -14,6 +14,13 @@ export interface BrOrderBookResponse {
     sell: BrOrderBookLevel[]
 }
 
+export interface SwOrdersResponse {
+    price: string
+    total: string
+    amount: string
+    feePerUnit: string
+}
+
 interface BrOrderBookLevel {
     price: string
     amount: string

@@ -8,6 +8,7 @@ export const exchanges = [
     'Kraken',
     'Luno',
     'Bitaroo',
+    'Swyftx',
 ]
 export const exchangeConfig: Record<string, Record<string, string[]>> = {
     BTCMarkets: {

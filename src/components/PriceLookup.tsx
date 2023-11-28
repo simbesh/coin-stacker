@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import { Button } from './ui/button'
-import { cn, currencyFormat, exchangeFees, formatExchangeName } from '@/lib/utils'
+import { cn, currencyFormat, defaultEnabledExchanges, exchangeFees, formatExchangeName } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import Coin from '@/components/CoinIcon'
@@ -76,6 +76,10 @@ const PriceLookup = () => {
     const [fees] = useLocalStorage<Record<string, number>>(LocalStorageKeys.ExchangeFees, exchangeFees)
     const [lowestFee, setLowestFee] = useState<number>()
     const [bestAvgPrice, setBestAvgPrice] = useState<number>()
+    const [enabledExchanges] = useLocalStorage<Record<string, boolean>>(
+        LocalStorageKeys.EnabledExchanges,
+        defaultEnabledExchanges
+    )
 
     useEffect(() => {
         if (bests?.length > 0) {
@@ -91,6 +95,7 @@ const PriceLookup = () => {
             }
         }
     }, [bests])
+
     async function getPrices({ side, amount, coin }: PriceQueryParams) {
         if (!amount) {
             return
@@ -133,6 +138,7 @@ const PriceLookup = () => {
                     quote: 'AUD',
                     side,
                     amount: floatAmount,
+                    omitExchanges: Object.keys(enabledExchanges).filter((k) => !enabledExchanges[k]),
                 }),
             })
             const { best } = await prices.json()
@@ -289,8 +295,7 @@ const PriceLookup = () => {
                                         i === 0 ? firstRowCellStyle : ''
                                     )}
                                 >
-                                    <ExchangeIcon exchange={best.exchange} />
-                                    {formatExchangeName(best.exchange)}
+                                    <ExchangeIcon exchange={best.exchange} withLabel />
                                 </TableCell>
                                 <TableCell
                                     className={cn(

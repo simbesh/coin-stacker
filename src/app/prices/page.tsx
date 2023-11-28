@@ -39,9 +39,7 @@ export default function HomePage() {
                             'flex gap-2 border-2 capitalize disabled:opacity-30 disabled:grayscale'
                         )}
                     >
-                        <ExchangeIcon exchange={exchange} />
-
-                        {exchange}
+                        <ExchangeIcon exchange={exchange} withLabel />
                     </Button>
                 ))}
             </div>
