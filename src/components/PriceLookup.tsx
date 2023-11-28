@@ -15,8 +15,9 @@ import { PriceHistoryDropdown } from '@/components/price-history-dropdown'
 import { PriceQueryParams } from '@/types/types'
 import Spinner from '@/components/Spinner'
 import { FeeParams } from '@/components/fee-params'
-import { LocalStorageKeys } from '@/lib/constants'
+import { getExchangeUrl, LocalStorageKeys } from '@/lib/constants'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { ExternalLink } from 'lucide-react'
 
 const markets = ['BTC', 'ETH', 'SOL', 'XRP', 'LTC', 'ADA', 'DOGE']
 
@@ -63,6 +64,7 @@ const headers = [
 ]
 
 const firstRowCellStyle = 'text-green-600 dark:text-green-500'
+const quote = 'AUD'
 
 const PriceLookup = () => {
     const [side, setSide] = useState<'buy' | 'sell'>('buy')
@@ -76,10 +78,7 @@ const PriceLookup = () => {
     const [fees] = useLocalStorage<Record<string, number>>(LocalStorageKeys.ExchangeFees, exchangeFees)
     const [lowestFee, setLowestFee] = useState<number>()
     const [bestAvgPrice, setBestAvgPrice] = useState<number>()
-    const [enabledExchanges] = useLocalStorage<Record<string, boolean>>(
-        LocalStorageKeys.EnabledExchanges,
-        defaultEnabledExchanges
-    )
+    const [enabledExchanges] = useLocalStorage<string[]>(LocalStorageKeys.EnabledExchanges, defaultEnabledExchanges)
 
     useEffect(() => {
         if (bests?.length > 0) {
@@ -135,10 +134,10 @@ const PriceLookup = () => {
                 body: JSON.stringify({
                     fees,
                     base: coin,
-                    quote: 'AUD',
+                    quote,
                     side,
                     amount: floatAmount,
-                    omitExchanges: Object.keys(enabledExchanges).filter((k) => !enabledExchanges[k]),
+                    omitExchanges: defaultEnabledExchanges.filter((e) => !enabledExchanges.includes(e)),
                 }),
             })
             const { best } = await prices.json()
@@ -243,7 +242,7 @@ const PriceLookup = () => {
                         <SelectContent>
                             <SelectGroup>
                                 {markets.map((market) => (
-                                    <SelectItem value={market}>
+                                    <SelectItem value={market} key={'select-option-' + market}>
                                         <div className={'flex items-center gap-2 text-lg font-semibold'}>
                                             <Coin symbol={market} />
                                             {market}
@@ -288,14 +287,26 @@ const PriceLookup = () => {
                     </TableHeader>
                     <TableBody className={cn('font-semibold', isLoading && 'opacity-40')}>
                         {bests.map((best, i) => (
-                            <TableRow key={best.exchange} className={cn(i === 0 && 'border-2 border-green-500')}>
+                            <TableRow
+                                key={best.exchange + '_' + i}
+                                className={cn(i === 0 && 'border-2 border-green-500')}
+                            >
                                 <TableCell
                                     className={cn(
-                                        'mr-2 flex items-center justify-start gap-2 whitespace-nowrap text-left',
+                                        'mr-2 flex h-full w-full items-center justify-start gap-2 whitespace-nowrap p-0 text-left sm:p-0',
                                         i === 0 ? firstRowCellStyle : ''
                                     )}
                                 >
-                                    <ExchangeIcon exchange={best.exchange} withLabel />
+                                    <a
+                                        href={getExchangeUrl(best.exchange, coin, quote)}
+                                        target={'_blank'}
+                                        className={
+                                            'flex h-full w-full items-center justify-start gap-2 p-2 hover:underline sm:p-4'
+                                        }
+                                    >
+                                        <ExchangeIcon exchange={best.exchange} withLabel />
+                                        <ExternalLink className={'h-4 min-h-[1rem] w-4 min-w-[1rem]'} />
+                                    </a>
                                 </TableCell>
                                 <TableCell
                                     className={cn(
