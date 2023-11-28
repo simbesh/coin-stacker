@@ -1,14 +1,20 @@
 import React from 'react'
 import { getExchangeLogo } from '@/exchange-config'
-import { cn } from '@/lib/utils'
+import { cn, formatExchangeName } from '@/lib/utils'
 
-const ExchangeIcon = ({ exchange, className }: string | any) => {
+const ExchangeIcon = ({ exchange, withLabel, className }: string | any) => {
+    const invertColour = {
+        'invert-0 dark:invert': ['swyftx'].includes(exchange),
+    }
     return (
-        <img
-            alt={`exchange logo for ${exchange}`}
-            src={getExchangeLogo(exchange)}
-            className={cn('icon-md my-0.5 items-center rounded-sm', className)}
-        />
+        <>
+            <img
+                alt={`exchange logo for ${exchange}`}
+                src={getExchangeLogo(exchange)}
+                className={cn('icon-md my-0.5 items-center rounded-sm', invertColour, className)}
+            />
+            {withLabel && formatExchangeName(exchange)}
+        </>
     )
 }
 

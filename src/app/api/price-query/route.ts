@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { btcmarkets, Exchange, independentreserve, kraken, luno } from 'ccxt'
 import { getBestAsks, getBestBids, parseBrOrderBook, parseCjOrderBook, parseCsOrderBook } from '@/lib/utils'
-import { BrOrderBookResponse, CjOrderBookResponse, CsOrderBookResponse } from '@/types/types'
+import { BrOrderBookResponse, CjOrderBookResponse, CsOrderBookResponse, SwOrdersResponse } from '@/types/types'
 
 const fetcher = (...args: Parameters<typeof fetch>) => fetch(...args)
 
@@ -49,20 +49,70 @@ const getBitarooOrderBook = async (base: string, quote: string) => {
     return parseBrOrderBook(json)
 }
 
+const getSwyftxMockOrderBook = async (base: string, quote: string, side?: string, amount?: string, fee?: number) => {
+    if (fee !== undefined) {
+        let res = await fetch(`https://api.swyftx.com.au/orders/rate/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: 'Bearer ' + process.env.SWYFTX_API_KEY,
+                'user-agent':
+                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+            },
+            body: JSON.stringify({
+                buy: side === 'buy' ? base : quote,
+                sell: side === 'buy' ? quote : base,
+                amount,
+                limit: base,
+            }),
+        })
+
+        const json: SwOrdersResponse = await res.json()
+        if (side === 'buy') {
+            return {
+                asks: [[parseFloat(json.price), parseFloat(json.amount)]],
+            }
+        } else {
+            return {
+                bids: [[(parseFloat(json.amount) / parseFloat(json.total)) * (1 + fee), parseFloat(json.total)]],
+            }
+        }
+    }
+}
+
+const exchangesMethods: Record<
+    string,
+    (base: string, quote: string, side?: string, amount?: string, fee?: number) => Promise<any>
+> = {
+    btcmarkets: getBTCMarketsOrderBook,
+    independentreserve: getIndependentReserveOrderBook,
+    kraken: getKrakenOrderBook,
+    luno: getLunoOrderBook,
+    coinspot: getCoinSpotOrderBook,
+    coinjar: getCoinJarOrderBook,
+    bitaroo: getBitarooOrderBook,
+    swyftx: getSwyftxMockOrderBook,
+}
+
 export async function POST(request: Request): Promise<NextResponse<any>> {
-    const { fees, base, quote, side, amount } = await request.json()
+    const { fees, base, quote, side, amount, omitExchanges } = await request.json()
     let best
     if (base && quote && amount && side) {
-        let exchanges = ['btcmarkets', 'independentreserve', 'kraken', 'luno', 'coinspot', 'coinjar', 'bitaroo']
-        let promises = [
-            getBTCMarketsOrderBook(base, quote),
-            getIndependentReserveOrderBook(base, quote),
-            getKrakenOrderBook(base, quote),
-            getLunoOrderBook(base, quote),
-            getCoinSpotOrderBook(base, quote),
-            getCoinJarOrderBook(base, quote),
-            getBitarooOrderBook(base, quote),
+        const supportedExchanges = [
+            'btcmarkets',
+            'independentreserve',
+            'kraken',
+            'luno',
+            'coinspot',
+            'coinjar',
+            'bitaroo',
+            'swyftx',
         ]
+        const exchanges = supportedExchanges.filter((e) => !omitExchanges.includes(e))
+        let promises: any[] = []
+        exchanges.forEach((exchange) => {
+            promises.push(exchangesMethods[exchange]?.(base, quote, side, amount, fees[exchange]))
+        })
 
         const orderbooks: Record<string, { value?: any; error?: any }> = {}
         let results: PromiseSettledResult<string>[] = await Promise.allSettled(promises)
@@ -86,7 +136,6 @@ export async function POST(request: Request): Promise<NextResponse<any>> {
                 ? getBestAsks(orderbooks, parseFloat(amount), fees)
                 : getBestBids(orderbooks, parseFloat(amount), fees)
     }
-    6
 
     return NextResponse.json({ best })
 }

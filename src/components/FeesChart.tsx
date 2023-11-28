@@ -2,8 +2,10 @@
 
 import React, { useEffect, useState } from 'react'
 import { Area, AreaChart, Brush, Legend, ResponsiveContainer, Tooltip, TooltipProps, XAxis, YAxis } from 'recharts'
-import { cn, currencyFormat } from '@/lib/utils'
+import { cn, currencyFormat, defaultEnabledExchanges } from '@/lib/utils'
 import { useTheme } from 'next-themes'
+import { useLocalStorage } from '@uidotdev/usehooks'
+import { LocalStorageKeys } from '@/lib/constants'
 
 const strokeWidth = 1.5
 let ir = [
@@ -102,6 +104,19 @@ const br = [
     [5_000_000, 0.07],
     [10_000_000, 0.05],
 ]
+const sx = [
+    [0, 0.6],
+    [100_000, 0.55],
+    [300_000, 0.5],
+    [400_000, 0.45],
+    [500_000, 0.4],
+    [1_000_000, 0.35],
+    [3_000_000, 0.3],
+    [4_000_000, 0.25],
+    [5_000_000, 0.2],
+    [6_000_000, 0.1],
+]
+
 function fillDataPoints(dataMap: Record<string, Record<string, number>>, data: number[][], key: string) {
     for (let i of data) {
         if (i[0] !== undefined && i[1] !== undefined) {
@@ -120,28 +135,51 @@ fillDataPoints(dataMap, cs, 'CoinSpot')
 fillDataPoints(dataMap, kr, 'Kraken')
 fillDataPoints(dataMap, ln, 'Luno')
 fillDataPoints(dataMap, br, 'Bitaroo')
+fillDataPoints(dataMap, sx, 'Swyftx')
 
 let data: any[] = []
 let prev: any
-const labels = [
-    { key: 'BtcMarkets', colour: '#51e491', gradientKey: 'btcmarkets-gradient', gradientStop: '35%' },
-    { key: 'IndepRes', colour: '#4974ff', gradientKey: 'independentreserve-gradient', gradientStop: '35%' },
-    { key: 'Kraken', colour: '#9482ff', gradientKey: 'kraken-gradient', gradientStop: '35%' },
+const allLabels = [
     {
+        exchange: 'btcmarkets',
+        key: 'BtcMarkets',
+        colour: '#51e491',
+        gradientKey: 'btcmarkets-gradient',
+        gradientStop: '35%',
+    },
+    {
+        exchange: 'independentreserve',
+        key: 'IndepRes',
+        colour: '#4974ff',
+        gradientKey: 'independentreserve-gradient',
+        gradientStop: '35%',
+    },
+    { exchange: 'kraken', key: 'Kraken', colour: '#9482ff', gradientKey: 'kraken-gradient', gradientStop: '35%' },
+    {
+        exchange: 'coinjar',
         key: 'CoinJar',
         colour: '#ff9719',
         gradientKey: 'coinjar-gradient',
         gradientStop: '35%',
     },
     {
+        exchange: 'coinspot',
         key: 'CoinSpot',
         colour: '#ec4f4f',
         gradientKey: 'coinspot-gradient',
         gradientStop: '65%',
         strokeDasharray: '30 15',
     },
-    { key: 'Luno', colour: '#2639f2', gradientKey: 'luno-gradient', gradientStop: '65%', strokeDasharray: '15 30' },
-    { key: 'Bitaroo', colour: '#f6740e', gradientKey: 'bitaroo-gradient', gradientStop: '65%' },
+    {
+        exchange: 'luno',
+        key: 'Luno',
+        colour: '#2639f2',
+        gradientKey: 'luno-gradient',
+        gradientStop: '65%',
+        strokeDasharray: '15 30',
+    },
+    { exchange: 'bitaroo', key: 'Bitaroo', colour: '#f6740e', gradientKey: 'bitaroo-gradient', gradientStop: '65%' },
+    { exchange: 'swyftx', key: 'Swyftx', colour: '#7b7b7b', gradientKey: 'swyftx-gradient', gradientStop: '35%' },
 ]
 
 Object.keys(dataMap)
@@ -164,10 +202,11 @@ Object.keys(dataMap)
         }
     })
 
-const selectOptions = data.map((x) => ({ label: x.name, value: x.value.toString() }))
 const allData = data
 const axisStoke = '#4d5784'
 const FeesChart = () => {
+    const [labels, setLabels] = useState(allLabels)
+    const [enabledExchanges] = useLocalStorage<string[]>(LocalStorageKeys.EnabledExchanges, defaultEnabledExchanges)
     const [seriesProps, setSeriesProps] = useState<Record<string, string | undefined | boolean>>(
         labels.reduce(
             (a: Record<string, undefined>, { key }: { key: string }) => {
@@ -177,6 +216,11 @@ const FeesChart = () => {
             { hover: undefined }
         )
     )
+    useEffect(() => {
+        if (enabledExchanges) {
+            setLabels(allLabels.filter((label) => enabledExchanges.includes(label.exchange)))
+        }
+    }, [enabledExchanges])
 
     const handleLegendMouseEnter = (e: any) => {
         navigator.vibrate(75)

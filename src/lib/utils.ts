@@ -14,6 +14,7 @@ const formattedExchangeNames: Record<string, string> = {
     coinspot: 'CoinSpot',
     coinjar: 'CoinJar',
     bitaroo: 'Bitaroo',
+    swyftx: 'Swyftx',
 }
 
 export const exchangeFees: Record<string, number> = {
@@ -24,7 +25,18 @@ export const exchangeFees: Record<string, number> = {
     coinspot: 0.001,
     coinjar: 0.001,
     bitaroo: 0.0019,
+    swyftx: 0.006,
 }
+export const defaultEnabledExchanges: string[] = [
+    'btcmarkets',
+    'independentreserve',
+    'kraken',
+    'luno',
+    'coinspot',
+    'coinjar',
+    'bitaroo',
+    'swyftx',
+]
 
 export function currencyFormat(num: number, currencyCode: string = 'AUD', digits: number = 2): string {
     const options = {

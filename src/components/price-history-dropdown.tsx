@@ -35,7 +35,7 @@ export function PriceHistoryDropdown({ className, raiseHistory }: Props) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className={'w-full'}>
                 {history.map((x) => (
-                    <DropdownMenuItem onClick={() => raiseHistory(x)}>
+                    <DropdownMenuItem onClick={() => raiseHistory(x)} key={`${x.side}${x.amount}${x.coin}`}>
                         <div className={'flex w-full items-center justify-center gap-2'}>
                             <div
                                 className={cn(

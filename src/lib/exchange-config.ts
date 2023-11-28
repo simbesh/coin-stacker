@@ -4,10 +4,10 @@ export const exchanges = [
     // "Binance",
     'CoinJar',
     'CoinSpot',
-    // "Swyftx",
     'Kraken',
     'Luno',
     'Bitaroo',
+    'Swyftx',
 ]
 export const exchangeConfig: Record<string, Record<string, string[]>> = {
     BTCMarkets: {
@@ -28,12 +28,6 @@ export const exchangeConfig: Record<string, Record<string, string[]>> = {
     CoinSpot: {
         markets: ['BTC/AUD', 'ETH/AUD', 'XRP/AUD', 'LTC/AUD', 'ADA/AUD', 'DOGE/AUD'],
     },
-    // "Swyftx": {
-    //     markets: [
-    //         "BTC/AUD",
-    //         "ETH/AUD"
-    //     ]
-    // }
     Kraken: {
         markets: ['BTC/AUD', 'ETH/AUD', 'XRP/AUD', 'LTC/AUD'],
     },
