@@ -6,12 +6,11 @@ import { Settings } from 'lucide-react'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { useLocalStorage } from '@uidotdev/usehooks'
 import { LocalStorageKeys } from '@/lib/constants'
-import { cn, defaultEnabledExchanges, exchangeFees } from '@/lib/utils'
+import { cn, defaultEnabledExchanges } from '@/lib/utils'
 import ExchangeIcon from '@/components/ExchangeIcon'
 import { Separator } from '@/components/ui/separator'
 
 const GeneralSettings = () => {
-    const [fees, setFees] = useLocalStorage<Record<string, number>>(LocalStorageKeys.ExchangeFees, exchangeFees)
     const [enabledExchanges, setEnabledExchanges] = useLocalStorage<string[]>(
         LocalStorageKeys.EnabledExchanges,
         defaultEnabledExchanges

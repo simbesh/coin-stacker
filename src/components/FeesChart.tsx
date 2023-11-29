@@ -1,9 +1,8 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { Area, AreaChart, Brush, Legend, ResponsiveContainer, Tooltip, TooltipProps, XAxis, YAxis } from 'recharts'
 import { cn, currencyFormat, defaultEnabledExchanges } from '@/lib/utils'
-import { useTheme } from 'next-themes'
 import { useLocalStorage } from '@uidotdev/usehooks'
 import { LocalStorageKeys } from '@/lib/constants'
 
@@ -127,6 +126,7 @@ function fillDataPoints(dataMap: Record<string, Record<string, number>>, data: n
         }
     }
 }
+
 let dataMap: Record<string, Record<string, number>> = {}
 fillDataPoints(dataMap, ir, 'IndepRes')
 fillDataPoints(dataMap, btcm, 'BtcMarkets')
@@ -216,11 +216,6 @@ const FeesChart = () => {
             { hover: undefined }
         )
     )
-    useEffect(() => {
-        if (enabledExchanges) {
-            setLabels(allLabels.filter((label) => enabledExchanges.includes(label.exchange)))
-        }
-    }, [enabledExchanges])
 
     const handleLegendMouseEnter = (e: any) => {
         navigator.vibrate(75)
@@ -310,21 +305,24 @@ const FeesChart = () => {
                             borderRadius: '10px',
                         }}
                     />
-
-                    {labels.map(({ colour, gradientKey, key, strokeDasharray }) => (
-                        <Area
-                            connectNulls
-                            dot={false}
-                            strokeWidth={strokeWidth}
-                            type="stepAfter"
-                            dataKey={key}
-                            stroke={colour}
-                            fill={`url(#${gradientKey})`}
-                            hide={seriesProps[key] === true}
-                            fillOpacity={Number(seriesProps.hover === key || !seriesProps.hover ? 0.65 : 0.05)}
-                            strokeOpacity={Number(seriesProps.hover === key || !seriesProps.hover ? 1 : 0.3)}
-                            strokeDasharray={strokeDasharray}
-                        />
+                    {labels.map(({ colour, gradientKey, key, strokeDasharray, exchange }) => (
+                        <>
+                            {enabledExchanges.includes(exchange) && (
+                                <Area
+                                    connectNulls
+                                    dot={false}
+                                    strokeWidth={strokeWidth}
+                                    type="stepAfter"
+                                    dataKey={key}
+                                    stroke={colour}
+                                    fill={`url(#${gradientKey})`}
+                                    hide={seriesProps[key] === true}
+                                    fillOpacity={Number(seriesProps.hover === key || !seriesProps.hover ? 0.65 : 0.05)}
+                                    strokeOpacity={Number(seriesProps.hover === key || !seriesProps.hover ? 1 : 0.3)}
+                                    strokeDasharray={strokeDasharray}
+                                />
+                            )}
+                        </>
                     ))}
                     <Brush
                         fill={'transparent'}
