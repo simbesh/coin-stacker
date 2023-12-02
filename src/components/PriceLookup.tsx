@@ -15,11 +15,50 @@ import { PriceHistoryDropdown } from '@/components/price-history-dropdown'
 import { PriceQueryParams } from '@/types/types'
 import Spinner from '@/components/Spinner'
 import { FeeParams } from '@/components/fee-params'
-import { getExchangeUrl, LocalStorageKeys } from '@/lib/constants'
+import { tradeUrl, LocalStorageKeys } from '@/lib/constants'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { ExternalLink } from 'lucide-react'
+import { CornerLeftUp, ExternalLink } from 'lucide-react'
+import { Combobox } from '@/components/Combobox'
 
-const markets = ['BTC', 'ETH', 'SOL', 'XRP', 'LTC', 'ADA', 'DOGE']
+const markets = [
+    'BTC',
+    'ETH',
+    'SOL',
+    'XRP',
+    'ADA',
+    'LTC',
+    'DOGE',
+    ...[
+        'USDT',
+        'LINK',
+        'USDC',
+        'AAVE',
+        'BAT',
+        'BCH',
+        'COMP',
+        'DOT',
+        'SAND',
+        'UNI',
+        'XLM',
+        'EOS',
+        'MATIC',
+        'ALGO',
+        'AVAX',
+        'ENJ',
+        'ETC',
+        'MANA',
+        'OMG',
+        'POWR',
+        'DAI',
+        'GRT',
+        'MKR',
+        'SNX',
+        'YFI',
+        'ZRX',
+        'EUR',
+        'XTZ',
+    ].sort(),
+]
 
 type PriceQueryResult = {
     exchange: string
@@ -184,11 +223,17 @@ const PriceLookup = () => {
         }
     }
 
+    const [markets2, setMarkets2] = useState([])
+    const handleGetMarkets = () => {
+        fetch('api/test')
+            .then((x) => x.json())
+            .then(setMarkets2)
+    }
     return (
-        <div className={'mb-16 flex w-full flex-col items-center justify-center'}>
+        <div className={'mb-40 flex w-full flex-col items-center justify-center'}>
             <Card
                 className={
-                    'relative mt-8 flex w-full max-w-2xl select-none flex-col items-center justify-center gap-4 border py-8 text-xl font-bold sm:mt-20'
+                    'relative mt-8 flex w-full max-w-2xl select-none flex-col items-center justify-center gap-4 border py-8 text-lg font-bold sm:mt-20'
                 }
             >
                 <PriceHistoryDropdown
@@ -208,7 +253,7 @@ const PriceLookup = () => {
                         className={cn(
                             side === 'buy'
                                 ? 'bg-green-200 text-green-700 hover:bg-green-200 dark:bg-green-900 dark:text-green-300'
-                                : 'border hover:border-green-500 hover:text-green-500',
+                                : 'bg-card border text-slate-400 hover:border-green-500 hover:text-green-500 dark:text-slate-600 hover:dark:text-green-500',
                             'w-24 rounded-r-none text-lg '
                         )}
                         onClick={() => setSide('buy')}
@@ -220,7 +265,7 @@ const PriceLookup = () => {
                         className={cn(
                             side === 'sell'
                                 ? 'bg-red-200 text-red-700 hover:bg-red-200 dark:bg-red-900 dark:text-red-300'
-                                : 'border hover:border-red-500 hover:text-red-500',
+                                : 'bg-card border text-slate-400 hover:border-red-500 hover:text-red-500 dark:text-slate-600 hover:dark:text-red-500',
                             'w-24 rounded-l-none text-lg'
                         )}
                         onClick={() => setSide('sell')}
@@ -235,36 +280,35 @@ const PriceLookup = () => {
                         type={'number'}
                         className={'w-40 text-right text-lg ring-0 focus-visible:ring-0'}
                     />
-                    <Select onValueChange={setCoin} value={coin}>
-                        <SelectTrigger id="volumeFrom" className="w-[160px] text-lg">
-                            <SelectValue placeholder="Coin" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectGroup>
-                                {markets.map((market) => (
-                                    <SelectItem value={market} key={'select-option-' + market}>
-                                        <div className={'flex items-center gap-2 text-lg font-semibold'}>
-                                            <Coin symbol={market} />
-                                            {market}
-                                        </div>
-                                    </SelectItem>
-                                ))}
-                            </SelectGroup>
-                        </SelectContent>
-                    </Select>
+                    <Combobox
+                        className={'bg-card w-[160px]'}
+                        optionType={'Coin'}
+                        value={coin}
+                        setValue={setCoin}
+                        options={markets.map((market) => ({
+                            value: market,
+                            label: (
+                                <div className={'flex items-center gap-2 text-lg font-semibold'}>
+                                    <Coin symbol={market} />
+                                    {market}
+                                </div>
+                            ),
+                        }))}
+                    />
                 </div>
                 <div className={'flex w-full justify-center'}>
                     <Button
                         variant={'default'}
-                        className={'mx-2 mt-4 w-full rounded-lg text-base text-black sm:mx-4 sm:w-28'}
+                        className={'mx-4 mt-4 w-full rounded-lg text-base text-black sm:w-44'}
                         onClick={() => getPrices({ side, amount, coin })}
                         disabled={!side || !amount || !coin || isLoading}
+                        isLoading={isLoading}
                     >
-                        {isLoading ? <Spinner /> : <>{'Find'}</>}
+                        Search
                     </Button>
                 </div>
             </Card>
-            <Card className={'relative mb-20 mt-10 w-full max-w-4xl sm:my-10'}>
+            <Card className={'relative !mb-0 mt-10 w-full max-w-4xl sm:my-10'}>
                 {isLoading && bests.length > 0 && (
                     <div className="absolute inset-0 z-50 bg-slate-300/30 dark:bg-slate-700/30">
                         <div className="flex h-full w-full items-center justify-center">
@@ -298,10 +342,10 @@ const PriceLookup = () => {
                                     )}
                                 >
                                     <a
-                                        href={getExchangeUrl(best.exchange, coin, quote)}
+                                        href={tradeUrl(best.exchange, coin, quote)}
                                         target={'_blank'}
                                         className={
-                                            'flex h-full w-full items-center justify-start gap-2 p-2 hover:underline sm:p-4'
+                                            'flex h-full w-full items-center justify-start gap-1 p-2 hover:underline sm:gap-2 sm:p-4'
                                         }
                                     >
                                         <ExchangeIcon exchange={best.exchange} withLabel />
@@ -347,6 +391,25 @@ const PriceLookup = () => {
                     </TableBody>
                 </Table>
             </Card>
+            {bests.length > 0 && (
+                <div className={'w-full max-w-4xl px-4 text-sm leading-4 text-slate-400 dark:text-slate-600'}>
+                    <span className={'mt-2 flex items-start justify-start gap-1'}>
+                        <CornerLeftUp className={'h-4 w-4'} />
+                        Want to support CoinStacker?
+                    </span>
+                    <span className={'flex justify-start gap-2'}>
+                        Sign up to a new exchange using the referral links above.
+                    </span>
+                    <a
+                        className={
+                            'flex justify-start gap-2 text-slate-400 underline underline-offset-4 dark:text-slate-600'
+                        }
+                        href={'https://www.buymeacoffee.com/simonbechard'}
+                    >
+                        or buy us a coffee!
+                    </a>
+                </div>
+            )}
         </div>
     )
 }

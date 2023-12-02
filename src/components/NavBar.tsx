@@ -5,13 +5,15 @@ import { useSelectedLayoutSegment } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { ThemeToggle } from '@/components/theme-toggle'
-import { BookOpenText, Home, LineChart, Menu } from 'lucide-react'
+import { BookOpenText, Home, LineChart, Menu, Send } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useWindowScroll } from '@uidotdev/usehooks'
 import { cn } from '@/lib/utils'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import GeneralSettings from '@/components/GeneralSettings'
 import ClientOnly from '@/components/ClientOnly'
+import { adaptForAppRouterInstance } from 'next/dist/shared/lib/router/adapters'
+import Feedback from '@/components/Feedback'
 
 const items = [
     {
@@ -42,6 +44,7 @@ const NavBar = () => {
     const activeSegment = useSelectedLayoutSegment()
     const [{ y }] = useWindowScroll()
     const [barBg, setBarBg] = useState(defaultNavBackground)
+
     useEffect(() => {
         if (y && y > 56) {
             setBarBg('bg-slate-50 dark:bg-slate-900 drop-shadow-lg')
@@ -116,11 +119,12 @@ const NavBar = () => {
                     ))}
                 </div>
             </div>
-            <div className={'ml-auto flex gap-2 sm:ml-0'}>
+            <div className={'ml-auto flex items-center gap-2 sm:ml-0'}>
+                <Feedback />
                 <ClientOnly>
                     <GeneralSettings />
                 </ClientOnly>
-                <ThemeToggle />
+                <ThemeToggle simple />
             </div>
         </nav>
     )
