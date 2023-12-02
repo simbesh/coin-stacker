@@ -13,11 +13,29 @@ const menuItemStyle = {
     dark: 'text-amber-500 bg-amber-950',
     system: 'text-amber-500 bg-amber-950',
 }
-export function ThemeToggle() {
+export function ThemeToggle({ simple }: { simple?: boolean }) {
     const { theme, setTheme } = useTheme()
 
     if (!theme) {
         return null
+    }
+
+    function toggleTheme() {
+        if (theme === 'light') {
+            setTheme('dark')
+        } else if (theme === 'system' || theme === 'dark') {
+            setTheme('light')
+        }
+    }
+
+    if (simple) {
+        return (
+            <Button className="bg-transparent" variant="ghost" size="icon" onClick={toggleTheme}>
+                <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                <span className="sr-only">Toggle theme</span>
+            </Button>
+        )
     }
 
     return (

@@ -20,6 +20,7 @@ interface Props {
 export function PriceHistoryDropdown({ className, raiseHistory }: Props) {
     const [historyOpen, setHistoryOpen] = useState(false)
     const [history] = useLocalStorage<PriceQueryParams[]>(LocalStorageKeys.PriceQueryHistory, [])
+
     useEffect(() => {
         if (historyOpen) {
             umami.track('open-price-history', { 'history-count': history.length })

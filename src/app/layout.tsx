@@ -14,8 +14,8 @@ const inter = Inter({
 })
 
 export const metadata = {
-    title: 'Coin Stacker',
-    description: 'Stack more coins.',
+    title: 'CoinStacker',
+    description: 'Stack more Coins.',
     icons: {
         icon: [
             {
@@ -43,7 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                         'min-h-[100svh] bg-gradient-to-b from-slate-50 to-slate-100 p-2 dark:from-slate-900 dark:to-slate-950'
                     }
                 >
-                    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+                    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
                         <NavBar />
                         {children}
                         <footer

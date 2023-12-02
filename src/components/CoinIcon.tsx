@@ -8,6 +8,7 @@ import ADA from '@/assets/icons/coins/ada.svg'
 import SOL from 'cryptocurrency-icons/svg/color/sol.svg'
 import XRP from 'cryptocurrency-icons/svg/color/xrp.svg'
 import BNB from 'cryptocurrency-icons/svg/color/bnb.svg'
+import assetsManifest from 'cryptocurrency-icons/manifest.json'
 import generic from 'cryptocurrency-icons/svg/color/generic.svg'
 import { cn } from '@/lib/utils'
 
@@ -29,10 +30,21 @@ const Coin = ({ symbol, className }: string | any) => {
     if (symbol?.includes('/')) {
         symbol = getCoin(symbol)
     }
+    const exists = assetsManifest.find((asset: any) => asset.symbol === symbol)
     return (
         <div className={cn('h-5 w-5', className)}>
             <div className={cn('h-5 w-5', className)}>
-                <Image src={symbolMap[symbol] ?? generic} height={24} width={24} alt={symbol} />
+                {exists ? (
+                    <Image
+                        title={symbol}
+                        src={require(`/node_modules/cryptocurrency-icons/svg/color/${symbol?.toLowerCase()}.svg`)}
+                        height={24}
+                        width={24}
+                        alt={symbol}
+                    />
+                ) : (
+                    <Image src={symbolMap[symbol] ?? generic} height={24} width={24} alt={symbol} />
+                )}
             </div>
         </div>
     )
