@@ -10,21 +10,22 @@ export async function POST(request: Request): Promise<NextResponse<any>> {
     let text = `
 <b>Tite</b>: ${title}
 <b>Email</b>: ${email}
-<b>Message</b>: ${message}
-<b>IP</b>: ${forwarded}`
+<b>Message</b>: ${message}`
 
-    if (forwarded) {
+    if (forwarded?.includes('.')) {
         try {
             const url = `https://api.ipdata.co/${forwarded}?api-key=${process.env.IPDATA_CO_API_KEY}`
             const { ip, city, region, country_name, emoji_flag } = await fetch(url).then((res) => res.json())
             text += `
 ${city} - ${region}
-${emoji_flag} ${country_name}</code>
-<a href="https://tools.keycdn.com/geo?host=${ip}">Geolocation info</a>
+${emoji_flag} ${country_name}
+<a href="https://tools.keycdn.com/geo?host=${ip}">Geolocation info - ${forwarded}</a>
 UA: ${userAgent}`
-        } catch (e) {}
+        } catch (e) {
+            text += `
+<b>IP</b>: ${forwarded}`
+        }
     }
-
     let body = encodeURIComponent(text)
     await fetch(url + body)
     return NextResponse.json({ success: true })
