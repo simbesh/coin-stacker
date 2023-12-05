@@ -7,6 +7,7 @@ import { useTheme } from 'next-themes'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
+import posthog from 'posthog-js'
 
 const menuItemStyle = {
     light: 'text-amber-600 bg-amber-200',
@@ -23,8 +24,10 @@ export function ThemeToggle({ simple }: { simple?: boolean }) {
     function toggleTheme() {
         if (theme === 'light') {
             setTheme('dark')
+            posthog.capture('set-theme', { theme: 'dark' })
         } else if (theme === 'system' || theme === 'dark') {
             setTheme('light')
+            posthog.capture('set-theme', { theme: 'light' })
         }
     }
 

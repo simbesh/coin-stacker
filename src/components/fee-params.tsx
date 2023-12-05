@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input'
 import { LocalStorageKeys } from '@/lib/constants'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import ExchangeIcon from '@/components/ExchangeIcon'
+import posthog from 'posthog-js'
 
 export function FeeParams() {
     const [open, setOpen] = useState(false)
@@ -36,7 +37,7 @@ export function FeeParams() {
 
     useEffect(() => {
         if (open) {
-            umami.track('open-fee-params')
+            posthog.capture('open-config-fees')
         }
     }, [open])
 

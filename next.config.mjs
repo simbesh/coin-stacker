@@ -21,7 +21,15 @@ const config = {
         REPO_LINK: pkg.repo,
         COMMIT_HASH: commitHash,
         COLLECT_API_ENDPOINT: 'api/beep',
-    }
+    },
+    async rewrites() {
+        return [
+            {
+                source: "/send/:path*",
+                destination: "https://app.posthog.com/:path*",
+            },
+        ];
+    },
 };
 
 export default config;

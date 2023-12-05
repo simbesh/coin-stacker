@@ -49,7 +49,7 @@ export const affiliateUrl = (exchange: string, base: string, quote: string) => {
         case 'btcmarkets':
             return `https://app.btcmarkets.net/buy-sell?market=${base}-${quote}`
         case 'independentreserve':
-            return `https://portal.independentreserve.com/buy/${base}`
+            return `https://portal.independentreserve.com/invite/BTMGWY`
         // case "Binance":
         //     return `https://www.binance.com/en/trade/${base}_${quote}`
         case 'coinjar':
