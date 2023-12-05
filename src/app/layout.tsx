@@ -7,6 +7,8 @@ import NavBar from '@/components/NavBar'
 import Script from 'next/script'
 import { Github } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { PHProvider, PostHogPageview } from '@/app/providers'
+import { Suspense } from 'react'
 
 const inter = Inter({
     subsets: ['latin'],
@@ -35,7 +37,6 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
         <html lang="en" suppressHydrationWarning>
-            <Script async src="/api/beep" data-website-id={process.env.UMAMI_KEY} />
             <body className={`font-sans ${inter.variable}`}>
                 <main
                     id="main"
@@ -45,7 +46,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 >
                     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
                         <NavBar />
-                        {children}
+                        <Suspense>
+                            <PostHogPageview />
+                        </Suspense>
+                        <PHProvider>{children}</PHProvider>
                         <footer
                             className={
                                 'fixed bottom-0 flex w-full items-center justify-center gap-4 bg-slate-50 font-mono text-sm text-slate-300 dark:bg-slate-950 dark:text-slate-700 sm:text-base'

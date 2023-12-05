@@ -11,6 +11,7 @@ import { PriceQueryParams } from '@/types/types'
 import Coin from '@/components/CoinIcon'
 import { useState, useEffect } from 'react'
 import { LocalStorageKeys } from '@/lib/constants'
+import posthog from 'posthog-js'
 
 interface Props {
     className?: string
@@ -23,7 +24,7 @@ export function PriceHistoryDropdown({ className, raiseHistory }: Props) {
 
     useEffect(() => {
         if (historyOpen) {
-            umami.track('open-price-history', { 'history-count': history.length })
+            posthog.capture('open-price-history', { 'history-count': history.length })
         }
     }, [historyOpen])
 

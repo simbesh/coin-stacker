@@ -15,6 +15,7 @@ import { Check, CheckCircle, Github, Send } from 'lucide-react'
 import { Textarea } from '@/components/ui/textarea'
 import { Separator } from '@/components/ui/separator'
 import Spinner from '@/components/Spinner'
+import posthog from 'posthog-js'
 
 const Feedback = () => {
     const [isLoading, setIsLoading] = useState(false)
@@ -38,6 +39,7 @@ const Feedback = () => {
     function handleContact(event: FormEvent<HTMLFormElement>) {
         event.preventDefault()
 
+        posthog.capture('submit-feedback', contactFormData)
         setIsLoading(true)
         fetch('api/contact', {
             method: 'POST',
@@ -70,7 +72,11 @@ const Feedback = () => {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant={'ghost'} className={'gap-2 text-base'}>
+                <Button
+                    variant={'ghost'}
+                    className={'gap-2 text-base'}
+                    onClick={() => posthog.capture('open-feedback')}
+                >
                     <Send className={'h-5 w-5'} />
                     <span className={'hidden md:block'}>Feedback</span>
                 </Button>
@@ -97,6 +103,7 @@ const Feedback = () => {
                                         href={'https://github.com/simbesh/coin-stacker/issues/new'}
                                         target={'_blank'}
                                         className={'flex gap-2'}
+                                        onClick={() => posthog.capture('feedback-github-issue')}
                                     >
                                         <Github className={'h-5 w-5'} />
                                         Create Issue
@@ -113,6 +120,7 @@ const Feedback = () => {
                                         href={process.env.NEXT_PUBLIC_TELEGRAM_GROUP_URL}
                                         target={'_blank'}
                                         className={'flex gap-2'}
+                                        onClick={() => posthog.capture('feedback-telegram-group')}
                                     >
                                         <Send className={'h-5 w-5'} />
                                         Open Chat

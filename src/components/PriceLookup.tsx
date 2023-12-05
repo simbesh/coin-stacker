@@ -19,6 +19,7 @@ import { tradeUrl, LocalStorageKeys } from '@/lib/constants'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { CornerLeftUp, ExternalLink } from 'lucide-react'
 import { Combobox } from '@/components/Combobox'
+import posthog from 'posthog-js'
 
 const markets = [
     'BTC',
@@ -146,9 +147,8 @@ const PriceLookup = () => {
             side,
             amount: floatAmount,
             coin,
-            query: `${side}_${floatAmount}_${coin}`,
         }
-        umami.track('price-lookup', data)
+        posthog.capture('price-lookup', data)
 
         function addToHistory(data: PriceQueryParams) {
             const exists = history.find((h) => h.coin === data.coin && h.side === data.side && h.amount && data.amount)
@@ -392,7 +392,7 @@ const PriceLookup = () => {
                 </Table>
             </Card>
             {bests.length > 0 && (
-                <div className={'w-full max-w-4xl px-4 text-sm leading-4 text-slate-400 dark:text-slate-600'}>
+                <div className={'w-full max-w-4xl pl-4 text-sm leading-4 text-slate-400 dark:text-slate-600 sm:pl-12'}>
                     <span className={'mt-2 flex items-start justify-start gap-1'}>
                         <CornerLeftUp className={'h-4 w-4'} />
                         Want to support CoinStacker?
