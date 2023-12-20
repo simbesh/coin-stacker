@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react'
 import { Button } from './ui/button'
 import { cn, currencyFormat, defaultEnabledExchanges, exchangeFees, formatExchangeName } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import Coin from '@/components/CoinIcon'
 import { round } from 'lodash'
 import { useLocalStorage, useWindowScroll } from '@uidotdev/usehooks'
@@ -15,7 +14,7 @@ import { PriceHistoryDropdown } from '@/components/price-history-dropdown'
 import { PriceQueryParams } from '@/types/types'
 import Spinner from '@/components/Spinner'
 import { FeeParams } from '@/components/fee-params'
-import { tradeUrl, LocalStorageKeys } from '@/lib/constants'
+import { tradeUrl, LocalStorageKeys, affiliateUrl } from '@/lib/constants'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { CornerLeftUp, ExternalLink } from 'lucide-react'
 import { Combobox } from '@/components/Combobox'
@@ -179,7 +178,8 @@ const PriceLookup = () => {
                     omitExchanges: defaultEnabledExchanges.filter((e) => !enabledExchanges.includes(e)),
                 }),
             })
-            const { best } = await prices.json()
+            const { best, errors } = await prices.json()
+
             setBests(best)
             setResultInput({ side, amount, coin })
         } catch (e) {}
@@ -342,7 +342,10 @@ const PriceLookup = () => {
                                     )}
                                 >
                                     <a
-                                        href={tradeUrl(best.exchange, coin, quote)}
+                                        href={
+                                            affiliateUrl(best.exchange, coin, quote) ??
+                                            tradeUrl(best.exchange, coin, quote)
+                                        }
                                         target={'_blank'}
                                         className={
                                             'flex h-full w-full items-center justify-start gap-1 p-2 hover:underline sm:gap-2 sm:p-4'

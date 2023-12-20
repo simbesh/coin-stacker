@@ -38,34 +38,36 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     return (
         <html lang="en" suppressHydrationWarning>
             <body className={`font-sans ${inter.variable}`}>
-                <main
-                    id="main"
-                    className={
-                        'min-h-[100svh] bg-gradient-to-b from-slate-50 to-slate-100 p-2 dark:from-slate-900 dark:to-slate-950'
-                    }
-                >
-                    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-                        <NavBar />
-                        <Suspense>
-                            <PostHogPageview />
-                        </Suspense>
-                        <PHProvider>{children}</PHProvider>
-                        <footer
+                <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+                    <NavBar />
+                    <Suspense>
+                        <PostHogPageview />
+                    </Suspense>
+                    <PHProvider>
+                        <main
+                            id="main"
                             className={
-                                'fixed bottom-0 flex w-full items-center justify-center gap-4 bg-slate-50 font-mono text-sm text-slate-300 dark:bg-slate-950 dark:text-slate-700 sm:text-base'
+                                'min-h-[100svh] bg-gradient-to-b from-slate-50 to-slate-100 p-2 dark:from-slate-900 dark:to-slate-950'
                             }
                         >
-                            <div>{'v' + process.env.APP_VERSION}</div>
-                            <div>{process.env.COMMIT_HASH}</div>
-                            <Button variant={'ghost'} size={'icon-sm'}>
-                                <a href={process.env.REPO_LINK}>
-                                    <Github className={'icon-sm'} />
-                                </a>
-                            </Button>
-                        </footer>
-                    </ThemeProvider>
-                    <Analytics />
-                </main>
+                            {children}
+                        </main>
+                    </PHProvider>
+                    <footer
+                        className={
+                            'fixed bottom-0 flex w-full items-center justify-center gap-4 bg-slate-50 font-mono text-sm text-slate-300 dark:bg-slate-950 dark:text-slate-700 sm:text-base'
+                        }
+                    >
+                        <div>{'v' + process.env.APP_VERSION}</div>
+                        <div>{process.env.COMMIT_HASH}</div>
+                        <Button variant={'ghost'} size={'icon-sm'}>
+                            <a href={process.env.REPO_LINK}>
+                                <Github className={'icon-sm'} />
+                            </a>
+                        </Button>
+                    </footer>
+                </ThemeProvider>
+                <Analytics />
             </body>
         </html>
     )

@@ -128,7 +128,7 @@ const Feedback = () => {
                                 </Button>
                             </div>
                             <Separator />
-                            <form className={'mt-4'} onSubmit={handleContact}>
+                            <form className={'mx-2 mt-4'} onSubmit={handleContact}>
                                 <div className="space-y-2">
                                     <div className="grid grid-cols-4 items-center gap-4">
                                         {/*<Label htmlFor="name" className="text-right">*/}
