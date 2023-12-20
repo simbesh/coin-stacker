@@ -8,7 +8,7 @@ export function cn(...inputs: ClassValue[]) {
 
 const formattedExchangeNames: Record<string, string> = {
     btcmarkets: 'BTC Markets',
-    independentreserve: 'Ind Reserve',
+    independentreserve: 'IndepReserv',
     kraken: 'Kraken',
     luno: 'Luno',
     coinspot: 'CoinSpot',

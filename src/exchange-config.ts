@@ -1,5 +1,5 @@
-export const FAVICON_URL = 'https://www.google.com/s2/favicons?sz=64&domain='
-export const EXCHANGE_URLS: Record<string, string> = {
+const FAVICON_URL = 'https://www.google.com/s2/favicons?sz=64&domain='
+const EXCHANGE_URLS: Record<string, string> = {
     binance: 'https://www.binance.com',
     bitaroo: 'https://www.bitaroo.com.au',
     btcmarkets: 'https://www.btcmarkets.net',
@@ -15,14 +15,12 @@ export const EXCHANGE_URLS: Record<string, string> = {
 }
 const ALT_EXCHANGE_URLS: Record<string, string> = {
     coinjar: 'https://exchange.coinjar.com/assets/favicons/favicon.ico',
+    swyftx: 'https://trade.swyftx.com/favicon.ico',
 }
 
 export function getExchangeLogo(name: string) {
     name = name.toLowerCase()
-    if (name === 'coinjar') {
-        return ALT_EXCHANGE_URLS[name]
-    }
-    return FAVICON_URL + EXCHANGE_URLS[name]
+    return ALT_EXCHANGE_URLS[name] ?? FAVICON_URL + EXCHANGE_URLS[name]
 }
 
 export const EXCHANGE_COLOUR: Record<string, string> = {

@@ -45,21 +45,19 @@ export const tradeUrl = (exchange: string, base: string, quote: string) => {
 export const affiliateUrl = (exchange: string, base: string, quote: string) => {
     switch (exchange) {
         case 'coinjar':
-            return `https://exchange.coinjar.com/trade`
+            return `https://cjr.io/ASfU`
         case 'btcmarkets':
             return `https://app.btcmarkets.net/buy-sell?market=${base}-${quote}`
         case 'independentreserve':
             return `https://portal.independentreserve.com/invite/BTMGWY`
         // case "Binance":
         //     return `https://www.binance.com/en/trade/${base}_${quote}`
-        case 'coinjar':
-            return `https://exchange.coinjar.com/trade`
         case 'coinspot':
-            return `https://www.coinspot.com.au/trade/${base}`
+            return `https://www.coinspot.com.au/join/REFJTP345`
         case 'kraken':
             return `https://pro.kraken.com/app/trade/${base}-${quote}`
         case 'luno':
-            return `https://www.luno.com/trade/markets/${base}${quote}`
+            return `https://www.luno.com/invite/EUBQ4W`
         case 'bitaroo':
             return `https://trade.bitaroo.com.au/`
         case 'swyftx':

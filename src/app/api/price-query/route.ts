@@ -96,6 +96,7 @@ const exchangesMethods: Record<
 
 export async function POST(request: Request): Promise<NextResponse<any>> {
     const { fees, base, quote, side, amount, omitExchanges } = await request.json()
+    let errors: Record<string, any>[] = []
     let best
     if (base && quote && amount && side) {
         const supportedExchanges = [
@@ -124,6 +125,7 @@ export async function POST(request: Request): Promise<NextResponse<any>> {
                         value: result.value,
                     }
                 } else if (result.status === 'rejected') {
+                    errors.push({ [exchange]: result.reason })
                     orderbooks[exchange] = {
                         error: result.reason,
                     }
@@ -137,5 +139,5 @@ export async function POST(request: Request): Promise<NextResponse<any>> {
                 : getBestBids(orderbooks, parseFloat(amount), fees)
     }
 
-    return NextResponse.json({ best })
+    return NextResponse.json({ best, errors })
 }
