@@ -1,5 +1,5 @@
-# [CoinStacker](https://coinstacker.com.au) - Australian Exchange Price Aggregator
 ![coinstacker-logo](./.github/coinstacker-logo-256-wide.png)
+# [CoinStacker](https://coinstacker.com.au) - Australian Exchange Price Aggregator
 
 Compare prices across Australian exchanges and find the best price for your next trade.
 
