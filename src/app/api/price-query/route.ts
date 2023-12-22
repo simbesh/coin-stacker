@@ -1,7 +1,13 @@
 import { NextResponse } from 'next/server'
 import { btcmarkets, Exchange, independentreserve, kraken, luno } from 'ccxt'
 import { getBestAsks, getBestBids, parseBrOrderBook, parseCjOrderBook, parseCsOrderBook } from '@/lib/utils'
-import { BrOrderBookResponse, CjOrderBookResponse, CsOrderBookResponse, SwOrdersResponse } from '@/types/types'
+import {
+    BrOrderBookResponse,
+    CjOrderBookResponse,
+    CoinstashQuotes,
+    CsOrderBookResponse,
+    SwOrdersResponse,
+} from '@/types/types'
 
 const fetcher = (...args: Parameters<typeof fetch>) => fetch(...args)
 
@@ -80,6 +86,33 @@ const getSwyftxMockOrderBook = async (base: string, quote: string, side?: string
     }
 }
 
+const getCoinstashMockOrderBook = async (base: string, quote: string, side?: string, amount?: string, fee?: number) => {
+    if (fee !== undefined && amount !== undefined) {
+        let res = await fetch(`https://api.coinstash.com.au/oracle/v1/quotes/last/${quote}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'user-agent':
+                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+            },
+        })
+
+        const json: CoinstashQuotes = await res.json()
+        const baseLowerCase = base.toLowerCase()
+        if (json?.prices?.[baseLowerCase] !== undefined) {
+            if (side === 'buy') {
+                return {
+                    asks: [[json.prices[baseLowerCase]!.buyPrice, parseFloat(amount)]],
+                }
+            } else {
+                return {
+                    bids: [[json.prices[baseLowerCase]!.sellPrice, parseFloat(amount)]],
+                }
+            }
+        }
+    }
+}
+
 const exchangesMethods: Record<
     string,
     (base: string, quote: string, side?: string, amount?: string, fee?: number) => Promise<any>
@@ -92,6 +125,7 @@ const exchangesMethods: Record<
     coinjar: getCoinJarOrderBook,
     bitaroo: getBitarooOrderBook,
     swyftx: getSwyftxMockOrderBook,
+    coinstash: getCoinstashMockOrderBook,
 }
 
 export async function POST(request: Request): Promise<NextResponse<any>> {
@@ -108,6 +142,7 @@ export async function POST(request: Request): Promise<NextResponse<any>> {
             'coinjar',
             'bitaroo',
             'swyftx',
+            'coinstash',
         ]
         const exchanges = supportedExchanges.filter((e) => !omitExchanges.includes(e))
         let promises: any[] = []

@@ -1,19 +1,7 @@
 export enum LocalStorageKeys {
     PriceQueryHistory = 'cs-price-query-history',
     ExchangeFees = 'cs-user-exchange-fees',
-    EnabledExchanges = 'cs-user-enabled-exchanges',
-}
-export const exchangeLinks = {
-    coinjar: 'https://exchange.coinjar.com/trade',
-    BTCMarkets: '',
-    IndependentReserve: '',
-    // "Binance": ',
-    CoinJar: '',
-    CoinSpot: '',
-    Kraken: '',
-    Luno: '',
-    Bitaroo: '',
-    Swyftx: '',
+    EnabledExchanges = 'cs-user-enabled-exchanges-v2',
 }
 
 export const tradeUrl = (exchange: string, base: string, quote: string) => {
@@ -38,7 +26,10 @@ export const tradeUrl = (exchange: string, base: string, quote: string) => {
             return `https://trade.bitaroo.com.au/`
         case 'swyftx':
             return `https://trade.swyftx.com/trade`
+        case 'coinstash':
+            return `https://coinstash.com.au/trade`
         default:
+            return ``
     }
 }
 
@@ -62,6 +53,9 @@ export const affiliateUrl = (exchange: string, base: string, quote: string) => {
             return `https://trade.bitaroo.com.au/`
         case 'swyftx':
             return `https://trade.swyftx.com/register/?ref=simonbechard`
+        case 'coinstash':
+            return `https://coinstash.com.au?a=6ta6yw2g`
         default:
+            return ``
     }
 }

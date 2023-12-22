@@ -115,6 +115,7 @@ const sx = [
     [5_000_000, 0.2],
     [6_000_000, 0.1],
 ]
+const cstash = [[0, 0.45]]
 
 function fillDataPoints(dataMap: Record<string, Record<string, number>>, data: number[][], key: string) {
     for (let i of data) {
@@ -136,6 +137,7 @@ fillDataPoints(dataMap, kr, 'Kraken')
 fillDataPoints(dataMap, ln, 'Luno')
 fillDataPoints(dataMap, br, 'Bitaroo')
 fillDataPoints(dataMap, sx, 'Swyftx')
+fillDataPoints(dataMap, cstash, 'Coinstash')
 
 let data: any[] = []
 let prev: any
@@ -180,6 +182,13 @@ const allLabels = [
     },
     { exchange: 'bitaroo', key: 'Bitaroo', colour: '#f6740e', gradientKey: 'bitaroo-gradient', gradientStop: '65%' },
     { exchange: 'swyftx', key: 'Swyftx', colour: '#7b7b7b', gradientKey: 'swyftx-gradient', gradientStop: '35%' },
+    {
+        exchange: 'coinstash',
+        key: 'Coinstash',
+        colour: '#5c5bd5',
+        gradientKey: 'coinstash-gradient',
+        gradientStop: '35%',
+    },
 ]
 
 Object.keys(dataMap)
@@ -206,7 +215,10 @@ const allData = data
 const axisStoke = '#4d5784'
 const FeesChart = () => {
     const [labels, setLabels] = useState(allLabels)
-    const [enabledExchanges] = useLocalStorage<string[]>(LocalStorageKeys.EnabledExchanges, defaultEnabledExchanges)
+    const [enabledExchanges] = useLocalStorage<Record<string, boolean>>(
+        LocalStorageKeys.EnabledExchanges,
+        defaultEnabledExchanges
+    )
     const [seriesProps, setSeriesProps] = useState<Record<string, string | undefined | boolean>>(
         labels.reduce(
             (a: Record<string, undefined>, { key }: { key: string }) => {
@@ -307,7 +319,7 @@ const FeesChart = () => {
                     />
                     {labels.map(({ colour, gradientKey, key, strokeDasharray, exchange }) => (
                         <>
-                            {enabledExchanges.includes(exchange) && (
+                            {enabledExchanges[exchange] && (
                                 <Area
                                     connectNulls
                                     dot={false}

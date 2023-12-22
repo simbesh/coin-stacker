@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Settings } from 'lucide-react'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
@@ -9,20 +9,33 @@ import { LocalStorageKeys } from '@/lib/constants'
 import { cn, defaultEnabledExchanges } from '@/lib/utils'
 import ExchangeIcon from '@/components/ExchangeIcon'
 import { Separator } from '@/components/ui/separator'
+import Feedback from '@/components/Feedback'
 
 const GeneralSettings = () => {
-    const [enabledExchanges, setEnabledExchanges] = useLocalStorage<string[]>(
+    const [enabledExchanges, setEnabledExchanges] = useLocalStorage<Record<string, boolean>>(
         LocalStorageKeys.EnabledExchanges,
         defaultEnabledExchanges
     )
 
+    useEffect(() => {
+        if (enabledExchanges) {
+            const defaultExchangeKeys = Object.keys(defaultEnabledExchanges)
+            const currentExchangeKeys = Object.keys(enabledExchanges)
+            const missingExchanges = defaultExchangeKeys.filter((x) => !currentExchangeKeys.includes(x))
+
+            if (missingExchanges.length > 0) {
+                setEnabledExchanges((prev) => ({
+                    ...prev,
+                    ...missingExchanges.reduce((acc, curr) => ({ ...acc, [curr]: defaultEnabledExchanges[curr] }), {}),
+                }))
+            }
+        }
+    }, [enabledExchanges])
+
     function handleExchangeToggle(exchange: string) {
         setEnabledExchanges((prev) => {
-            if (prev.includes(exchange)) {
-                return prev.filter((x) => x !== exchange)
-            } else {
-                return [...prev, exchange]
-            }
+            prev[exchange] = !prev[exchange]
+            return prev
         })
     }
 
@@ -41,7 +54,7 @@ const GeneralSettings = () => {
                     </SheetDescription>
                 </SheetHeader>
                 <div className={'mt-6'}>
-                    {defaultEnabledExchanges.map((exchange) => (
+                    {Object.keys(defaultEnabledExchanges).map((exchange) => (
                         <div
                             className={
                                 'flex cursor-pointer items-center rounded-lg p-4 hover:bg-slate-200 dark:hover:bg-slate-800'
@@ -52,7 +65,7 @@ const GeneralSettings = () => {
                             <div
                                 className={cn(
                                     'flex items-center gap-2',
-                                    !enabledExchanges.includes(exchange) && 'opacity-50 grayscale'
+                                    !enabledExchanges[exchange] && 'opacity-50 grayscale'
                                 )}
                             >
                                 <ExchangeIcon exchange={exchange} withLabel />
@@ -60,22 +73,35 @@ const GeneralSettings = () => {
                             <div
                                 className={cn(
                                     'ml-auto font-bold',
-                                    enabledExchanges.includes(exchange) ? 'text-green-500' : 'text-red-500'
+                                    enabledExchanges[exchange] ? 'text-green-500' : 'text-red-500'
                                 )}
                             >
-                                {enabledExchanges.includes(exchange) ? 'Enabled' : 'Disabled'}
+                                {enabledExchanges[exchange] ? 'Enabled' : 'Disabled'}
                             </div>
                         </div>
                     ))}
                 </div>
                 <Separator className={'my-4'} />
                 <div className={'flex w-full justify-end gap-2'}>
-                    <Button variant={'secondary'} onClick={() => setEnabledExchanges([])}>
+                    <Button
+                        variant={'secondary'}
+                        onClick={() =>
+                            setEnabledExchanges(
+                                Object.fromEntries(
+                                    Object.entries(defaultEnabledExchanges).map(([key, _]) => [key, false])
+                                )
+                            )
+                        }
+                    >
                         Disable All
                     </Button>
                     <Button variant={'secondary'} onClick={() => setEnabledExchanges(defaultEnabledExchanges)}>
                         Enable All
                     </Button>
+                </div>
+
+                <div className={'absolute bottom-8 right-8'}>
+                    <Feedback />
                 </div>
             </SheetContent>
         </Sheet>

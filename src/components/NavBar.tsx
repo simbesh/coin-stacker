@@ -5,14 +5,13 @@ import { useSelectedLayoutSegment } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { ThemeToggle } from '@/components/theme-toggle'
-import { BookOpenText, Home, LineChart, Menu, Send } from 'lucide-react'
+import { Home, LineChart, Menu } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useWindowScroll } from '@uidotdev/usehooks'
 import { cn } from '@/lib/utils'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import GeneralSettings from '@/components/GeneralSettings'
 import ClientOnly from '@/components/ClientOnly'
-import { adaptForAppRouterInstance } from 'next/dist/shared/lib/router/adapters'
 import Feedback from '@/components/Feedback'
 
 const items = [
@@ -114,7 +113,9 @@ const NavBar = () => {
                 </div>
             </div>
             <div className={'ml-auto flex items-center gap-2 sm:ml-0'}>
-                <Feedback />
+                <div className={'hidden sm:block'}>
+                    <Feedback />
+                </div>
                 <ClientOnly>
                     <GeneralSettings />
                 </ClientOnly>
