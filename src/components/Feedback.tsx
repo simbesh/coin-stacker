@@ -11,10 +11,9 @@ import {
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
-import { Check, CheckCircle, Github, Send } from 'lucide-react'
+import { CheckCircle, Github, Send } from 'lucide-react'
 import { Textarea } from '@/components/ui/textarea'
 import { Separator } from '@/components/ui/separator'
-import Spinner from '@/components/Spinner'
 import posthog from 'posthog-js'
 
 const Feedback = () => {
@@ -78,7 +77,7 @@ const Feedback = () => {
                     onClick={() => posthog.capture('open-feedback')}
                 >
                     <Send className={'h-5 w-5'} />
-                    <span className={'hidden md:block'}>Feedback</span>
+                    <span className={''}>Feedback</span>
                 </Button>
             </DialogTrigger>
             <DialogContent

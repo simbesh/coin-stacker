@@ -40,3 +40,29 @@ export type PriceQueryParams = {
     amount: string
     coin: string
 }
+
+export interface CoinstashQuotes {
+    quoteId: string
+    issuedOn: Date
+    targetCurrency: string
+    prices: { [key: string]: Price }
+}
+
+export interface Price {
+    coinId: string
+    symbol: string
+    coinUrl: null | string
+    tickerPrice: number
+    buyPrice: number
+    sellPrice: number
+    buyPricePrecise: string
+    sellPricePrecise: string
+    tickerPricePrecise: string
+    percentage_1H: number
+    percentage_24H: number | null
+    percentage_7D: number | null
+    percentage_30D: number | null
+    marketCap: number
+    circulatingSupply: number
+    tradingVolume_24H: number
+}

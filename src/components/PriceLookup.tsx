@@ -117,7 +117,10 @@ const PriceLookup = () => {
     const [fees] = useLocalStorage<Record<string, number>>(LocalStorageKeys.ExchangeFees, exchangeFees)
     const [lowestFee, setLowestFee] = useState<number>()
     const [bestAvgPrice, setBestAvgPrice] = useState<number>()
-    const [enabledExchanges] = useLocalStorage<string[]>(LocalStorageKeys.EnabledExchanges, defaultEnabledExchanges)
+    const [enabledExchanges] = useLocalStorage<Record<string, boolean>>(
+        LocalStorageKeys.EnabledExchanges,
+        defaultEnabledExchanges
+    )
 
     useEffect(() => {
         if (bests?.length > 0) {
@@ -175,7 +178,9 @@ const PriceLookup = () => {
                     quote,
                     side,
                     amount: floatAmount,
-                    omitExchanges: defaultEnabledExchanges.filter((e) => !enabledExchanges.includes(e)),
+                    omitExchanges: Object.entries(enabledExchanges)
+                        .filter(([_, value]) => value === false)
+                        .map(([key, _]) => key),
                 }),
             })
             const { best, errors } = await prices.json()
