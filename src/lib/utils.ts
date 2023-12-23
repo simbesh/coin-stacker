@@ -27,7 +27,7 @@ export const exchangeFees: Record<string, number> = {
     coinjar: 0.001,
     bitaroo: 0.0019,
     swyftx: 0.006,
-    coinstash: 0.0045,
+    coinstash: 0.0085,
 }
 export const defaultEnabledExchanges: Record<string, boolean> = {
     btcmarkets: true,
