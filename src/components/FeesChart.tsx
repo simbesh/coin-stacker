@@ -115,7 +115,7 @@ const sx = [
     [5_000_000, 0.2],
     [6_000_000, 0.1],
 ]
-const cstash = [[0, 0.45]]
+const cstash = [[0, 0.85]]
 
 function fillDataPoints(dataMap: Record<string, Record<string, number>>, data: number[][], key: string) {
     for (let i of data) {
