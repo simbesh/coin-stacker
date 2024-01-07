@@ -1,6 +1,13 @@
 import { NextResponse } from 'next/server'
 import { btcmarkets, Exchange, independentreserve, kraken, luno } from 'ccxt'
-import { getBestAsks, getBestBids, parseBrOrderBook, parseCjOrderBook, parseCsOrderBook } from '@/lib/utils'
+import {
+    getBestAsks,
+    getBestBids,
+    parseBrOrderBook,
+    parseCjOrderBook,
+    parseCsOrderBook,
+    toIsoString,
+} from '@/lib/utils'
 import {
     BrOrderBookResponse,
     CjOrderBookResponse,
@@ -8,7 +15,9 @@ import {
     CsOrderBookResponse,
     SwOrdersResponse,
 } from '@/types/types'
-
+import { sql } from '@vercel/postgres'
+import { differenceInDays } from 'date-fns'
+import { base } from 'next/dist/build/webpack/config/blocks/base'
 const fetcher = (...args: Parameters<typeof fetch>) => fetch(...args)
 
 const getOrderBook = async (exchange: Exchange, symbol: string) => {
@@ -57,30 +66,50 @@ const getBitarooOrderBook = async (base: string, quote: string) => {
 
 const getSwyftxMockOrderBook = async (base: string, quote: string, side?: string, amount?: string, fee?: number) => {
     if (fee !== undefined) {
-        let res = await fetch(`https://api.swyftx.com.au/orders/rate/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: 'Bearer ' + process.env.SWYFTX_API_KEY,
-                'user-agent':
-                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
-            },
-            body: JSON.stringify({
-                buy: side === 'buy' ? base : quote,
-                sell: side === 'buy' ? quote : base,
-                amount,
-                limit: base,
-            }),
-        })
-
-        const json: SwOrdersResponse = await res.json()
-        if (side === 'buy') {
-            return {
-                asks: [[parseFloat(json.price), parseFloat(json.amount)]],
+        let token
+        const cached = await getCachedSwyftxKey()
+        if (cached && differenceInDays(new Date(), cached.updated_at) >= 7) {
+            const accessToken = await refreshSwyftxToken()
+            if (accessToken) {
+                await updateCachedSwyftxKey(accessToken)
+                token = accessToken
             }
         } else {
-            return {
-                bids: [[(parseFloat(json.amount) / parseFloat(json.total)) * (1 + fee), parseFloat(json.total)]],
+            token = cached?.refresh_key
+        }
+
+        if (token) {
+            try {
+                let res = await fetch(`https://api.swyftx.com.au/orders/rate/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: 'Bearer ' + token,
+                        'user-agent':
+                            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+                    },
+                    body: JSON.stringify({
+                        buy: side === 'buy' ? base : quote,
+                        sell: side === 'buy' ? quote : base,
+                        amount,
+                        limit: base,
+                    }),
+                })
+
+                const json: SwOrdersResponse = await res.json()
+                if (side === 'buy') {
+                    return {
+                        asks: [[parseFloat(json.price), parseFloat(json.amount)]],
+                    }
+                } else {
+                    return {
+                        bids: [
+                            [(parseFloat(json.amount) / parseFloat(json.total)) * (1 + fee), parseFloat(json.total)],
+                        ],
+                    }
+                }
+            } catch (e) {
+                console.error('e', e)
             }
         }
     }
@@ -175,4 +204,34 @@ export async function POST(request: Request): Promise<NextResponse<any>> {
     }
 
     return NextResponse.json({ best, errors })
+}
+
+async function updateCachedSwyftxKey(key: string) {
+    return await sql`UPDATE swyftx
+                SET refresh_key = ${key},
+                    updated_at = ${toIsoString(new Date())}
+                WHERE access_token = '1';`
+}
+
+async function getCachedSwyftxKey(): Promise<{ refresh_key: string; updated_at: Date } | undefined> {
+    const { rows } = await sql`SELECT refresh_key, updated_at from swyftx WHERE access_token = '1';`
+    if (rows.length === 1) {
+        return rows[0] as { refresh_key: string; updated_at: Date }
+    }
+}
+
+async function refreshSwyftxToken() {
+    let res = await fetch(`https://api.swyftx.com.au/auth/refresh/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'user-agent':
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+        },
+        body: JSON.stringify({
+            apiKey: process.env.SWYFTX_API_KEY,
+        }),
+    })
+    const json = await res.json()
+    return json.accessToken
 }
