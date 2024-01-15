@@ -96,8 +96,8 @@ dependencies:
     specifier: 18.2.0
     version: 18.2.0(react@18.2.0)
   recharts:
-    specifier: ^2.10.1
-    version: 2.10.1(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0)
+    specifier: ^2.10.4
+    version: 2.10.4(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0)
   tailwind-merge:
     specifier: ^2.0.0
     version: 2.0.0
@@ -3770,8 +3770,8 @@ packages:
       decimal.js-light: 2.5.1
     dev: false
 
-  /recharts@2.10.1(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0):
-    resolution: {integrity: sha512-9bi0jIzxOTfEda+oYqgimKuYfApmBr0zKnAX8r4Iw56k3Saz/IQyBD4zohZL0eyzfz0oGFRH7alpJBgH1eC57g==}
+  /recharts@2.10.4(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-/Q7/wdf8bW91lN3NEeCjL9RWfaiXQViJFgdnas4Eix/I8B9HAI3tHHK/CW/zDfgRMh4fzW1zlfjoz1IAapLO1Q==}
     engines: {node: '>=14'}
     peerDependencies:
       prop-types: ^15.6.0
