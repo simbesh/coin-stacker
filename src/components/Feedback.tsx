@@ -55,7 +55,7 @@ const Feedback = () => {
                     setStatus('error')
                 }
             })
-            .catch((err) => {
+            .catch(() => {
                 setStatus('error')
             })
             .finally(() => {

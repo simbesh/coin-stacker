@@ -228,7 +228,7 @@ Object.keys(dataMap)
 const allData = data
 const axisStoke = '#4d5784'
 const FeesChart = () => {
-    const [labels, setLabels] = useState(allLabels)
+    const labels = allLabels
     const [enabledExchanges] = useLocalStorage<Record<string, boolean>>(
         LocalStorageKeys.EnabledExchanges,
         defaultEnabledExchanges

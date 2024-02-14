@@ -18,17 +18,15 @@ const GeneralSettings = () => {
     )
 
     useEffect(() => {
-        if (enabledExchanges) {
-            const defaultExchangeKeys = Object.keys(defaultEnabledExchanges)
-            const currentExchangeKeys = Object.keys(enabledExchanges)
-            const missingExchanges = defaultExchangeKeys.filter((x) => !currentExchangeKeys.includes(x))
+        const defaultExchangeKeys = Object.keys(defaultEnabledExchanges)
+        const currentExchangeKeys = Object.keys(enabledExchanges)
+        const missingExchanges = defaultExchangeKeys.filter((x) => !currentExchangeKeys.includes(x))
 
-            if (missingExchanges.length > 0) {
-                setEnabledExchanges((prev) => ({
-                    ...prev,
-                    ...missingExchanges.reduce((acc, curr) => ({ ...acc, [curr]: defaultEnabledExchanges[curr] }), {}),
-                }))
-            }
+        if (missingExchanges.length > 0) {
+            setEnabledExchanges((prev) => ({
+                ...prev,
+                ...missingExchanges.reduce((acc, curr) => ({ ...acc, [curr]: defaultEnabledExchanges[curr] }), {}),
+            }))
         }
     }, [enabledExchanges])
 
@@ -87,9 +85,7 @@ const GeneralSettings = () => {
                         variant={'secondary'}
                         onClick={() =>
                             setEnabledExchanges(
-                                Object.fromEntries(
-                                    Object.entries(defaultEnabledExchanges).map(([key, _]) => [key, false])
-                                )
+                                Object.fromEntries(Object.entries(defaultEnabledExchanges).map(([key]) => [key, false]))
                             )
                         }
                     >{`Disable All (${Object.keys(defaultEnabledExchanges).length})`}</Button>

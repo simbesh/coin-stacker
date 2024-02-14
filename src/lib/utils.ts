@@ -143,7 +143,6 @@ export function getBestAsks(orderbooks: any, amountToBuy: number, exchangeFees: 
         }
         let grossCost = 0
         let grossPrice = -Infinity
-        const askGrossAveragePrice = -Infinity
         let askVolume = 0
         let amountLeftToBuy = amountToBuy
         for (const ask of orderbooks[exchange].value.asks || []) {

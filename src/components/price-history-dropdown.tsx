@@ -1,23 +1,17 @@
 'use client'
 
 import * as React from 'react'
-import { History, RotateCcw, Settings2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { History } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { cn, exchangeFees, formatExchangeName } from '@/lib/utils'
+import { cn } from '@/lib/utils'
 import { useLocalStorage } from '@uidotdev/usehooks'
 import { PriceQueryParams } from '@/types/types'
 import Coin from '@/components/CoinIcon'
-import { useState, useEffect } from 'react'
 import { LocalStorageKeys } from '@/lib/constants'
 import posthog from 'posthog-js'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { Label } from '@/components/ui/label'
-import ExchangeIcon from '@/components/ExchangeIcon'
-import { Input } from '@/components/ui/input'
-import { round } from 'lodash'
 
 interface Props {
     className?: string
