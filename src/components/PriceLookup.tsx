@@ -103,12 +103,12 @@ const headers = [
 ]
 
 const firstRowCellStyle = 'text-green-600 dark:text-green-500'
-const quote = 'AUD'
 
 const PriceLookup = () => {
     const [side, setSide] = useState<'buy' | 'sell'>('buy')
     const [amount, setAmount] = useState<string>('')
     const [coin, setCoin] = useState<string>('')
+    const [quote, setQuote] = useState<string>('AUD')
     const [isLoading, setIsLoading] = useState(false)
     const [bests, setBests] = useState<PriceQueryResult[]>([])
     const [resultInput, setResultInput] = useState<PriceQueryParams>()
@@ -123,7 +123,7 @@ const PriceLookup = () => {
     )
 
     useEffect(() => {
-        if (bests?.length > 0) {
+        if (bests.length > 0) {
             const lowestValue = bests.reduce((min, obj) => Math.min(min, obj.fees), Infinity)
             setLowestFee(lowestValue)
 
@@ -142,7 +142,7 @@ const PriceLookup = () => {
             return
         }
         const floatAmount = parseFloat(amount)
-        if (!side || !floatAmount || !coin) {
+        if (!floatAmount || !coin) {
             return
         }
         const data = {
@@ -166,7 +166,7 @@ const PriceLookup = () => {
             setHistory(tempHistory.slice(0, 6))
         }
 
-        addToHistory({ side, amount, coin })
+        addToHistory({ quote, side, amount, coin })
         setIsLoading(true)
         try {
             const prices = await fetch(`api/price-query`, {
@@ -178,15 +178,18 @@ const PriceLookup = () => {
                     quote,
                     side,
                     amount: floatAmount,
-                    omitExchanges: Object.entries(enabledExchanges)
-                        .filter(([_, value]) => value === false)
-                        .map(([key, _]) => key),
+                    omitExchanges: Object.entries(enabledExchanges).reduce((acc: string[], [key, value]) => {
+                        if (!value) {
+                            acc.push(key)
+                        }
+                        return acc
+                    }, []),
                 }),
             })
-            const { best, errors } = await prices.json()
+            const { best } = await prices.json()
 
             setBests(best)
-            setResultInput({ side, amount, coin })
+            setResultInput({ side, amount, coin, quote })
         } catch (e) {}
         scrollTo({ top: 9999, left: 0, behavior: 'smooth' })
         setTimeout(() => scrollTo({ top: 9999, left: 0, behavior: 'smooth' }), 300)
@@ -228,12 +231,6 @@ const PriceLookup = () => {
         }
     }
 
-    const [markets2, setMarkets2] = useState([])
-    const handleGetMarkets = () => {
-        fetch('api/test')
-            .then((x) => x.json())
-            .then(setMarkets2)
-    }
     return (
         <div className={'mb-40 flex w-full flex-col items-center justify-center'}>
             <Card
@@ -246,9 +243,16 @@ const PriceLookup = () => {
                     raiseHistory={handleHistoryClick}
                 />
                 <div className={'absolute right-2 top-2 flex gap-2'}>
-                    <Button variant="outline" className={'bg-transparent px-2'} disabled>
-                        {'AUD'}
-                    </Button>
+                    <Combobox
+                        className={'bg-card w-20'}
+                        optionType={'Quote'}
+                        value={quote}
+                        setValue={setQuote}
+                        options={['AUD', 'USD', 'USDT', 'USDC'].map((q) => ({
+                            value: q,
+                            label: <div className={'flex items-center gap-2 text-lg font-semibold'}>{q}</div>,
+                        }))}
+                    />
                     <FeeParams />
                 </div>
                 {'I want to...'}
@@ -306,23 +310,52 @@ const PriceLookup = () => {
                         variant={'default'}
                         className={'mx-4 mt-4 w-full rounded-lg text-base text-black sm:w-44'}
                         onClick={() => getPrices({ side, amount, coin })}
-                        disabled={!side || !amount || !coin || isLoading}
+                        disabled={!amount || !coin || isLoading}
                         isLoading={isLoading}
                     >
                         Search
                     </Button>
                 </div>
             </Card>
-            <Card className={'relative !mb-0 mt-10 w-full max-w-4xl sm:my-10'}>
+            <div
+                className={cn(
+                    'mt-10 flex h-6 w-full items-center justify-center text-sm font-bold',
+                    isLoading && 'opacity-30'
+                )}
+            >
+                {bests.length > 0 && resultInput && (
+                    <div
+                        className={cn(
+                            'bg-card flex items-center gap-2 rounded-t-md border px-2 capitalize ',
+                            resultInput.side === 'buy' ? 'border-green-800' : 'border-red-800'
+                        )}
+                    >
+                        <div
+                            className={cn(
+                                resultInput.side === 'buy'
+                                    ? 'text-green-600 dark:text-green-400'
+                                    : 'text-red-600 dark:text-red-400'
+                            )}
+                        >
+                            {resultInput.side}
+                        </div>
+                        <div>{resultInput.amount}</div>
+                        <Coin symbol={resultInput.coin} className={'size-6'} />
+                        <div>{resultInput.coin}</div>
+                    </div>
+                )}
+            </div>
+            <Card className={'relative !mb-0 w-full max-w-4xl'}>
                 {isLoading && bests.length > 0 && (
-                    <div className="absolute inset-0 z-50 bg-slate-300/30 dark:bg-slate-700/30">
-                        <div className="flex h-full w-full items-center justify-center">
-                            <div className={'rounded-md bg-slate-50 p-3 dark:bg-slate-950'}>
-                                <Spinner className={'h-8 w-8 opacity-100'} />
+                    <div className="absolute inset-0 z-50">
+                        <div className="flex size-full items-center justify-center">
+                            <div className={'border-accent rounded-md border bg-slate-50 p-5 dark:bg-slate-950'}>
+                                <Spinner className={'size-10 opacity-100'} />
                             </div>
                         </div>
                     </div>
                 )}
+
                 <Table>
                     {bests.length === 0 && <TableCaption className={'mb-4'}>{'No Data'}</TableCaption>}
                     <TableHeader>
@@ -330,11 +363,12 @@ const PriceLookup = () => {
                             {headers.map((header) => (
                                 <TableHead key={header.id} className={cn(header.className)}>
                                     {header.title}
+                                    {header.title === 'Fees' && resultInput?.quote && ` (${resultInput.quote})`}
                                 </TableHead>
                             ))}
                         </TableRow>
                     </TableHeader>
-                    <TableBody className={cn('font-semibold', isLoading && 'opacity-40')}>
+                    <TableBody className={cn('font-semibold', isLoading && 'opacity-30')}>
                         {bests.map((best, i) => (
                             <TableRow
                                 key={best.exchange + '_' + i}
@@ -342,7 +376,7 @@ const PriceLookup = () => {
                             >
                                 <TableCell
                                     className={cn(
-                                        'mr-2 flex h-full w-full items-center justify-start gap-2 whitespace-nowrap p-0 text-left sm:p-0',
+                                        'mr-2 flex size-full items-center justify-start gap-2 whitespace-nowrap p-0 text-left sm:p-0',
                                         i === 0 ? firstRowCellStyle : ''
                                     )}
                                 >
@@ -353,11 +387,11 @@ const PriceLookup = () => {
                                         }
                                         target={'_blank'}
                                         className={
-                                            'flex h-full w-full items-center justify-start gap-1 p-2 hover:underline sm:gap-2 sm:p-4'
+                                            'flex size-full items-center justify-start gap-1 p-2 hover:underline sm:gap-2 sm:p-4'
                                         }
                                     >
                                         <ExchangeIcon exchange={best.exchange} withLabel />
-                                        <ExternalLink className={'h-4 min-h-[1rem] w-4 min-w-[1rem]'} />
+                                        <ExternalLink className={'size-4 min-h-[1rem] min-w-[1rem]'} />
                                     </a>
                                 </TableCell>
                                 <TableCell
@@ -366,7 +400,7 @@ const PriceLookup = () => {
                                         bestAvgPrice === best.grossAveragePrice ? 'text-green-500' : ''
                                     )}
                                 >
-                                    {currencyFormat(best?.grossAveragePrice, 'AUD', best.grossAveragePrice < 5 ? 4 : 2)}
+                                    {currencyFormat(best.grossAveragePrice, 'AUD', best.grossAveragePrice < 5 ? 4 : 2)}
                                 </TableCell>
                                 <TableCell
                                     className={cn('text-right', lowestFee === best.fees ? 'text-green-500' : '')}
@@ -375,7 +409,7 @@ const PriceLookup = () => {
                                         <PopoverTrigger
                                             className={'cursor-help underline decoration-dashed underline-offset-2'}
                                         >
-                                            {currencyFormat(best?.fees)}
+                                            {currencyFormat(best.fees)}
                                         </PopoverTrigger>
                                         <PopoverContent className={'w-fit p-2 text-sm'}>
                                             <p>
@@ -400,9 +434,9 @@ const PriceLookup = () => {
                 </Table>
             </Card>
             {bests.length > 0 && (
-                <div className={'w-full max-w-4xl pl-4 text-sm leading-4 text-slate-400 dark:text-slate-600 sm:pl-12'}>
+                <div className={'w-full max-w-4xl pl-4 text-sm leading-4 text-slate-400 sm:pl-12 dark:text-slate-600'}>
                     <span className={'mt-2 flex items-start justify-start gap-1'}>
-                        <CornerLeftUp className={'h-4 w-4'} />
+                        <CornerLeftUp className={'size-4'} />
                         Want to support CoinStacker?
                     </span>
                     <span className={'flex justify-start gap-2'}>
@@ -412,7 +446,7 @@ const PriceLookup = () => {
                         className={
                             'flex justify-start gap-2 text-slate-400 underline underline-offset-4 dark:text-slate-600'
                         }
-                        href={'https://www.buymeacoffee.com/simonbechard'}
+                        href={'https://ko-fi.com/simonbechard'}
                     >
                         or buy us a coffee!
                     </a>

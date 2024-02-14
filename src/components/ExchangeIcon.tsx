@@ -11,7 +11,7 @@ const ExchangeIcon = ({ exchange, withLabel, className }: string | any) => {
             <img
                 alt={`exchange logo for ${exchange}`}
                 src={getExchangeLogo(exchange)}
-                className={cn('icon-md my-0.5 items-center rounded-sm', invertColour, className)}
+                className={cn('my-0.5 size-5 items-center rounded-sm', invertColour, className)}
             />
             {withLabel && formatExchangeName(exchange)}
         </>

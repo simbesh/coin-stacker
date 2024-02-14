@@ -61,26 +61,6 @@
         @apply bg-background text-foreground;
     }
 
-    .icon-lg {
-        @apply h-6 w-6;
-    }
-
-    .icon-xl {
-        @apply h-8 w-8;
-    }
-
-    .icon-md {
-        @apply h-5 w-5;
-    }
-
-    .icon-sm {
-        @apply h-4 w-4;
-    }
-
-    .icon-xs {
-        @apply h-3 w-3;
-    }
-
     /* Chrome, Safari, Edge, Opera */
     input::-webkit-outer-spin-button,
     input::-webkit-inner-spin-button {

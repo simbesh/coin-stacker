@@ -43,7 +43,7 @@ const GeneralSettings = () => {
         <Sheet>
             <SheetTrigger asChild>
                 <Button size={'icon'} variant={'ghost'}>
-                    <Settings className={'h-5 w-5'} />
+                    <Settings className={'size-5'} />
                 </Button>
             </SheetTrigger>
             <SheetContent>
@@ -92,9 +92,7 @@ const GeneralSettings = () => {
                                 )
                             )
                         }
-                    >
-                        Disable All
-                    </Button>
+                    >{`Disable All (${Object.keys(defaultEnabledExchanges).length})`}</Button>
                     <Button variant={'secondary'} onClick={() => setEnabledExchanges(defaultEnabledExchanges)}>
                         Enable All
                     </Button>

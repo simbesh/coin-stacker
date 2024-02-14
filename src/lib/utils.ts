@@ -16,6 +16,8 @@ const formattedExchangeNames: Record<string, string> = {
     bitaroo: 'Bitaroo',
     swyftx: 'Swyftx',
     coinstash: 'Coinstash',
+    cointree: 'Cointree',
+    digitalsurge: 'DigitalSurge',
 }
 
 export const exchangeFees: Record<string, number> = {
@@ -28,6 +30,8 @@ export const exchangeFees: Record<string, number> = {
     bitaroo: 0.0019,
     swyftx: 0.006,
     coinstash: 0.0085,
+    cointree: 0.0075,
+    digitalsurge: 0.005,
 }
 export const defaultEnabledExchanges: Record<string, boolean> = {
     btcmarkets: true,
@@ -39,6 +43,8 @@ export const defaultEnabledExchanges: Record<string, boolean> = {
     bitaroo: true,
     swyftx: true,
     coinstash: true,
+    cointree: true,
+    digitalsurge: true,
 }
 
 export function currencyFormat(num: number, currencyCode: string = 'AUD', digits: number = 2): string {

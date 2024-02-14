@@ -12,12 +12,19 @@ import {
     BrOrderBookResponse,
     CjOrderBookResponse,
     CoinstashQuotes,
+    CointreeQuotes,
     CsOrderBookResponse,
     SwOrdersResponse,
 } from '@/types/types'
 import { sql } from '@vercel/postgres'
 import { differenceInDays } from 'date-fns'
-import { base } from 'next/dist/build/webpack/config/blocks/base'
+
+const cointreeOrderLimit: Record<string, number> = {
+    AUD: 52_500,
+    USDT: 35_000,
+    USDC: 35_000,
+}
+
 const fetcher = (...args: Parameters<typeof fetch>) => fetch(...args)
 
 const getOrderBook = async (exchange: Exchange, symbol: string) => {
@@ -142,6 +149,74 @@ const getCoinstashMockOrderBook = async (base: string, quote: string, side?: str
     }
 }
 
+const getCointreeMockOrderBook = async (base: string, quote: string, side?: string, amount?: string, fee?: number) => {
+    const liquidityLimit = cointreeOrderLimit[quote]
+    if (fee !== undefined && amount !== undefined && liquidityLimit !== undefined) {
+        let res = await fetch(`https://trade.cointree.com/api/prices/${base}/${quote}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'user-agent':
+                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+            },
+        })
+
+        const json: CointreeQuotes = await res.json()
+        let price
+        if (quote === 'AUD') {
+            price = side === 'buy' ? json.ask : json.bid
+        } else {
+            price = side === 'sell' ? 1 / json.ask : 1 / json.bid
+        }
+        const key = side === 'buy' ? 'asks' : 'bids'
+        if (amount && price * Number(amount) < liquidityLimit) {
+            return {
+                [key]: [[price, Number(amount)]],
+            }
+        }
+    }
+}
+const getDigitalSurgeMockOrderBook = async (
+    base: string,
+    quote: string,
+    side?: string,
+    amount?: string,
+    fee?: number
+) => {
+    if (fee !== undefined && amount !== undefined && side) {
+        let assetsRes = await fetch(`https://digitalsurge.com.au/api/public/broker/assets/`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'user-agent':
+                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+            },
+        })
+        let assets = await assetsRes.json()
+        let max_order_size_value = assets.results.find((x: any) => x.code === base)?.max_order_size_value
+        if (max_order_size_value) {
+            let res = await fetch(`https://digitalsurge.com.au/api/public/broker/ticker/`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'user-agent':
+                        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+                },
+            })
+            const tickerData: Record<string, any> = await res.json()
+            const price = tickerData?.[base]?.[side]
+            if (price) {
+                const key = side === 'buy' ? 'asks' : 'bids'
+                if (amount && price * Number(amount) < Number(max_order_size_value)) {
+                    return {
+                        [key]: [[price, Number(amount)]],
+                    }
+                }
+            }
+        }
+    }
+}
+
 const exchangesMethods: Record<
     string,
     (base: string, quote: string, side?: string, amount?: string, fee?: number) => Promise<any>
@@ -155,6 +230,8 @@ const exchangesMethods: Record<
     bitaroo: getBitarooOrderBook,
     swyftx: getSwyftxMockOrderBook,
     coinstash: getCoinstashMockOrderBook,
+    cointree: getCointreeMockOrderBook,
+    digitalsurge: getDigitalSurgeMockOrderBook,
 }
 
 export async function POST(request: Request): Promise<NextResponse<any>> {
@@ -172,6 +249,8 @@ export async function POST(request: Request): Promise<NextResponse<any>> {
             'bitaroo',
             'swyftx',
             'coinstash',
+            'cointree',
+            'digitalsurge',
         ]
         const exchanges = supportedExchanges.filter((e) => !omitExchanges.includes(e))
         let promises: any[] = []

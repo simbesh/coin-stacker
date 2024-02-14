@@ -45,7 +45,7 @@ export function FeeParams() {
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
                 <Button variant="outline" size="icon" className={'bg-transparent'}>
-                    <Settings2 className="h-[1.2rem] w-[1.2rem]" />
+                    <Settings2 className="size-[1.2rem]" />
                 </Button>
             </PopoverTrigger>
             <PopoverContent className="w-64" onOpenAutoFocus={(e) => e.preventDefault()}>
@@ -55,11 +55,11 @@ export function FeeParams() {
                             <TooltipTrigger asChild>
                                 <Button
                                     variant="ghost"
-                                    size="icon-sm"
+                                    size="size-4"
                                     className={'bg-transparent'}
                                     onClick={() => setFees(exchangeFees)}
                                 >
-                                    <RotateCcw className="h-4 w-4" />
+                                    <RotateCcw className="size-4" />
                                 </Button>
                             </TooltipTrigger>
                             <TooltipContent>

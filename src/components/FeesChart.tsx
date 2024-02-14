@@ -117,6 +117,12 @@ const sx = [
 ]
 const cstash = [[0, 0.85]]
 
+const ctree = [
+    [0, 0.75],
+    [30_000, 0.6],
+    [100_000, 0.5],
+]
+
 function fillDataPoints(dataMap: Record<string, Record<string, number>>, data: number[][], key: string) {
     for (let i of data) {
         if (i[0] !== undefined && i[1] !== undefined) {
@@ -138,6 +144,7 @@ fillDataPoints(dataMap, ln, 'Luno')
 fillDataPoints(dataMap, br, 'Bitaroo')
 fillDataPoints(dataMap, sx, 'Swyftx')
 fillDataPoints(dataMap, cstash, 'Coinstash')
+fillDataPoints(dataMap, ctree, 'Cointree')
 
 let data: any[] = []
 let prev: any
@@ -187,6 +194,13 @@ const allLabels = [
         key: 'Coinstash',
         colour: '#5c5bd5',
         gradientKey: 'coinstash-gradient',
+        gradientStop: '35%',
+    },
+    {
+        exchange: 'cointree',
+        key: 'Cointree',
+        colour: '#98f1c7',
+        gradientKey: 'cointree-gradient',
         gradientStop: '35%',
     },
 ]

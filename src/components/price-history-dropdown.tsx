@@ -38,14 +38,14 @@ export function PriceHistoryDropdown({ className, raiseHistory }: Props) {
         <Popover onOpenChange={setHistoryOpen} open={historyOpen}>
             <PopoverTrigger asChild>
                 <Button variant="outline" size="icon" className={className} disabled={history.length === 0}>
-                    <History className="h-[1.2rem] w-[1.2rem]" />
+                    <History className="size-[1.2rem]" />
                 </Button>
             </PopoverTrigger>
             <PopoverContent className="max-w-fit">
                 <table className="">
                     {history.map((x) => (
                         <tr
-                            className="my-1 cursor-pointer items-center hover:bg-slate-100 dark:hover:bg-slate-950"
+                            className="my-1 cursor-pointer items-center font-semibold opacity-75 hover:bg-slate-100 hover:opacity-100 dark:hover:bg-slate-950"
                             onClick={() => {
                                 raiseHistory(x)
                                 setHistoryOpen(false)
@@ -55,11 +55,10 @@ export function PriceHistoryDropdown({ className, raiseHistory }: Props) {
                             <td className={'p-1'}>
                                 <div
                                     className={cn(
-                                        'w-12 rounded-md text-center text-sm font-semibold capitalize sm:text-base',
-                                        // 'text-secondary-foreground w-12 rounded-md text-center font-semibold capitalize',
+                                        'w-12 rounded-sm py-0.5 text-center text-xs font-bold uppercase sm:font-semibold',
                                         x.side === 'buy'
-                                            ? 'border border-green-500 text-green-500'
-                                            : 'border border-red-500 text-red-500'
+                                            ? 'bg-green-100 text-green-500 ring-1 ring-green-500 dark:bg-green-950 dark:text-green-500 dark:ring-green-500'
+                                            : 'bg-red-100 text-red-500 ring-1 ring-red-500 dark:bg-red-950 dark:text-red-500 dark:ring-red-500'
                                     )}
                                 >
                                     {x.side}
@@ -67,7 +66,7 @@ export function PriceHistoryDropdown({ className, raiseHistory }: Props) {
                             </td>
                             <td className={'ml-auto w-fit p-1 pr-2 text-right'}>{x.amount}</td>
                             <td className={'flex w-fit items-center gap-1.5 p-1 text-right '}>
-                                <Coin symbol={x.coin} className={'icon-sm'} />
+                                <Coin symbol={x.coin} className={'size-4'} />
                                 {x.coin}
                             </td>
                         </tr>
