@@ -267,7 +267,7 @@ export async function POST(request: Request): Promise<NextResponse<any>> {
                     orderbooks[exchange] = {
                         value: result.value,
                     }
-                } else if (result.status === 'rejected') {
+                } else {
                     errors.push({ [exchange]: result.reason })
                     orderbooks[exchange] = {
                         error: result.reason,

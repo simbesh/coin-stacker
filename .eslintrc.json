@@ -9,7 +9,8 @@
     "tailwindcss/no-custom-classname": "off",
     "tailwindcss/classnames-order": "error",
     "no-console": ["error", { "allow": ["warn", "error"] }],
-    "@typescript-eslint/no-unnecessary-condition": "error"
+    "@typescript-eslint/no-unnecessary-condition": "error",
+    "@typescript-eslint/no-explicit-any": "warn"
   },
   "settings": {
     "tailwindcss": {
