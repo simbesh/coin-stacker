@@ -19,7 +19,7 @@ export function PostHogPageview(): JSX.Element {
     useEffect(() => {
         if (pathname) {
             let url = window.origin + pathname
-            if (searchParams && searchParams.toString()) {
+            if (searchParams.toString()) {
                 url = url + `?${searchParams.toString()}`
             }
             posthog.capture('$pageview', {
