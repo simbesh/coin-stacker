@@ -13,6 +13,7 @@ const EXCHANGE_URLS: Record<string, string> = {
     luno: 'https://www.luno.com',
     swyftx: 'https://www.swyftx.com',
     coinstash: 'https://www.coinstash.com.au',
+    cointree: 'https://www.cointree.com',
 }
 const ALT_EXCHANGE_URLS: Record<string, string> = {
     coinjar: 'https://exchange.coinjar.com/assets/favicons/favicon.ico',

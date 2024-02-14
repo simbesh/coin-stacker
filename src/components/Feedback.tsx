@@ -55,7 +55,7 @@ const Feedback = () => {
                     setStatus('error')
                 }
             })
-            .catch((err) => {
+            .catch(() => {
                 setStatus('error')
             })
             .finally(() => {
@@ -76,7 +76,7 @@ const Feedback = () => {
                     className={'gap-2 text-base'}
                     onClick={() => posthog.capture('open-feedback')}
                 >
-                    <Send className={'h-5 w-5'} />
+                    <Send className={'size-5'} />
                     <span className={''}>Feedback</span>
                 </Button>
             </DialogTrigger>
@@ -104,7 +104,7 @@ const Feedback = () => {
                                         className={'flex gap-2'}
                                         onClick={() => posthog.capture('feedback-github-issue')}
                                     >
-                                        <Github className={'h-5 w-5'} />
+                                        <Github className={'size-5'} />
                                         Create Issue
                                     </a>
                                 </Button>
@@ -121,7 +121,7 @@ const Feedback = () => {
                                         className={'flex gap-2'}
                                         onClick={() => posthog.capture('feedback-telegram-group')}
                                     >
-                                        <Send className={'h-5 w-5'} />
+                                        <Send className={'size-5'} />
                                         Open Chat
                                     </a>
                                 </Button>
@@ -194,7 +194,7 @@ function FeedbackResponse({ closeDialog }: { closeDialog: () => void }) {
         <>
             <DialogHeader className="p-4">
                 <DialogTitle className={'flex gap-2 text-green-800 dark:text-green-400'}>
-                    <CheckCircle className={'h-5 w-5'} />
+                    <CheckCircle className={'size-5'} />
                     Success
                 </DialogTitle>
                 <DialogDescription>Thank-you for submitting your feedback.</DialogDescription>

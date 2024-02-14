@@ -6,7 +6,7 @@ import { RotateCcw, Settings2 } from 'lucide-react'
 
 import { round } from 'lodash'
 import { Button } from '@/components/ui/button'
-import { currencyFormat, exchangeFees, formatExchangeName } from '@/lib/utils'
+import { exchangeFees, formatExchangeName } from '@/lib/utils'
 import { useLocalStorage } from '@uidotdev/usehooks'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Label } from '@/components/ui/label'
@@ -21,17 +21,15 @@ export function FeeParams() {
     const [fees, setFees] = useLocalStorage<Record<string, number>>(LocalStorageKeys.ExchangeFees, exchangeFees)
 
     useEffect(() => {
-        if (fees && exchangeFees) {
-            const defaultExchangeKeys = Object.keys(exchangeFees)
-            const currentExchangeKeys = Object.keys(fees)
-            const missingKeys = defaultExchangeKeys.filter((x) => !currentExchangeKeys.includes(x))
+        const defaultExchangeKeys = Object.keys(exchangeFees)
+        const currentExchangeKeys = Object.keys(fees)
+        const missingKeys = defaultExchangeKeys.filter((x) => !currentExchangeKeys.includes(x))
 
-            if (missingKeys.length > 0) {
-                setFees((prev) => ({
-                    ...prev,
-                    ...missingKeys.reduce((acc, curr) => ({ ...acc, [curr]: exchangeFees[curr] }), {}),
-                }))
-            }
+        if (missingKeys.length > 0) {
+            setFees((prev) => ({
+                ...prev,
+                ...missingKeys.reduce((acc, curr) => ({ ...acc, [curr]: exchangeFees[curr] }), {}),
+            }))
         }
     }, [])
 
@@ -45,7 +43,7 @@ export function FeeParams() {
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
                 <Button variant="outline" size="icon" className={'bg-transparent'}>
-                    <Settings2 className="h-[1.2rem] w-[1.2rem]" />
+                    <Settings2 className="size-[1.2rem]" />
                 </Button>
             </PopoverTrigger>
             <PopoverContent className="w-64" onOpenAutoFocus={(e) => e.preventDefault()}>
@@ -55,11 +53,11 @@ export function FeeParams() {
                             <TooltipTrigger asChild>
                                 <Button
                                     variant="ghost"
-                                    size="icon-sm"
+                                    size="size-4"
                                     className={'bg-transparent'}
                                     onClick={() => setFees(exchangeFees)}
                                 >
-                                    <RotateCcw className="h-4 w-4" />
+                                    <RotateCcw className="size-4" />
                                 </Button>
                             </TooltipTrigger>
                             <TooltipContent>

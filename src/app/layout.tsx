@@ -4,7 +4,6 @@ import { Inter } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/react'
 import { ThemeProvider } from '@/components/theme-provider'
 import NavBar from '@/components/NavBar'
-import Script from 'next/script'
 import { Github } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { PHProvider, PostHogPageview } from '@/app/providers'
@@ -55,14 +54,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     </PHProvider>
                     <footer
                         className={
-                            'fixed bottom-0 flex w-full items-center justify-center gap-4 bg-slate-50 font-mono text-sm text-slate-300 dark:bg-slate-950 dark:text-slate-700 sm:text-base'
+                            'fixed bottom-0 flex w-full items-center justify-center gap-4 bg-slate-50 font-mono text-sm text-slate-300 sm:text-base dark:bg-slate-950 dark:text-slate-700'
                         }
                     >
                         <div>{'v' + process.env.APP_VERSION}</div>
                         <div>{process.env.COMMIT_HASH}</div>
-                        <Button variant={'ghost'} size={'icon-sm'}>
-                            <a href={process.env.REPO_LINK}>
-                                <Github className={'icon-sm'} />
+                        <Button variant={'ghost'} size={'size-4'}>
+                            <a href={process.env.REPO_LINK} target={'_blank'}>
+                                <Github className={'size-4'} />
                             </a>
                         </Button>
                     </footer>

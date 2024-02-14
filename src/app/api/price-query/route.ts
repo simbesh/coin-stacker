@@ -12,12 +12,19 @@ import {
     BrOrderBookResponse,
     CjOrderBookResponse,
     CoinstashQuotes,
+    CointreeQuotes,
     CsOrderBookResponse,
     SwOrdersResponse,
 } from '@/types/types'
 import { sql } from '@vercel/postgres'
 import { differenceInDays } from 'date-fns'
-import { base } from 'next/dist/build/webpack/config/blocks/base'
+
+const cointreeOrderLimit: Record<string, number> = {
+    AUD: 52_500,
+    USDT: 35_000,
+    USDC: 35_000,
+}
+
 const fetcher = (...args: Parameters<typeof fetch>) => fetch(...args)
 
 const getOrderBook = async (exchange: Exchange, symbol: string) => {
@@ -45,12 +52,12 @@ const getLunoOrderBook = async (base: string, quote: string) => {
     return getOrderBook(exchange, `${base}/${quote}`)
 }
 const getCoinSpotOrderBook = async (base: string, quote: string) => {
-    let res = await fetch(`https://www.coinspot.com.au/pubapi/v2/orders/open/${base}/${quote}`)
+    const res = await fetch(`https://www.coinspot.com.au/pubapi/v2/orders/open/${base}/${quote}`)
     const json: CsOrderBookResponse = await res.json()
     return parseCsOrderBook(json)
 }
 const getCoinJarOrderBook = async (base: string, quote: string) => {
-    let res = await fetch(`https://data.exchange.coinjar.com/products/${base}${quote}/book?level=2`)
+    const res = await fetch(`https://data.exchange.coinjar.com/products/${base}${quote}/book?level=2`)
     const json: CjOrderBookResponse = await res.json()
     return parseCjOrderBook(json)
 }
@@ -59,7 +66,7 @@ const getBitarooOrderBook = async (base: string, quote: string) => {
         return
     }
 
-    let res = await fetch(`https://api.bitaroo.com.au/v1/market/order-book`)
+    const res = await fetch(`https://api.bitaroo.com.au/v1/market/order-book`)
     const json: BrOrderBookResponse = await res.json()
     return parseBrOrderBook(json)
 }
@@ -80,7 +87,7 @@ const getSwyftxMockOrderBook = async (base: string, quote: string, side?: string
 
         if (token) {
             try {
-                let res = await fetch(`https://api.swyftx.com.au/orders/rate/`, {
+                const res = await fetch(`https://api.swyftx.com.au/orders/rate/`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -117,7 +124,7 @@ const getSwyftxMockOrderBook = async (base: string, quote: string, side?: string
 
 const getCoinstashMockOrderBook = async (base: string, quote: string, side?: string, amount?: string, fee?: number) => {
     if (fee !== undefined && amount !== undefined) {
-        let res = await fetch(`https://api.coinstash.com.au/oracle/v1/quotes/last/${quote}`, {
+        const res = await fetch(`https://api.coinstash.com.au/oracle/v1/quotes/last/${quote}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -128,7 +135,7 @@ const getCoinstashMockOrderBook = async (base: string, quote: string, side?: str
 
         const json: CoinstashQuotes = await res.json()
         const baseLowerCase = base.toLowerCase()
-        if (json?.prices?.[baseLowerCase] !== undefined) {
+        if (json.prices[baseLowerCase] !== undefined) {
             if (side === 'buy') {
                 return {
                     asks: [[json.prices[baseLowerCase]!.buyPrice, parseFloat(amount)]],
@@ -136,6 +143,74 @@ const getCoinstashMockOrderBook = async (base: string, quote: string, side?: str
             } else {
                 return {
                     bids: [[json.prices[baseLowerCase]!.sellPrice, parseFloat(amount)]],
+                }
+            }
+        }
+    }
+}
+
+const getCointreeMockOrderBook = async (base: string, quote: string, side?: string, amount?: string, fee?: number) => {
+    const liquidityLimit = cointreeOrderLimit[quote]
+    if (fee !== undefined && amount !== undefined && liquidityLimit !== undefined) {
+        const res = await fetch(`https://trade.cointree.com/api/prices/${base}/${quote}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'user-agent':
+                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+            },
+        })
+
+        const json: CointreeQuotes = await res.json()
+        let price
+        if (quote === 'AUD') {
+            price = side === 'buy' ? json.ask : json.bid
+        } else {
+            price = side === 'sell' ? 1 / json.ask : 1 / json.bid
+        }
+        const key = side === 'buy' ? 'asks' : 'bids'
+        if (amount && price * Number(amount) < liquidityLimit) {
+            return {
+                [key]: [[price, Number(amount)]],
+            }
+        }
+    }
+}
+const getDigitalSurgeMockOrderBook = async (
+    base: string,
+    quote: string,
+    side?: string,
+    amount?: string,
+    fee?: number
+) => {
+    if (fee !== undefined && amount !== undefined && side) {
+        const assetsRes = await fetch(`https://digitalsurge.com.au/api/public/broker/assets/`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'user-agent':
+                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+            },
+        })
+        const assets = await assetsRes.json()
+        const max_order_size_value = assets.results.find((x: any) => x.code === base)?.max_order_size_value
+        if (max_order_size_value) {
+            const res = await fetch(`https://digitalsurge.com.au/api/public/broker/ticker/`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'user-agent':
+                        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+                },
+            })
+            const tickerData: Record<string, any> = await res.json()
+            const price = tickerData[base]?.[side]
+            if (price) {
+                const key = side === 'buy' ? 'asks' : 'bids'
+                if (amount && price * Number(amount) < Number(max_order_size_value)) {
+                    return {
+                        [key]: [[price, Number(amount)]],
+                    }
                 }
             }
         }
@@ -155,11 +230,13 @@ const exchangesMethods: Record<
     bitaroo: getBitarooOrderBook,
     swyftx: getSwyftxMockOrderBook,
     coinstash: getCoinstashMockOrderBook,
+    cointree: getCointreeMockOrderBook,
+    digitalsurge: getDigitalSurgeMockOrderBook,
 }
 
 export async function POST(request: Request): Promise<NextResponse<any>> {
     const { fees, base, quote, side, amount, omitExchanges } = await request.json()
-    let errors: Record<string, any>[] = []
+    const errors: Record<string, any>[] = []
     let best
     if (base && quote && amount && side) {
         const supportedExchanges = [
@@ -172,23 +249,25 @@ export async function POST(request: Request): Promise<NextResponse<any>> {
             'bitaroo',
             'swyftx',
             'coinstash',
+            'cointree',
+            'digitalsurge',
         ]
         const exchanges = supportedExchanges.filter((e) => !omitExchanges.includes(e))
-        let promises: any[] = []
+        const promises: any[] = []
         exchanges.forEach((exchange) => {
             promises.push(exchangesMethods[exchange]?.(base, quote, side, amount, fees[exchange]))
         })
 
         const orderbooks: Record<string, { value?: any; error?: any }> = {}
-        let results: PromiseSettledResult<string>[] = await Promise.allSettled(promises)
+        const results: PromiseSettledResult<string>[] = await Promise.allSettled(promises)
         results.forEach((result: PromiseSettledResult<any>, i) => {
-            let exchange = exchanges[i]
+            const exchange = exchanges[i]
             if (exchange !== undefined) {
                 if (result.status === 'fulfilled') {
                     orderbooks[exchange] = {
                         value: result.value,
                     }
-                } else if (result.status === 'rejected') {
+                } else {
                     errors.push({ [exchange]: result.reason })
                     orderbooks[exchange] = {
                         error: result.reason,
@@ -221,7 +300,7 @@ async function getCachedSwyftxKey(): Promise<{ refresh_key: string; updated_at: 
 }
 
 async function refreshSwyftxToken() {
-    let res = await fetch(`https://api.swyftx.com.au/auth/refresh/`, {
+    const res = await fetch(`https://api.swyftx.com.au/auth/refresh/`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

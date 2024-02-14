@@ -7,7 +7,7 @@ import { useLocalStorage } from '@uidotdev/usehooks'
 import { LocalStorageKeys } from '@/lib/constants'
 
 const strokeWidth = 1.5
-let ir = [
+const ir = [
     [0, 0.5],
     [50000, 0.48],
     [100000, 0.46],
@@ -117,8 +117,14 @@ const sx = [
 ]
 const cstash = [[0, 0.85]]
 
+const ctree = [
+    [0, 0.75],
+    [30_000, 0.6],
+    [100_000, 0.5],
+]
+
 function fillDataPoints(dataMap: Record<string, Record<string, number>>, data: number[][], key: string) {
-    for (let i of data) {
+    for (const i of data) {
         if (i[0] !== undefined && i[1] !== undefined) {
             if (!dataMap[i[0]]) {
                 dataMap[i[0]] = { name: i[0] }
@@ -128,7 +134,7 @@ function fillDataPoints(dataMap: Record<string, Record<string, number>>, data: n
     }
 }
 
-let dataMap: Record<string, Record<string, number>> = {}
+const dataMap: Record<string, Record<string, number>> = {}
 fillDataPoints(dataMap, ir, 'IndepRes')
 fillDataPoints(dataMap, btcm, 'BtcMarkets')
 fillDataPoints(dataMap, cj, 'CoinJar')
@@ -138,8 +144,9 @@ fillDataPoints(dataMap, ln, 'Luno')
 fillDataPoints(dataMap, br, 'Bitaroo')
 fillDataPoints(dataMap, sx, 'Swyftx')
 fillDataPoints(dataMap, cstash, 'Coinstash')
+fillDataPoints(dataMap, ctree, 'Cointree')
 
-let data: any[] = []
+const data: any[] = []
 let prev: any
 const allLabels = [
     {
@@ -189,6 +196,13 @@ const allLabels = [
         gradientKey: 'coinstash-gradient',
         gradientStop: '35%',
     },
+    {
+        exchange: 'cointree',
+        key: 'Cointree',
+        colour: '#98f1c7',
+        gradientKey: 'cointree-gradient',
+        gradientStop: '35%',
+    },
 ]
 
 Object.keys(dataMap)
@@ -199,7 +213,7 @@ Object.keys(dataMap)
             if (!prev) {
                 prev = value
             }
-            let missing = Object.keys(prev).filter((v) => !Object.keys(value).includes(v))
+            const missing = Object.keys(prev).filter((v) => !Object.keys(value).includes(v))
             missing.forEach((v) => (value[v] = prev[v]))
             const dataPoint: Record<string, string | number> = { ...value }
             dataPoint.value = value.name
@@ -214,7 +228,7 @@ Object.keys(dataMap)
 const allData = data
 const axisStoke = '#4d5784'
 const FeesChart = () => {
-    const [labels, setLabels] = useState(allLabels)
+    const labels = allLabels
     const [enabledExchanges] = useLocalStorage<Record<string, boolean>>(
         LocalStorageKeys.EnabledExchanges,
         defaultEnabledExchanges

@@ -58,7 +58,7 @@ const NavBar = () => {
                 <Sheet onOpenChange={setSheetOpen} open={sheetOpen}>
                     <SheetTrigger asChild>
                         <Button variant="outline" size="icon">
-                            <Menu className="h-[1.2rem] w-[1.2rem]" />
+                            <Menu className="size-[1.2rem]" />
                         </Button>
                     </SheetTrigger>
                     <SheetContent side={'left'}>
@@ -95,7 +95,7 @@ const NavBar = () => {
                 </span>
             </Link>
             <div className="ml-12 mr-auto hidden w-full items-center sm:flex sm:w-auto" id="navbar-default">
-                <div className="mt-4 flex rounded-lg border border-gray-100 p-4 font-medium dark:border-gray-700 sm:mt-0 sm:flex-row sm:space-x-4 sm:border-0 sm:p-0">
+                <div className="mt-4 flex rounded-lg border border-gray-100 p-4 font-medium sm:mt-0 sm:flex-row sm:space-x-4 sm:border-0 sm:p-0 dark:border-gray-700">
                     {items.map((item) => (
                         <Link
                             key={item.id}

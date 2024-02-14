@@ -39,6 +39,7 @@ export type PriceQueryParams = {
     side: 'buy' | 'sell'
     amount: string
     coin: string
+    quote?: string
 }
 
 export interface CoinstashQuotes {
@@ -46,6 +47,18 @@ export interface CoinstashQuotes {
     issuedOn: Date
     targetCurrency: string
     prices: { [key: string]: Price }
+}
+export interface CointreeQuotes {
+    sell: string
+    buy: string
+    ask: number
+    bid: number
+    rate: number
+    spotRate: number
+    market: string
+    timestamp: string
+    rateType: string
+    rateSteps: string
 }
 
 export interface Price {
