@@ -7,7 +7,7 @@ import { useLocalStorage } from '@uidotdev/usehooks'
 import { LocalStorageKeys } from '@/lib/constants'
 
 const strokeWidth = 1.5
-let ir = [
+const ir = [
     [0, 0.5],
     [50000, 0.48],
     [100000, 0.46],
@@ -124,7 +124,7 @@ const ctree = [
 ]
 
 function fillDataPoints(dataMap: Record<string, Record<string, number>>, data: number[][], key: string) {
-    for (let i of data) {
+    for (const i of data) {
         if (i[0] !== undefined && i[1] !== undefined) {
             if (!dataMap[i[0]]) {
                 dataMap[i[0]] = { name: i[0] }
@@ -134,7 +134,7 @@ function fillDataPoints(dataMap: Record<string, Record<string, number>>, data: n
     }
 }
 
-let dataMap: Record<string, Record<string, number>> = {}
+const dataMap: Record<string, Record<string, number>> = {}
 fillDataPoints(dataMap, ir, 'IndepRes')
 fillDataPoints(dataMap, btcm, 'BtcMarkets')
 fillDataPoints(dataMap, cj, 'CoinJar')
@@ -146,7 +146,7 @@ fillDataPoints(dataMap, sx, 'Swyftx')
 fillDataPoints(dataMap, cstash, 'Coinstash')
 fillDataPoints(dataMap, ctree, 'Cointree')
 
-let data: any[] = []
+const data: any[] = []
 let prev: any
 const allLabels = [
     {
@@ -213,7 +213,7 @@ Object.keys(dataMap)
             if (!prev) {
                 prev = value
             }
-            let missing = Object.keys(prev).filter((v) => !Object.keys(value).includes(v))
+            const missing = Object.keys(prev).filter((v) => !Object.keys(value).includes(v))
             missing.forEach((v) => (value[v] = prev[v]))
             const dataPoint: Record<string, string | number> = { ...value }
             dataPoint.value = value.name

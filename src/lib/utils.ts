@@ -58,8 +58,8 @@ export function currencyFormat(num: number, currencyCode: string = 'AUD', digits
 }
 
 export function parseBrOrderBook(data: BrOrderBookResponse): any {
-    let bids = data.buy.map((bid) => [parseFloat(bid.price), parseFloat(bid.amount)]) as [number, number][]
-    let asks = data.sell.map((ask) => [parseFloat(ask.price), parseFloat(ask.amount)]) as [number, number][]
+    const bids = data.buy.map((bid) => [parseFloat(bid.price), parseFloat(bid.amount)]) as [number, number][]
+    const asks = data.sell.map((ask) => [parseFloat(ask.price), parseFloat(ask.amount)]) as [number, number][]
     return {
         bids,
         asks,
@@ -67,8 +67,8 @@ export function parseBrOrderBook(data: BrOrderBookResponse): any {
 }
 
 export function parseCjOrderBook(data: CjOrderBookResponse): any {
-    let bids = data.bids.map((bid) => [parseFloat(bid[0]), parseFloat(bid[1])]) as [number, number][]
-    let asks = data.asks.map((ask) => [parseFloat(ask[0]), parseFloat(ask[1])]) as [number, number][]
+    const bids = data.bids.map((bid) => [parseFloat(bid[0]), parseFloat(bid[1])]) as [number, number][]
+    const asks = data.asks.map((ask) => [parseFloat(ask[0]), parseFloat(ask[1])]) as [number, number][]
     const timestamp = Date.now()
     return {
         bids,
@@ -132,8 +132,8 @@ type Best = {
 
 export function getBestAsks(orderbooks: any, amountToBuy: number, exchangeFees: Record<string, number>): Best[] {
     let sortedBests: Best[] = []
-    let errors = []
-    for (let exchange of Object.keys(orderbooks)) {
+    const errors = []
+    for (const exchange of Object.keys(orderbooks)) {
         if (orderbooks[exchange].value === undefined) {
             errors.push({
                 exchange,
@@ -143,10 +143,10 @@ export function getBestAsks(orderbooks: any, amountToBuy: number, exchangeFees: 
         }
         let grossCost = 0
         let grossPrice = -Infinity
-        let askGrossAveragePrice = -Infinity
+        const askGrossAveragePrice = -Infinity
         let askVolume = 0
         let amountLeftToBuy = amountToBuy
-        for (let ask of orderbooks[exchange].value.asks || []) {
+        for (const ask of orderbooks[exchange].value.asks || []) {
             grossPrice = ask[0]
             askVolume = ask[1]
             if (askVolume >= amountLeftToBuy) {
@@ -157,10 +157,10 @@ export function getBestAsks(orderbooks: any, amountToBuy: number, exchangeFees: 
                 grossCost += grossPrice * askVolume
             }
         }
-        let feeRate = exchangeFees[exchange] ?? 0
-        let fees = grossCost * feeRate
-        let netCost = grossCost + fees
-        let netPrice = grossPrice * (1 + feeRate)
+        const feeRate = exchangeFees[exchange] ?? 0
+        const fees = grossCost * feeRate
+        const netCost = grossCost + fees
+        const netPrice = grossPrice * (1 + feeRate)
 
         if (
             grossPrice > -Infinity &&
@@ -186,8 +186,8 @@ export function getBestAsks(orderbooks: any, amountToBuy: number, exchangeFees: 
 
 export function getBestBids(orderbooks: any, amountToSell: number, exchangeFees: Record<string, number>): Best[] {
     let sortedBests: Best[] = []
-    let errors = []
-    for (let exchange of Object.keys(orderbooks)) {
+    const errors = []
+    for (const exchange of Object.keys(orderbooks)) {
         if (orderbooks[exchange].value === undefined) {
             errors.push({
                 exchange,
@@ -199,7 +199,7 @@ export function getBestBids(orderbooks: any, amountToSell: number, exchangeFees:
         let grossPrice = Infinity
         let bidVolume = 0
         let amountLeftToSell = amountToSell
-        for (let bid of orderbooks[exchange].value.bids || []) {
+        for (const bid of orderbooks[exchange].value.bids || []) {
             grossPrice = bid[0]
             bidVolume = bid[1]
             if (bidVolume >= amountLeftToSell) {
@@ -210,10 +210,10 @@ export function getBestBids(orderbooks: any, amountToSell: number, exchangeFees:
                 grossCost += grossPrice * bidVolume
             }
         }
-        let feeRate = exchangeFees[exchange] ?? 0
-        let fees = grossCost * feeRate
-        let netCost = grossCost - fees
-        let netPrice = grossPrice * (1 - feeRate)
+        const feeRate = exchangeFees[exchange] ?? 0
+        const fees = grossCost * feeRate
+        const netCost = grossCost - fees
+        const netPrice = grossPrice * (1 - feeRate)
 
         if (grossPrice < Infinity && bidVolume >= amountLeftToSell) {
             sortedBests.push({

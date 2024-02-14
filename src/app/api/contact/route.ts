@@ -26,7 +26,7 @@ UA: ${userAgent}`
 <b>IP</b>: ${forwarded}`
         }
     }
-    let body = encodeURIComponent(text)
+    const body = encodeURIComponent(text)
     await fetch(url + body)
     return NextResponse.json({ success: true })
 }
