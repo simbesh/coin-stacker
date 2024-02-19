@@ -24,7 +24,7 @@
     "@vercel/postgres": "^0.5.1",
     "ccxt": "4.1.65",
     "class-variance-authority": "^0.7.0",
-    "clsx": "^2.0.0",
+    "clsx": "^2.1.0",
     "cmdk": "^0.2.0",
     "cryptocurrency-icons": "^0.18.1",
     "date-fns": "^3.1.0",
