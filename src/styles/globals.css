@@ -72,4 +72,13 @@
     input[type=number] {
         -moz-appearance: textfield;
     }
+
+    .gradient-text {
+        background: linear-gradient(90deg, #fdbd19 0%, #fff 10%, #fff 90%, #fdbd19 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+
+        background-position: 0;
+        background-size: 100%;
+    }
 }

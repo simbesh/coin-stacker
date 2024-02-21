@@ -183,7 +183,7 @@ const getDigitalSurgeMockOrderBook = async (
     amount?: string,
     fee?: number
 ) => {
-    if (fee !== undefined && amount !== undefined && side) {
+    if (fee !== undefined && amount !== undefined && side && quote === 'AUD') {
         const assetsRes = await fetch(`https://digitalsurge.com.au/api/public/broker/assets/`, {
             method: 'GET',
             headers: {

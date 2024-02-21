@@ -7,6 +7,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '
 import { Check, ChevronsUpDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { useMediaQuery } from '@uidotdev/usehooks'
 
 type Props = {
     className?: string
@@ -17,6 +18,7 @@ type Props = {
 }
 export function Combobox({ className, options, value, setValue, optionType = 'option' }: Props) {
     const [open, setOpen] = useState(false)
+    const isSmallDevice = useMediaQuery('only screen and (max-width : 768px)')
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
@@ -31,9 +33,9 @@ export function Combobox({ className, options, value, setValue, optionType = 'op
                     <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[200px] p-0">
+            <PopoverContent className="w-[200px] p-0" onOpenAutoFocus={(e) => isSmallDevice && e.preventDefault()}>
                 <Command>
-                    <CommandInput placeholder={`Search ${optionType}...`} />
+                    <CommandInput placeholder={`Search ${options.length} ${optionType}s...`} />
                     <ScrollArea className={'overflow-y-auto'}>
                         <CommandEmpty>{`No ${optionType} found.`}</CommandEmpty>
                         <CommandGroup>

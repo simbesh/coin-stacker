@@ -16,9 +16,10 @@ import Spinner from '@/components/Spinner'
 import { FeeParams } from '@/components/fee-params'
 import { tradeUrl, LocalStorageKeys, affiliateUrl } from '@/lib/constants'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { CornerLeftUp, ExternalLink } from 'lucide-react'
+import { CornerLeftUp, ExternalLink, Share2 } from 'lucide-react'
 import { Combobox } from '@/components/Combobox'
 import posthog from 'posthog-js'
+import useMutableSearchParams from '@/hooks/useMutableSearchParams'
 
 const markets = [
     'BTC',
@@ -101,6 +102,11 @@ const headers = [
         className: 'text-right',
     },
 ]
+interface QueryParams {
+    coin: string
+    side: string
+    amount: string
+}
 
 const firstRowCellStyle = 'text-green-600 dark:text-green-500'
 
@@ -121,6 +127,29 @@ const PriceLookup = () => {
         LocalStorageKeys.EnabledExchanges,
         defaultEnabledExchanges
     )
+    const { searchParams, setSearchParams } = useMutableSearchParams<QueryParams>()
+
+    useEffect(() => {
+        const coin = searchParams.get('coin')
+        const side = searchParams.get('side')
+        const amount = searchParams.get('amount')
+        if (coin) {
+            setCoin(coin)
+        }
+        if (side && (side === 'buy' || side === 'sell')) {
+            setSide(side)
+        }
+        if (amount) {
+            setAmount(amount)
+        }
+        if (coin !== null && side !== null && amount !== null) {
+            getPrices({ side: side as 'buy' | 'sell', amount, coin })
+        }
+    }, [])
+
+    useEffect(() => {
+        setSearchParams({ side, amount, coin })
+    }, [side, amount, coin])
 
     useEffect(() => {
         if (bests.length > 0) {
@@ -324,25 +353,27 @@ const PriceLookup = () => {
                 )}
             >
                 {bests.length > 0 && resultInput && (
-                    <div
-                        className={cn(
-                            'bg-card flex items-center gap-2 rounded-t-md border px-2 capitalize ',
-                            resultInput.side === 'buy' ? 'border-green-800' : 'border-red-800'
-                        )}
-                    >
+                    <>
                         <div
                             className={cn(
-                                resultInput.side === 'buy'
-                                    ? 'text-green-600 dark:text-green-400'
-                                    : 'text-red-600 dark:text-red-400'
+                                'bg-card flex items-center gap-2 rounded-t-md border px-2 capitalize ',
+                                resultInput.side === 'buy' ? 'border-green-800' : 'border-red-800'
                             )}
                         >
-                            {resultInput.side}
+                            <div
+                                className={cn(
+                                    resultInput.side === 'buy'
+                                        ? 'text-green-600 dark:text-green-400'
+                                        : 'text-red-600 dark:text-red-400'
+                                )}
+                            >
+                                {resultInput.side}
+                            </div>
+                            <div>{resultInput.amount}</div>
+                            <Coin symbol={resultInput.coin} className={'size-6'} />
+                            <div>{resultInput.coin}</div>
                         </div>
-                        <div>{resultInput.amount}</div>
-                        <Coin symbol={resultInput.coin} className={'size-6'} />
-                        <div>{resultInput.coin}</div>
-                    </div>
+                    </>
                 )}
             </div>
             <Card className={'relative !mb-0 w-full max-w-4xl'}>
@@ -387,7 +418,7 @@ const PriceLookup = () => {
                                         }
                                         target={'_blank'}
                                         className={
-                                            'flex size-full items-center justify-start gap-1 p-2 hover:underline sm:gap-2 sm:p-4'
+                                            'flex size-full items-center justify-start gap-1 p-2 hover:text-amber-600 hover:underline sm:gap-2 sm:p-4 dark:hover:text-amber-400'
                                         }
                                     >
                                         <ExchangeIcon exchange={best.exchange} withLabel />
@@ -444,7 +475,7 @@ const PriceLookup = () => {
                     </span>
                     <a
                         className={
-                            'flex justify-start gap-2 text-slate-400 underline underline-offset-4 dark:text-slate-600'
+                            'flex justify-start gap-2 text-slate-400 underline underline-offset-4 hover:text-amber-600 dark:text-slate-600 dark:dark:hover:text-amber-400'
                         }
                         href={'https://ko-fi.com/simonbechard'}
                     >
