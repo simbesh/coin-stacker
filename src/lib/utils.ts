@@ -18,6 +18,7 @@ const formattedExchangeNames: Record<string, string> = {
     coinstash: 'Coinstash',
     cointree: 'Cointree',
     digitalsurge: 'DigitalSurge',
+    okx: 'OKX',
 }
 
 export const exchangeFees: Record<string, number> = {
@@ -32,6 +33,7 @@ export const exchangeFees: Record<string, number> = {
     coinstash: 0.0085,
     cointree: 0.0075,
     digitalsurge: 0.005,
+    okx: 0.005,
 }
 export const defaultEnabledExchanges: Record<string, boolean> = {
     btcmarkets: true,
@@ -45,6 +47,7 @@ export const defaultEnabledExchanges: Record<string, boolean> = {
     coinstash: true,
     cointree: true,
     digitalsurge: true,
+    okx: true,
 }
 
 export function currencyFormat(num: number, currencyCode: string = 'AUD', digits: number = 2): string {

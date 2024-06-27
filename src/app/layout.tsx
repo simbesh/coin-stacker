@@ -4,10 +4,10 @@ import { Inter } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/react'
 import { ThemeProvider } from '@/components/theme-provider'
 import NavBar from '@/components/NavBar'
-import { Github } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { PHProvider, PostHogPageview } from '@/app/providers'
 import { Suspense } from 'react'
+import { RiGithubLine } from 'react-icons/ri'
 
 const inter = Inter({
     subsets: ['latin'],
@@ -61,7 +61,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                         <div>{process.env.COMMIT_HASH}</div>
                         <Button variant={'ghost'} size={'size-4'}>
                             <a href={process.env.REPO_LINK} target={'_blank'}>
-                                <Github className={'size-4'} />
+                                <RiGithubLine className={'size-4'} />
                             </a>
                         </Button>
                     </footer>

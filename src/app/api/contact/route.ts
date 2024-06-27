@@ -8,7 +8,7 @@ export async function POST(request: Request): Promise<NextResponse<any>> {
     const options = `&parse_mode=HTML&disable_web_page_preview=true`
     const url = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_API}/sendMessage?chat_id=${process.env.TELEGRAM_CHAT_ID}${options}&text=`
     let text = `
-<b>Tite</b>: ${title}
+<b>Title</b>: ${title}
 <b>Email</b>: ${email}
 <b>Message</b>: ${message}`
 

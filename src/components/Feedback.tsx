@@ -11,10 +11,11 @@ import {
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
-import { CheckCircle, Github, Send } from 'lucide-react'
+import { CheckCircle, MessageCircleHeart, Send } from 'lucide-react'
 import { Textarea } from '@/components/ui/textarea'
 import { Separator } from '@/components/ui/separator'
 import posthog from 'posthog-js'
+import { RiGithubLine } from 'react-icons/ri'
 
 const Feedback = () => {
     const [isLoading, setIsLoading] = useState(false)
@@ -76,7 +77,7 @@ const Feedback = () => {
                     className={'gap-2 text-base'}
                     onClick={() => posthog.capture('open-feedback')}
                 >
-                    <Send className={'size-5'} />
+                    <MessageCircleHeart className={'size-5'} />
                     <span className={''}>Feedback</span>
                 </Button>
             </DialogTrigger>
@@ -104,7 +105,7 @@ const Feedback = () => {
                                         className={'flex gap-2'}
                                         onClick={() => posthog.capture('feedback-github-issue')}
                                     >
-                                        <Github className={'size-5'} />
+                                        <RiGithubLine className={'size-5'} />
                                         Create Issue
                                     </a>
                                 </Button>

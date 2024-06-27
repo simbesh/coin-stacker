@@ -57,6 +57,8 @@ export const affiliateUrl = (exchange: string, base: string, quote: string) => {
             return `https://coinstash.com.au?a=6ta6yw2g`
         case 'digitalsurge':
             return `https://digitalsurge.com.au/?ref=KDXQ4`
+        case 'okx':
+            return `https://okx.com/join/95847721`
         default:
             return undefined
     }

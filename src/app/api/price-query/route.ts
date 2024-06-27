@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { btcmarkets, Exchange, independentreserve, kraken, luno } from 'ccxt'
+import { btcmarkets, Exchange, independentreserve, kraken, luno, okx } from 'ccxt'
 import {
     getBestAsks,
     getBestBids,
@@ -49,6 +49,13 @@ const getKrakenOrderBook = async (base: string, quote: string) => {
 }
 const getLunoOrderBook = async (base: string, quote: string) => {
     const exchange = new luno()
+    return getOrderBook(exchange, `${base}/${quote}`)
+}
+const getOkxOrderBook = async (base: string, quote: string) => {
+    if (quote !== 'USDT') {
+        return
+    }
+    const exchange = new okx()
     return getOrderBook(exchange, `${base}/${quote}`)
 }
 const getCoinSpotOrderBook = async (base: string, quote: string) => {
@@ -232,6 +239,7 @@ const exchangesMethods: Record<
     coinstash: getCoinstashMockOrderBook,
     cointree: getCointreeMockOrderBook,
     digitalsurge: getDigitalSurgeMockOrderBook,
+    okx: getOkxOrderBook,
 }
 
 export async function POST(request: Request): Promise<NextResponse<any>> {
@@ -251,6 +259,7 @@ export async function POST(request: Request): Promise<NextResponse<any>> {
             'coinstash',
             'cointree',
             'digitalsurge',
+            'okx',
         ]
         const exchanges = supportedExchanges.filter((e) => !omitExchanges.includes(e))
         const promises: any[] = []

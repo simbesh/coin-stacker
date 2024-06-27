@@ -475,7 +475,7 @@ const PriceLookup = () => {
                     </span>
                     <a
                         className={
-                            'flex justify-start gap-2 text-slate-400 underline underline-offset-4 hover:text-amber-600 dark:text-slate-600 dark:dark:hover:text-amber-400'
+                            'flex w-40 justify-start gap-2 text-slate-400 underline underline-offset-4 hover:text-amber-600 dark:text-slate-600 dark:dark:hover:text-amber-400'
                         }
                         href={'https://ko-fi.com/simonbechard'}
                     >
