@@ -267,7 +267,7 @@ const PriceLookup = () => {
         <div className={'mb-16 flex w-full flex-col items-center justify-center'}>
             <Card
                 className={
-                    'relative mt-8 mb-4 flex w-full max-w-2xl select-none flex-col items-center justify-center gap-4 border py-8 text-lg font-bold sm:mt-20'
+                    'relative mb-4 mt-8 flex w-full max-w-2xl select-none flex-col items-center justify-center gap-4 border py-8 text-lg font-bold sm:mt-20'
                 }
             >
                 <PriceHistoryDropdown
@@ -352,7 +352,7 @@ const PriceLookup = () => {
             {(coin === 'SOL' || (resultInput?.coin === 'SOL' && !isLoading)) && <CoinSpotInfoAlert />}
             <div
                 className={cn(
-                    'flex h-6 w-full items-center justify-center text-sm font-bold mt-4',
+                    'mt-4 flex h-6 w-full items-center justify-center text-sm font-bold',
                     isLoading && 'opacity-30'
                 )}
             >

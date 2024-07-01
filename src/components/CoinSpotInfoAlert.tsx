@@ -2,16 +2,16 @@ import ExchangeIcon from '@/components/ExchangeIcon'
 
 export function CoinSpotInfoAlert() {
     return (
-        <div className="w-full max-w-2xl border border-blue-500 rounded-md p-2 px-4 bg-blue-500/10">
+        <div className="w-full max-w-2xl rounded-md border border-blue-500 bg-blue-500/10 p-2 px-4">
             <div>
-                <span className="sm:text-sm text-xs text-blue-300 flex gap-1 items-center flex-wrap">
-                    <span className="text-blue-300 font-bold mr-1">Note: </span>
+                <span className="flex flex-wrap items-center gap-1 text-xs text-blue-300 sm:text-sm">
+                    <span className="mr-1 font-bold text-blue-300">Note: </span>
                     <ExchangeIcon exchange={'coinspot'} withLabel /> doesn't have a low-fee{' '}
-                    <span className="text-blue-300 font-bold">SOL/AUD</span>
+                    <span className="font-bold text-blue-300">SOL/AUD</span>
                     market!
                 </span>
             </div>
-            <span className="sm:text-sm text-xs text-blue-100 flex flex-col sm:flex-row">
+            <span className="flex flex-col text-xs text-blue-100 sm:flex-row sm:text-sm">
                 <span>Let them know if you want to see this market added:</span>
                 <div className="flex gap-2 sm:ml-2">
                     <a href={'https://x.com/coinspotau'} target={'_blank'} className={'underline'}>
