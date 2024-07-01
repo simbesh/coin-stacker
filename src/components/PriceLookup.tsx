@@ -20,6 +20,7 @@ import { CornerLeftUp, ExternalLink } from 'lucide-react'
 import { Combobox } from '@/components/Combobox'
 import posthog from 'posthog-js'
 import useMutableSearchParams from '@/hooks/useMutableSearchParams'
+import { CoinSpotInfoAlert } from './CoinSpotInfoAlert'
 
 const markets = [
     'BTC',
@@ -260,11 +261,13 @@ const PriceLookup = () => {
         }
     }
 
+    const resultsReady = bests.length > 0 && resultInput
+
     return (
-        <div className={'mb-40 flex w-full flex-col items-center justify-center'}>
+        <div className={'mb-16 flex w-full flex-col items-center justify-center'}>
             <Card
                 className={
-                    'relative mt-8 flex w-full max-w-2xl select-none flex-col items-center justify-center gap-4 border py-8 text-lg font-bold sm:mt-20'
+                    'relative mt-8 mb-4 flex w-full max-w-2xl select-none flex-col items-center justify-center gap-4 border py-8 text-lg font-bold sm:mt-20'
                 }
             >
                 <PriceHistoryDropdown
@@ -346,13 +349,14 @@ const PriceLookup = () => {
                     </Button>
                 </div>
             </Card>
+            {(coin === 'SOL' || (resultInput?.coin === 'SOL' && !isLoading)) && <CoinSpotInfoAlert />}
             <div
                 className={cn(
-                    'mt-10 flex h-6 w-full items-center justify-center text-sm font-bold',
+                    'flex h-6 w-full items-center justify-center text-sm font-bold mt-4',
                     isLoading && 'opacity-30'
                 )}
             >
-                {bests.length > 0 && resultInput && (
+                {resultsReady && (
                     <>
                         <div
                             className={cn(
@@ -475,11 +479,11 @@ const PriceLookup = () => {
                     </span>
                     <a
                         className={
-                            'flex w-40 justify-start gap-2 text-slate-400 underline underline-offset-4 hover:text-amber-600 dark:text-slate-600 dark:dark:hover:text-amber-400'
+                            'flex w-40 justify-start gap-2 text-slate-400 underline underline-offset-4 hover:text-amber-600 dark:text-slate-400 dark:dark:hover:text-amber-400'
                         }
                         href={'https://ko-fi.com/simonbechard'}
                     >
-                        or buy us a coffee!
+                        or buy us a coffee! ☕
                     </a>
                 </div>
             )}

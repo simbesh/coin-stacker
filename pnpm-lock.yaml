@@ -81,8 +81,8 @@ importers:
         specifier: ^0.2.1
         version: 0.2.1(next@14.1.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       posthog-js:
-        specifier: ^1.111.3
-        version: 1.111.3
+        specifier: ^1.142.1
+        version: 1.142.1
       prettier:
         specifier: ^3.2.5
         version: 3.2.5
@@ -2067,8 +2067,8 @@ packages:
     resolution: {integrity: sha512-9ZhXKM/rw350N1ovuWHbGxnGh/SNJ4cnxHiM0rxE4VN41wsg8P8zWn9hv/buK00RP4WvlOyr/RBDiptyxVbkZQ==}
     engines: {node: '>=0.10.0'}
 
-  posthog-js@1.111.3:
-    resolution: {integrity: sha512-Ie04OWI4dzYoPbPXv8mgwEoklexA8RqwH0kYTZdMxY0T78Rym/yj9jwhYK+2NGgDATAVp9KMsz9MbdkchGWoHA==}
+  posthog-js@1.142.1:
+    resolution: {integrity: sha512-yqeWTWitlb0sCaH5v6s7UJ+pPspzf/lkzPaSE5pMMXRM2i2KNsMoZEAZqbPCW8fQ8QL6lHs6d8PLjHrvbR288w==}
 
   preact@10.19.5:
     resolution: {integrity: sha512-OPELkDmSVbKjbFqF9tgvOowiiQ9TmsJljIzXRyNE8nGiis94pwv1siF78rQkAP1Q1738Ce6pellRg/Ns/CtHqQ==}
@@ -2505,6 +2505,9 @@ packages:
 
   victory-vendor@36.6.12:
     resolution: {integrity: sha512-pJrTkNHln+D83vDCCSUf0ZfxBvIaVrFHmrBOsnnLAbdqfudRACAj51He2zU94/IWq9464oTADcPVkmWAfNMwgA==}
+
+  web-vitals@4.2.1:
+    resolution: {integrity: sha512-U6bAxeudnhDqcXNl50JC4hLlqox9DZnngxfISZm3DMZnonW35xtJOVUc091L+DOY+6hVZVpKXoiCP0RiT6339Q==}
 
   which-boxed-primitive@1.0.2:
     resolution: {integrity: sha512-bwZdv0AKLpplFY2KZRX6TvyuN7ojjr7lwkg6ml0roIy9YeuSr7JS372qlNW18UQYzgYK9ziGcerWqZOmEn9VNg==}
@@ -4708,10 +4711,11 @@ snapshots:
     dependencies:
       xtend: 4.0.2
 
-  posthog-js@1.111.3:
+  posthog-js@1.142.1:
     dependencies:
       fflate: 0.4.8
       preact: 10.19.5
+      web-vitals: 4.2.1
 
   preact@10.19.5: {}
 
@@ -5165,6 +5169,8 @@ snapshots:
       d3-shape: 3.2.0
       d3-time: 3.1.0
       d3-timer: 3.0.1
+
+  web-vitals@4.2.1: {}
 
   which-boxed-primitive@1.0.2:
     dependencies:
