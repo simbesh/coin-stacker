@@ -6,7 +6,7 @@ export function CoinSpotInfoAlert() {
             <div>
                 <span className="flex flex-wrap items-center gap-1 text-xs text-blue-300 sm:text-sm">
                     <span className="mr-1 font-bold text-blue-300">Note: </span>
-                    <ExchangeIcon exchange={'coinspot'} withLabel /> doesn't have a low-fee{' '}
+                    <ExchangeIcon exchange={'coinspot'} withLabel /> {"doesn't have a low-fee"}
                     <span className="font-bold text-blue-300">SOL/AUD</span>
                     market!
                 </span>
