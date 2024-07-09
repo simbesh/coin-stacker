@@ -46,7 +46,7 @@ export const affiliateUrl = (exchange: string, base: string, quote: string) => {
         case 'coinspot':
             return `https://www.coinspot.com.au/join/REFJTP345`
         case 'kraken':
-            return `https://pro.kraken.com/app/trade/${base}-${quote}`
+            return `https://kraken.pxf.io/jrvM1n`
         case 'luno':
             return `https://www.luno.com/invite/EUBQ4W`
         case 'bitaroo':

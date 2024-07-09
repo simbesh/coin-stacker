@@ -424,6 +424,14 @@ const PriceLookup = () => {
                                         className={
                                             'flex size-full items-center justify-start gap-1 p-2 hover:text-amber-600 hover:underline sm:gap-2 sm:p-4 dark:hover:text-amber-400'
                                         }
+                                        onClick={() =>
+                                            posthog.capture('exchange-link', {
+                                                exchange: best.exchange,
+                                                url:
+                                                    affiliateUrl(best.exchange, coin, quote) ??
+                                                    tradeUrl(best.exchange, coin, quote),
+                                            })
+                                        }
                                     >
                                         <ExchangeIcon exchange={best.exchange} withLabel />
                                         <ExternalLink className={'size-4 min-h-[1rem] min-w-[1rem]'} />
