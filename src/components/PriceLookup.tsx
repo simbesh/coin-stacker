@@ -234,8 +234,6 @@ const PriceLookup = () => {
                 }),
             })
             const { best } = await prices.json()
-            console.log('#### best', best)
-
             setBests(best)
             setResultInput({ side, amount, coin, quote })
         } catch (e) {}
