@@ -2,8 +2,19 @@ import { BrOrderBookResponse, CjOrderBookResponse, CsOrderBookResponse } from '@
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 
+export const OLD_KRAKEN_TAKER_FEE = 0.0026
+
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs))
+}
+
+const stableCoins = ['USDT', 'USDC']
+const stableBaseFeeOverride: Record<string, number> = {
+    coinjar: 0.00001,
+    kraken: 0.002,
+}
+const stableQuoteFeeOverride: Record<string, number> = {
+    coinjar: 0.0006,
 }
 
 const formattedExchangeNames: Record<string, string> = {
@@ -24,7 +35,7 @@ const formattedExchangeNames: Record<string, string> = {
 export const exchangeFees: Record<string, number> = {
     btcmarkets: 0.0085,
     independentreserve: 0.005,
-    kraken: 0.0026,
+    kraken: 0.004,
     luno: 0.001,
     coinspot: 0.001,
     coinjar: 0.001,
@@ -131,9 +142,16 @@ type Best = {
     netPrice: number
     grossAveragePrice: number
     fees: number
+    feeRate: number
 }
 
-export function getBestAsks(orderbooks: any, amountToBuy: number, exchangeFees: Record<string, number>): Best[] {
+export function getBestAsks(
+    orderbooks: any,
+    amountToBuy: number,
+    exchangeFees: Record<string, number>,
+    base: string,
+    quote: string
+): Best[] {
     let sortedBests: Best[] = []
     const errors = []
     for (const exchange of Object.keys(orderbooks)) {
@@ -159,7 +177,13 @@ export function getBestAsks(orderbooks: any, amountToBuy: number, exchangeFees: 
                 grossCost += grossPrice * askVolume
             }
         }
-        const feeRate = exchangeFees[exchange] ?? 0
+        let feeRate = exchangeFees[exchange] ?? 0
+        if (stableCoins.includes(base)) {
+            feeRate = stableBaseFeeOverride[exchange] ?? feeRate
+        }
+        if (stableCoins.includes(quote)) {
+            feeRate = stableQuoteFeeOverride[exchange] ?? feeRate
+        }
         const fees = grossCost * feeRate
         const netCost = grossCost + fees
         const netPrice = grossPrice * (1 + feeRate)
@@ -177,6 +201,7 @@ export function getBestAsks(orderbooks: any, amountToBuy: number, exchangeFees: 
                 netPrice,
                 grossAveragePrice: grossCost / amountToBuy,
                 fees,
+                feeRate,
             })
         }
         // }
@@ -186,7 +211,13 @@ export function getBestAsks(orderbooks: any, amountToBuy: number, exchangeFees: 
     return sortedBests
 }
 
-export function getBestBids(orderbooks: any, amountToSell: number, exchangeFees: Record<string, number>): Best[] {
+export function getBestBids(
+    orderbooks: any,
+    amountToSell: number,
+    exchangeFees: Record<string, number>,
+    base: string,
+    quote: string
+): Best[] {
     let sortedBests: Best[] = []
     const errors = []
     for (const exchange of Object.keys(orderbooks)) {
@@ -212,7 +243,13 @@ export function getBestBids(orderbooks: any, amountToSell: number, exchangeFees:
                 grossCost += grossPrice * bidVolume
             }
         }
-        const feeRate = exchangeFees[exchange] ?? 0
+        let feeRate = exchangeFees[exchange] ?? 0
+        if (stableCoins.includes(base)) {
+            feeRate = stableBaseFeeOverride[exchange] ?? feeRate
+        }
+        if (stableCoins.includes(quote)) {
+            feeRate = stableQuoteFeeOverride[exchange] ?? feeRate
+        }
         const fees = grossCost * feeRate
         const netCost = grossCost - fees
         const netPrice = grossPrice * (1 - feeRate)
@@ -225,6 +262,7 @@ export function getBestBids(orderbooks: any, amountToSell: number, exchangeFees:
                 netPrice,
                 grossAveragePrice: grossCost / amountToSell,
                 fees,
+                feeRate,
             })
         }
     }

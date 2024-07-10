@@ -2,7 +2,14 @@
 
 import React, { useEffect, useState } from 'react'
 import { Button } from './ui/button'
-import { cn, currencyFormat, defaultEnabledExchanges, exchangeFees, formatExchangeName } from '@/lib/utils'
+import {
+    cn,
+    currencyFormat,
+    defaultEnabledExchanges,
+    exchangeFees,
+    formatExchangeName,
+    OLD_KRAKEN_TAKER_FEE,
+} from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 import Coin from '@/components/CoinIcon'
 import { round } from 'lodash'
@@ -69,6 +76,7 @@ type PriceQueryResult = {
     grossPrice: number
     grossAveragePrice: number
     fees: number
+    feeRate: number
 }
 
 const headers = [
@@ -121,7 +129,7 @@ const PriceLookup = () => {
     const [resultInput, setResultInput] = useState<PriceQueryParams>()
     const [{}, scrollTo] = useWindowScroll()
     const [history, setHistory] = useLocalStorage<PriceQueryParams[]>(LocalStorageKeys.PriceQueryHistory, [])
-    const [fees] = useLocalStorage<Record<string, number>>(LocalStorageKeys.ExchangeFees, exchangeFees)
+    const [fees, setFees] = useLocalStorage<Record<string, number>>(LocalStorageKeys.ExchangeFees, exchangeFees)
     const [lowestFee, setLowestFee] = useState<number>()
     const [bestAvgPrice, setBestAvgPrice] = useState<number>()
     const [enabledExchanges] = useLocalStorage<Record<string, boolean>>(
@@ -151,6 +159,15 @@ const PriceLookup = () => {
     useEffect(() => {
         setSearchParams({ side, amount, coin })
     }, [side, amount, coin])
+
+    useEffect(() => {
+        const newFees = { ...fees }
+        if (newFees.kraken === OLD_KRAKEN_TAKER_FEE) {
+            // reset fee to new rate
+            newFees.kraken = Number(exchangeFees.kraken)
+            setFees(newFees)
+        }
+    }, [fees])
 
     useEffect(() => {
         if (bests.length > 0) {
@@ -217,6 +234,7 @@ const PriceLookup = () => {
                 }),
             })
             const { best } = await prices.json()
+            console.log('#### best', best)
 
             setBests(best)
             setResultInput({ side, amount, coin, quote })
@@ -457,7 +475,7 @@ const PriceLookup = () => {
                                         <PopoverContent className={'w-fit p-2 text-sm'}>
                                             <p>
                                                 {formatExchangeName(best.exchange)} fee:{' '}
-                                                {round((fees[best.exchange] ?? 0) * 100, 2) + '%'}
+                                                {round(best.feeRate * 100, 3) + '%'}
                                             </p>
                                         </PopoverContent>
                                     </Popover>

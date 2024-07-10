@@ -287,8 +287,8 @@ export async function POST(request: Request): Promise<NextResponse<any>> {
 
         best =
             side === 'buy'
-                ? getBestAsks(orderbooks, parseFloat(amount), fees)
-                : getBestBids(orderbooks, parseFloat(amount), fees)
+                ? getBestAsks(orderbooks, parseFloat(amount), fees, base, quote)
+                : getBestBids(orderbooks, parseFloat(amount), fees, base, quote)
     }
 
     return NextResponse.json({ best, errors })
