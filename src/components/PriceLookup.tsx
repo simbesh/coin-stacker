@@ -27,7 +27,6 @@ import { CornerLeftUp, ExternalLink } from 'lucide-react'
 import { Combobox } from '@/components/Combobox'
 import posthog from 'posthog-js'
 import useMutableSearchParams from '@/hooks/useMutableSearchParams'
-import { CoinSpotInfoAlert } from './CoinSpotInfoAlert'
 
 const markets = [
     'BTC',
@@ -365,7 +364,7 @@ const PriceLookup = () => {
                     </Button>
                 </div>
             </Card>
-            {(coin === 'SOL' || (resultInput?.coin === 'SOL' && !isLoading)) && <CoinSpotInfoAlert />}
+            {/*{(coin === 'SOL' || (resultInput?.coin === 'SOL' && !isLoading)) && <CoinSpotInfoAlert />}*/}
             <div
                 className={cn(
                     'mt-4 flex h-6 w-full items-center justify-center text-sm font-bold',

@@ -52,9 +52,6 @@ const getLunoOrderBook = async (base: string, quote: string) => {
     return getOrderBook(exchange, `${base}/${quote}`)
 }
 const getOkxOrderBook = async (base: string, quote: string) => {
-    if (quote !== 'USDT') {
-        return
-    }
     const exchange = new okx()
     return getOrderBook(exchange, `${base}/${quote}`)
 }
