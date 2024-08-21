@@ -124,6 +124,18 @@ const ctree = [
     [100_000, 0.5],
 ]
 
+const okx = [
+    [0, 0.5],
+    [1_500_001, 0.3],
+    [7_500_001, 0.1],
+    [15_000_001, 0.09],
+    [30_000_001, 0.08],
+    [200_000_001, 0.04],
+    [500_000_001, 0.03],
+    [1_000_000_001, 0.025],
+    [1_500_000_001, 0.02],
+]
+
 function fillDataPoints(dataMap: Record<string, Record<string, number>>, data: number[][], key: string) {
     for (const i of data) {
         if (i[0] !== undefined && i[1] !== undefined) {
@@ -146,6 +158,7 @@ fillDataPoints(dataMap, br, 'Bitaroo')
 fillDataPoints(dataMap, sx, 'Swyftx')
 fillDataPoints(dataMap, cstash, 'Coinstash')
 fillDataPoints(dataMap, ctree, 'Cointree')
+fillDataPoints(dataMap, okx, 'OKX')
 
 const data: any[] = []
 let prev: any
@@ -202,6 +215,13 @@ const allLabels = [
         key: 'Cointree',
         colour: '#98f1c7',
         gradientKey: 'cointree-gradient',
+        gradientStop: '35%',
+    },
+    {
+        exchange: 'okx',
+        key: 'OKX',
+        colour: '#fff',
+        gradientKey: 'okx-gradient',
         gradientStop: '35%',
     },
 ]
@@ -344,8 +364,8 @@ const FeesChart = () => {
                                     stroke={colour}
                                     fill={`url(#${gradientKey})`}
                                     hide={seriesProps[key] === true}
-                                    fillOpacity={Number(seriesProps.hover === key || !seriesProps.hover ? 0.65 : 0.05)}
-                                    strokeOpacity={Number(seriesProps.hover === key || !seriesProps.hover ? 1 : 0.3)}
+                                    fillOpacity={Number(seriesProps.hover === key || !seriesProps.hover ? 0.3 : 0.05)}
+                                    strokeOpacity={Number(seriesProps.hover === key || !seriesProps.hover ? 1 : 0.1)}
                                     strokeDasharray={strokeDasharray}
                                 />
                             )}
