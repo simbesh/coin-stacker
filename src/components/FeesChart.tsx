@@ -265,7 +265,10 @@ const FeesChart = () => {
     )
 
     const handleLegendMouseEnter = (e: any) => {
-        navigator.vibrate(75)
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        if (navigator.vibrate) {
+            navigator.vibrate(75)
+        }
         if (!seriesProps[e.dataKey]) {
             setSeriesProps({ ...seriesProps, hover: e.dataKey })
         }
