@@ -133,8 +133,8 @@ const PriceLookup = () => {
     )
 
     useEffect(() => {
-        if (coin !== null && side !== null && amount !== null) {
-            getPrices({ side: side as 'buy' | 'sell', amount, coin })
+        if (coin && amount) {
+            getPrices({ side, amount, coin })
         }
     }, [])
 
