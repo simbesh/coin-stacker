@@ -114,7 +114,8 @@ const headers = [
 const firstRowCellStyle = 'text-green-600 dark:text-green-500'
 
 const PriceLookup = () => {
-    const [side, setSide] = useQueryState('side', { defaultValue: 'buy' })
+    const [side, setSide] = useQueryState<('buy' | 'sell')>('side', { defaultValue: 'buy' , parse: (value: string): 'buy' | 'sell' => 
+        value === 'buy' || value === 'sell' ? value : 'buy'})
     const [amount, setAmount] = useQueryState('amount', { defaultValue: '' })
     const [coin, setCoin] = useQueryState('coin', { defaultValue: '' })
     const [quote, setQuote] = useQueryState('quote', { defaultValue: 'AUD' })
