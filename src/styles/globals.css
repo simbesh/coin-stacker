@@ -2,7 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-
 @layer base {
     :root {
         --background: 0 0% 100%;
@@ -34,7 +33,7 @@
         --card: 222.2 84% 4.9%;
         --card-foreground: 210 40% 98%;
         /*--popover: 222.2 84% 4.9%;*/
-        --popover: 222 47% 11%;;
+        --popover: 222 47% 11%;
         --popover-foreground: 210 40% 98%;
         --primary: 43 99% 54%;
         --primary-foreground: 222.2 47.4% 11.2%;
@@ -69,15 +68,22 @@
     }
 
     /* Firefox */
-    input[type=number] {
+    input[type='number'] {
         -moz-appearance: textfield;
     }
 
-    .gradient-text {
+    .dark .gradient-text {
         background: linear-gradient(90deg, #fdbd19 0%, #fff 10%, #fff 90%, #fdbd19 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        background-position: 0;
+        background-size: 100%;
+    }
 
+    .gradient-text {
+        background: linear-gradient(90deg, #fdbd19 0%, #495668 10%, #495668 90%, #fdbd19 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
         background-position: 0;
         background-size: 100%;
     }

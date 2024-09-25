@@ -26,7 +26,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { CornerLeftUp, ExternalLink } from 'lucide-react'
 import { Combobox } from '@/components/Combobox'
 import posthog from 'posthog-js'
-import useMutableSearchParams from '@/hooks/useMutableSearchParams'
+import { useQueryState } from 'nuqs'
 
 const markets = [
     'BTC',
@@ -110,19 +110,14 @@ const headers = [
         className: 'text-right',
     },
 ]
-interface QueryParams {
-    coin: string
-    side: string
-    amount: string
-}
 
 const firstRowCellStyle = 'text-green-600 dark:text-green-500'
 
 const PriceLookup = () => {
-    const [side, setSide] = useState<'buy' | 'sell'>('buy')
-    const [amount, setAmount] = useState<string>('')
-    const [coin, setCoin] = useState<string>('')
-    const [quote, setQuote] = useState<string>('AUD')
+    const [side, setSide] = useQueryState('side', { defaultValue: 'buy' })
+    const [amount, setAmount] = useQueryState('amount', { defaultValue: '' })
+    const [coin, setCoin] = useQueryState('coin', { defaultValue: '' })
+    const [quote, setQuote] = useQueryState('quote', { defaultValue: 'AUD' })
     const [isLoading, setIsLoading] = useState(false)
     const [bests, setBests] = useState<PriceQueryResult[]>([])
     const [resultInput, setResultInput] = useState<PriceQueryParams>()
@@ -135,29 +130,12 @@ const PriceLookup = () => {
         LocalStorageKeys.EnabledExchanges,
         defaultEnabledExchanges
     )
-    const { searchParams, setSearchParams } = useMutableSearchParams<QueryParams>()
 
     useEffect(() => {
-        const coin = searchParams.get('coin')
-        const side = searchParams.get('side')
-        const amount = searchParams.get('amount')
-        if (coin) {
-            setCoin(coin)
-        }
-        if (side && (side === 'buy' || side === 'sell')) {
-            setSide(side)
-        }
-        if (amount) {
-            setAmount(amount)
-        }
         if (coin !== null && side !== null && amount !== null) {
             getPrices({ side: side as 'buy' | 'sell', amount, coin })
         }
     }, [])
-
-    useEffect(() => {
-        setSearchParams({ side, amount, coin })
-    }, [side, amount, coin])
 
     useEffect(() => {
         const newFees = { ...fees }
@@ -391,6 +369,7 @@ const PriceLookup = () => {
                             <div>{resultInput.amount}</div>
                             <Coin symbol={resultInput.coin} className={'size-6'} />
                             <div>{resultInput.coin}</div>
+                            <div className='text-slate-500'>for {resultInput.quote}</div>
                         </div>
                     </>
                 )}
