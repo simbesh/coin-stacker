@@ -11,6 +11,7 @@ import {
     OLD_KRAKEN_TAKER_FEE,
 } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
 import Coin from '@/components/CoinIcon'
 import { round } from 'lodash'
 import { useLocalStorage, useWindowScroll } from '@uidotdev/usehooks'
@@ -23,7 +24,7 @@ import Spinner from '@/components/Spinner'
 import { FeeParams } from '@/components/fee-params'
 import { tradeUrl, LocalStorageKeys, affiliateUrl } from '@/lib/constants'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { CornerLeftUp, ExternalLink } from 'lucide-react'
+import { CornerLeftUp, ExternalLink, Search } from 'lucide-react'
 import { Combobox } from '@/components/Combobox'
 import posthog from 'posthog-js'
 import { useQueryState } from 'nuqs'
@@ -112,10 +113,13 @@ const headers = [
 ]
 
 const firstRowCellStyle = 'text-green-600 dark:text-green-500'
+const quickSelectCoins = ['BTC', 'ETH', 'SOL', 'USDC', 'USDT']
 
 const PriceLookup = () => {
-    const [side, setSide] = useQueryState<('buy' | 'sell')>('side', { defaultValue: 'buy' , parse: (value: string): 'buy' | 'sell' => 
-        value === 'buy' || value === 'sell' ? value : 'buy'})
+    const [side, setSide] = useQueryState<'buy' | 'sell'>('side', {
+        defaultValue: 'buy',
+        parse: (value: string): 'buy' | 'sell' => (value === 'buy' || value === 'sell' ? value : 'buy'),
+    })
     const [amount, setAmount] = useQueryState('amount', { defaultValue: '' })
     const [coin, setCoin] = useQueryState('coin', { defaultValue: '' })
     const [quote, setQuote] = useQueryState('quote', { defaultValue: 'AUD' })
@@ -131,6 +135,19 @@ const PriceLookup = () => {
         LocalStorageKeys.EnabledExchanges,
         defaultEnabledExchanges
     )
+
+    const handleKeyPress = (e: KeyboardEvent) => {
+        if (e.key === 'Enter' && !submitDisabled) {
+            getPrices({ side, amount, coin })
+        }
+    }
+
+    useEffect(() => {
+        window.addEventListener('keypress', handleKeyPress)
+        return () => {
+            window.removeEventListener('keypress', handleKeyPress)
+        }
+    }, [coin, amount, side])
 
     useEffect(() => {
         if (coin && amount) {
@@ -256,6 +273,7 @@ const PriceLookup = () => {
     }
 
     const resultsReady = bests.length > 0 && resultInput
+    const submitDisabled = !amount || !coin || isLoading
 
     return (
         <div className={'mb-16 flex w-full flex-col items-center justify-center'}>
@@ -281,8 +299,7 @@ const PriceLookup = () => {
                     />
                     <FeeParams />
                 </div>
-                {'I want to...'}
-                <div>
+                <div className="mt-8">
                     <Button
                         variant={'secondary'}
                         className={cn(
@@ -331,14 +348,29 @@ const PriceLookup = () => {
                         }))}
                     />
                 </div>
+                <div>
+                    {quickSelectCoins.map((coin) => (
+                        <Badge
+                            variant={'outline'}
+                            onClick={() => setCoin(coin)}
+                            className={'group h-8 cursor-pointer gap-2 border hover:border-slate-400'}
+                        >
+                            <Coin symbol={coin} className={cn('size-4 group-hover:text-slate-300')} />
+                            {coin}
+                        </Badge>
+                    ))}
+                </div>
                 <div className={'flex w-full justify-center'}>
                     <Button
                         variant={'default'}
-                        className={'mx-4 mt-4 w-full rounded-lg text-base text-black sm:w-44'}
+                        className={
+                            'mx-4 mt-4 flex w-full items-center gap-2 rounded-lg text-base font-bold text-black sm:w-44'
+                        }
                         onClick={() => getPrices({ side, amount, coin })}
-                        disabled={!amount || !coin || isLoading}
+                        disabled={submitDisabled}
                         isLoading={isLoading}
                     >
+                        <Search strokeWidth={3} className={'size-4'} />
                         Search
                     </Button>
                 </div>
@@ -370,7 +402,7 @@ const PriceLookup = () => {
                             <div>{resultInput.amount}</div>
                             <Coin symbol={resultInput.coin} className={'size-6'} />
                             <div>{resultInput.coin}</div>
-                            <div className='text-slate-500'>for {resultInput.quote}</div>
+                            <div className="text-slate-500">for {resultInput.quote}</div>
                         </div>
                     </>
                 )}
@@ -402,7 +434,10 @@ const PriceLookup = () => {
                         {bests.map((best, i) => (
                             <TableRow
                                 key={best.exchange + '_' + i}
-                                className={cn(i === 0 && 'border-2 border-green-500')}
+                                className={cn('border-2', {
+                                    'border-green-500/30': i === 0 && isLoading,
+                                    'border-green-500': i === 0 && !isLoading,
+                                })}
                             >
                                 <TableCell
                                     className={cn(

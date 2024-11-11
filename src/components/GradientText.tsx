@@ -28,7 +28,7 @@ export default function GradientText() {
 
     return (
         <h2
-            className="gradient-text mt-2 flex w-screen flex-wrap items-end justify-center gap-1 text-3xl font-bold text-slate-600 dark:text-slate-200"
+            className="gradient-text mt-2 flex w-screen flex-wrap items-end justify-center gap-1 text-2xl font-bold text-slate-600 sm:text-3xl dark:text-slate-200"
             ref={refText}
         >
             {isSmallDevice ? (

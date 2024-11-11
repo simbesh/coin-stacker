@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import * as Sentry from '@sentry/nextjs'
 import { btcmarkets, Exchange, independentreserve, kraken, luno, okx } from 'ccxt'
 import {
     getBestAsks,
@@ -27,11 +28,23 @@ const cointreeOrderLimit: Record<string, number> = {
 
 const fetcher = (...args: Parameters<typeof fetch>) => fetch(...args)
 
+class MarketNotFoundError extends Error {
+    sentryIgnore = true
+
+    constructor(symbol: string, exchangeId: string) {
+        super(`Symbol ${symbol} not found in ${exchangeId}`)
+        this.name = 'MarketNotFoundError'
+    }
+}
+
 const getOrderBook = async (exchange: Exchange, symbol: string) => {
     exchange.fetchImplementation = fetcher
     await exchange.loadMarkets()
     if (symbol in exchange.markets) {
         return exchange.fetchOrderBook(symbol)
+    } else {
+        console.error(`Symbol ${symbol} not found in ${exchange.id}`)
+        throw new MarketNotFoundError(symbol, exchange.id)
     }
 }
 
@@ -240,7 +253,8 @@ const exchangesMethods: Record<
 }
 
 export async function POST(request: Request): Promise<NextResponse<any>> {
-    const { fees, base, quote, side, amount, omitExchanges } = await request.json()
+    const data = await request.json()
+    const { fees, base, quote, side, amount, omitExchanges } = data
     const errors: Record<string, any>[] = []
     let best
     if (base && quote && amount && side) {
@@ -274,6 +288,10 @@ export async function POST(request: Request): Promise<NextResponse<any>> {
                         value: result.value,
                     }
                 } else {
+                    console.error(`Error from ${exchange}:`, result.reason)
+                    if (!result.reason?.sentryIgnore) {
+                        Sentry.captureException(result.reason, data)
+                    }
                     errors.push({ [exchange]: result.reason })
                     orderbooks[exchange] = {
                         error: result.reason,
