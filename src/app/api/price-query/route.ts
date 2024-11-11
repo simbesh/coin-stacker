@@ -152,7 +152,7 @@ const getCoinstashMockOrderBook = async (base: string, quote: string, side?: str
 
         const json: CoinstashQuotes = await res.json()
         const baseLowerCase = base.toLowerCase()
-        if (json.prices[baseLowerCase] !== undefined) {
+        if (json.prices?.[baseLowerCase] !== undefined) {
             if (side === 'buy') {
                 return {
                     asks: [[json.prices[baseLowerCase]!.buyPrice, parseFloat(amount)]],
