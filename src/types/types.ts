@@ -46,7 +46,7 @@ export interface CoinstashQuotes {
     quoteId: string
     issuedOn: Date
     targetCurrency: string
-    prices: { [key: string]: Price }
+    prices?: { [key: string]: Price }
 }
 export interface CointreeQuotes {
     sell: string
