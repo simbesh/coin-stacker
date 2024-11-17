@@ -1,4 +1,4 @@
-import { BrOrderBookResponse, CjOrderBookResponse, CsOrderBookResponse } from '@/types/types'
+import { BrOrderBookResponse, CjOrderBookResponse, CsOrderBookResponseOk } from '@/types/types'
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 
@@ -18,8 +18,8 @@ const stableQuoteFeeOverride: Record<string, number> = {
 }
 
 const formattedExchangeNames: Record<string, string> = {
-    btcmarkets: 'BTC Markets',
-    independentreserve: 'IndepReserv',
+    btcmarkets: 'BTCMarkets',
+    independentreserve: 'IndepRes',
     kraken: 'Kraken',
     luno: 'Luno',
     coinspot: 'CoinSpot',
@@ -93,7 +93,7 @@ export function parseCjOrderBook(data: CjOrderBookResponse): any {
     }
 }
 
-export function parseCsOrderBook(data: CsOrderBookResponse): any {
+export function parseCsOrderBook(data: CsOrderBookResponseOk): any {
     const bids: [number, number][] = data.buyorders.map((o) => [o.rate, o.amount])
     const asks: [number, number][] = data.sellorders.map((o) => [o.rate, o.amount])
     const timestamp = Date.now()

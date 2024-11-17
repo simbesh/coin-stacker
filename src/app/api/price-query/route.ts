@@ -71,8 +71,15 @@ const getOkxOrderBook = async (base: string, quote: string) => {
 const getCoinSpotOrderBook = async (base: string, quote: string) => {
     const res = await fetch(`https://www.coinspot.com.au/pubapi/v2/orders/open/${base}/${quote}`)
     const json: CsOrderBookResponse = await res.json()
-    return parseCsOrderBook(json)
+    if ('buyorders' in json && 'sellorders' in json) {
+        return parseCsOrderBook(json)
+    } else if ('message' in json) {
+        throw new Error(json.message)
+    } else {
+        throw new Error('BUG: Unknown CoinSpot order book response')
+    }
 }
+
 const getCoinJarOrderBook = async (base: string, quote: string) => {
     const res = await fetch(`https://data.exchange.coinjar.com/products/${base}${quote}/book?level=2`)
     const json: CjOrderBookResponse = await res.json()
@@ -288,11 +295,11 @@ export async function POST(request: Request): Promise<NextResponse<any>> {
                         value: result.value,
                     }
                 } else {
-                    console.error(`Error from ${exchange}:`, result.reason)
+                    console.error(`Error from ${exchange}:`, result.reason.toString())
                     if (!result.reason?.sentryIgnore) {
                         Sentry.captureException(result.reason, data)
                     }
-                    errors.push({ [exchange]: result.reason })
+                    errors.push({ name: exchange, error: result.reason.toString() })
                     orderbooks[exchange] = {
                         error: result.reason,
                     }

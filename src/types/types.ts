@@ -1,7 +1,13 @@
-export interface CsOrderBookResponse {
-    status: string
+export type CsOrderBookResponse = CsOrderBookResponseOk | CsOrderBookResponseError
+
+export interface CsOrderBookResponseOk {
+    status: 'ok'
     buyorders: Array<OrderBookLevel>
     sellorders: Array<OrderBookLevel>
+}
+export interface CsOrderBookResponseError {
+    status: 'error'
+    message: string
 }
 
 export interface CjOrderBookResponse {

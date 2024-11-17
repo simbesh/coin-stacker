@@ -10,6 +10,7 @@ import { cn, defaultEnabledExchanges } from '@/lib/utils'
 import ExchangeIcon from '@/components/ExchangeIcon'
 import { Separator } from '@/components/ui/separator'
 import Feedback from '@/components/Feedback'
+import { Switch } from '@/components/ui/switch'
 
 const GeneralSettings = () => {
     const [enabledExchanges, setEnabledExchanges] = useLocalStorage<Record<string, boolean>>(
@@ -44,18 +45,17 @@ const GeneralSettings = () => {
                     <Settings className={'size-5'} />
                 </Button>
             </SheetTrigger>
-            <SheetContent>
+            <SheetContent className={'overflow-y-auto'}>
                 <SheetHeader>
                     <SheetTitle>General Settings</SheetTitle>
-                    <SheetDescription>
-                        Configure exchanges and fees below. Changes are saved automatically.
-                    </SheetDescription>
+                    <SheetDescription>Toggle preferred exchanges.</SheetDescription>
                 </SheetHeader>
-                <div className={'mt-6'}>
+                <div className={'mx-6 mt-6 space-y-1 sm:mx-10'}>
                     {Object.keys(defaultEnabledExchanges).map((exchange) => (
-                        <div
+                        <Button
+                            variant={'ghost'}
                             className={
-                                'flex cursor-pointer items-center rounded-lg p-4 hover:bg-slate-200 dark:hover:bg-slate-800'
+                                'w-full justify-between hover:bg-transparent hover:ring-2 hover:ring-slate-200 dark:hover:ring-slate-800'
                             }
                             onClick={() => handleExchangeToggle(exchange)}
                             key={exchange + '-exchange-toggle'}
@@ -66,17 +66,14 @@ const GeneralSettings = () => {
                                     !enabledExchanges[exchange] && 'opacity-50 grayscale'
                                 )}
                             >
-                                <ExchangeIcon exchange={exchange} withLabel />
+                                <ExchangeIcon
+                                    exchange={exchange}
+                                    withLabel
+                                    labelClassName={'font-semibold sm:text-base text-sm'}
+                                />
                             </div>
-                            <div
-                                className={cn(
-                                    'ml-auto font-bold',
-                                    enabledExchanges[exchange] ? 'text-green-500' : 'text-red-500'
-                                )}
-                            >
-                                {enabledExchanges[exchange] ? 'Enabled' : 'Disabled'}
-                            </div>
-                        </div>
+                            <Switch size={'sm'} checked={enabledExchanges[exchange]} />
+                        </Button>
                     ))}
                 </div>
                 <Separator className={'my-4'} />
@@ -94,7 +91,7 @@ const GeneralSettings = () => {
                     </Button>
                 </div>
 
-                <div className={'absolute bottom-8 right-8'}>
+                <div className={'mt-4 flex w-full justify-end'}>
                     <Feedback />
                 </div>
             </SheetContent>

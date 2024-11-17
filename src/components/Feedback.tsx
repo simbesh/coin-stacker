@@ -74,10 +74,10 @@ const Feedback = () => {
             <DialogTrigger asChild>
                 <Button
                     variant={'ghost'}
-                    className={'gap-2 text-base'}
+                    className={'group gap-2 text-base'}
                     onClick={() => posthog.capture('open-feedback')}
                 >
-                    <MessageCircleHeart className={'size-5'} />
+                    <MessageCircleHeart className={'group-hover:text-primary size-5'} />
                     <span className={''}>Feedback</span>
                 </Button>
             </DialogTrigger>
@@ -127,8 +127,10 @@ const Feedback = () => {
                                     </a>
                                 </Button>
                             </div>
-                            <Separator />
-                            <form className={'mx-2 mt-4'} onSubmit={handleContact}>
+                            <div className="my-2 flex w-full items-center justify-center gap-2">
+                                <span className="text-muted-foreground text-sm">- or -</span>
+                            </div>
+                            <form className={'mx-2'} onSubmit={handleContact}>
                                 <div className="space-y-2">
                                     <div className="grid grid-cols-4 items-center gap-4">
                                         {/*<Label htmlFor="name" className="text-right">*/}
