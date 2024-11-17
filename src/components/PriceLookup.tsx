@@ -191,7 +191,8 @@ const PriceLookup = () => {
                 dif: getDif(priceQueryResult.best, i),
                 pctDif: getDifPct(priceQueryResult.best, i),
                 filteredReason:
-                    Number(getDifPct(priceQueryResult.best, i, false)) <= -0.1
+                    Number(getDifPct(priceQueryResult.best, i, false)) <= -0.1 ||
+                    Number(getDifPct(priceQueryResult.best, i, false)) >= 0.1
                         ? 'High price slippage: ' + getDifPct(priceQueryResult.best, i)
                         : undefined,
             }))
