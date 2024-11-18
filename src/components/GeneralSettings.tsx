@@ -59,6 +59,7 @@ const GeneralSettings = () => {
                             }
                             onClick={() => handleExchangeToggle(exchange)}
                             key={exchange + '-exchange-toggle'}
+                            aria-label={`Toggle ${exchange} Exchange`}
                         >
                             <div
                                 className={cn(
@@ -80,13 +81,18 @@ const GeneralSettings = () => {
                 <div className={'flex w-full justify-end gap-2'}>
                     <Button
                         variant={'secondary'}
+                        aria-label={`Disable All Exchanges (${Object.keys(defaultEnabledExchanges).length})`}
                         onClick={() =>
                             setEnabledExchanges(
                                 Object.fromEntries(Object.entries(defaultEnabledExchanges).map(([key]) => [key, false]))
                             )
                         }
                     >{`Disable All (${Object.keys(defaultEnabledExchanges).length})`}</Button>
-                    <Button variant={'secondary'} onClick={() => setEnabledExchanges(defaultEnabledExchanges)}>
+                    <Button
+                        variant={'secondary'}
+                        aria-lable="Enable All Exchanges"
+                        onClick={() => setEnabledExchanges(defaultEnabledExchanges)}
+                    >
                         Enable All
                     </Button>
                 </div>

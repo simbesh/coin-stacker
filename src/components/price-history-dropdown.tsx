@@ -31,7 +31,13 @@ export function PriceHistoryDropdown({ className, raiseHistory }: Props) {
     return (
         <Popover onOpenChange={setHistoryOpen} open={historyOpen}>
             <PopoverTrigger asChild>
-                <Button variant="outline" size="icon" className={className} disabled={history.length === 0}>
+                <Button
+                    variant="outline"
+                    size="icon"
+                    className={className}
+                    disabled={history.length === 0}
+                    aria-label="Open Price Query History"
+                >
                     <History className="size-[1.2rem]" />
                 </Button>
             </PopoverTrigger>

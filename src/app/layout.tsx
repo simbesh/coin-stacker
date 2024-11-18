@@ -59,7 +59,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     >
                         <div>{'v' + process.env.APP_VERSION}</div>
                         <div>{process.env.COMMIT_HASH}</div>
-                        <Button variant={'ghost'} size={'size-4'}>
+                        <Button variant={'ghost'} size={'size-4'} aria-label="Open Github Repo">
                             <a href={process.env.REPO_LINK} target={'_blank'}>
                                 <RiGithubLine className={'size-4'} />
                             </a>

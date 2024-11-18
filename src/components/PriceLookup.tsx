@@ -367,6 +367,7 @@ const PriceLookup = () => {
                         onClick={() => getPrices({ side, amount, coin })}
                         disabled={submitDisabled}
                         isLoading={isLoading}
+                        aria-label="Search for prices"
                     >
                         <Search strokeWidth={3} className={'size-4'} />
                         Search
@@ -542,7 +543,9 @@ const PriceLookup = () => {
                         {(priceQueryResult.errors.length > 0 || tableData.some((row) => row.filteredReason)) && (
                             <TableRow className="hover:bg-transparent">
                                 <TableCell colSpan={6} className={'p-4'}>
-                                    <Button variant={'outline'} onClick={() => setHideFiltered((prev) => !prev)}>
+                                    <Button variant={'outline'} onClick={() => setHideFiltered((prev) => !prev)}
+                                        aria-label={`${hideFiltered ? 'Show' : 'Hide'} filtered results`}
+                                    >
                                         {hideFiltered ? (
                                             <>
                                                 {`Show ${

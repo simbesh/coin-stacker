@@ -33,6 +33,7 @@ export default function HomePage() {
                         variant={'secondary'}
                         onClick={() => setSelectedExchange(exchange)}
                         disabled={availableExchanges?.includes(exchange) === false}
+                        aria-label={`Select ${exchange} Exchange`}
                         className={cn(
                             selectedExchange === exchange
                                 ? 'border-white'
@@ -50,6 +51,7 @@ export default function HomePage() {
                         variant={'secondary'}
                         onClick={() => setSelectedCoin(market)}
                         disabled={availableMarkets?.includes(market) === false}
+                        aria-label={`Select ${market} Market`}
                         className={cn(
                             selectedCoin === market
                                 ? 'border-white'

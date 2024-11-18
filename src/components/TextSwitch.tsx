@@ -19,6 +19,7 @@ const Button = ({
             )}
             type="button"
             onClick={() => setSide(side)}
+            aria-label={`Select ${side} Side`}
         >
             <span className="capitalize">{side}</span>
         </button>

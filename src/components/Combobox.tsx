@@ -27,6 +27,7 @@ export function Combobox({ className, options, value, setValue, optionType = 'op
                     variant="outline"
                     role="combobox"
                     aria-expanded={open}
+                    aria-label={`Select ${optionType}`}
                     className={cn('w-[200px] justify-between', className)}
                 >
                     {value ? options.find((option) => option.value === value)?.label : `Select ${optionType}`}

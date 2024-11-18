@@ -75,6 +75,7 @@ const Feedback = () => {
                 <Button
                     variant={'ghost'}
                     className={'group gap-2 text-base'}
+                    aria-label="Open Feedback Dialog"
                     onClick={() => posthog.capture('open-feedback')}
                 >
                     <MessageCircleHeart className={'group-hover:text-primary size-5'} />
@@ -98,7 +99,12 @@ const Feedback = () => {
                                 <Label htmlFor="name" className="text-right">
                                     Github
                                 </Label>
-                                <Button className={'col-span-3'} variant={'link'} asChild>
+                                <Button
+                                    className={'col-span-3'}
+                                    variant={'link'}
+                                    aria-label="Create Github Issue"
+                                    asChild
+                                >
                                     <a
                                         href={'https://github.com/simbesh/coin-stacker/issues/new'}
                                         target={'_blank'}
@@ -115,7 +121,12 @@ const Feedback = () => {
                                 <Label htmlFor="name" className="text-right">
                                     Telegram
                                 </Label>
-                                <Button className={'col-span-3'} variant={'link'} asChild>
+                                <Button
+                                    className={'col-span-3'}
+                                    variant={'link'}
+                                    aria-label="Open Telegram Chat"
+                                    asChild
+                                >
                                     <a
                                         href={process.env.NEXT_PUBLIC_TELEGRAM_GROUP_URL}
                                         target={'_blank'}
@@ -180,6 +191,7 @@ const Feedback = () => {
                                     className={'mt-6 w-full'}
                                     disabled={contactFormData.message === ''}
                                     isLoading={isLoading}
+                                    aria-label="Send Feedback"
                                 >
                                     Send
                                 </Button>
@@ -207,6 +219,7 @@ function FeedbackResponse({ closeDialog }: { closeDialog: () => void }) {
                     variant={'outline'}
                     className={'text-secondary-foreground gap-2 text-base'}
                     onClick={closeDialog}
+                    aria-label="Dismiss Feedback Dialog"
                 >
                     Dismiss
                 </Button>

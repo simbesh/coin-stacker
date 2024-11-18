@@ -55,6 +55,7 @@ export function FeeParams() {
                                     variant="ghost"
                                     size="size-4"
                                     className={'bg-transparent'}
+                                    aria-label="Reset fees to default"
                                     onClick={() => setFees(exchangeFees)}
                                 >
                                     <RotateCcw className="size-4" />

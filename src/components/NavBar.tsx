@@ -59,7 +59,7 @@ const NavBar = () => {
             <div className={'block sm:hidden'}>
                 <Sheet onOpenChange={setSheetOpen} open={sheetOpen}>
                     <SheetTrigger asChild>
-                        <Button variant="outline" size="icon">
+                        <Button variant="outline" size="icon" aria-label="Open Navigation Menu">
                             <Menu className="size-[1.2rem]" />
                         </Button>
                     </SheetTrigger>
