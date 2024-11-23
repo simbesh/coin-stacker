@@ -19,7 +19,7 @@ const stableQuoteFeeOverride: Record<string, number> = {
 
 const formattedExchangeNames: Record<string, string> = {
     btcmarkets: 'BTCMarkets',
-    independentreserve: 'IndepRes',
+    independentreserve: 'Independent Reserve',
     kraken: 'Kraken',
     luno: 'Luno',
     coinspot: 'CoinSpot',

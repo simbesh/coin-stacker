@@ -84,7 +84,7 @@ const headers = [
     {
         id: 'exchange',
         title: 'Exchange',
-        className: 'w-[100px]',
+        className: 'w-[80px]',
     },
     {
         id: 'price',
@@ -435,14 +435,15 @@ const PriceLookup = () => {
                                 key={row.exchange + '_' + i}
                                 className={cn('border-2', {
                                     'border-green-500/30 dark:bg-green-950/30 bg-green-50/30': i === 0 && isLoading,
-                                    'border-green-500 dark:bg-green-950 bg-green-50': i === 0 && !isLoading,
+                                    'border-green-400 dark:border-green-900 dark:bg-gradient-to-t dark:from-background dark:to-green-900/40 bg-gradient-to-t from-white to-green-100/30':
+                                        i === 0 && !isLoading,
                                     'opacity-50': row.filteredReason,
                                     hidden: hideFiltered && row.filteredReason,
                                 })}
                             >
                                 <TableCell
                                     className={cn(
-                                        'mr-2 flex size-full flex-col items-center justify-start gap-2 whitespace-nowrap p-2 text-left sm:p-4',
+                                        'mr-2 flex size-full flex-col items-center justify-start gap-2 p-0 sm:p-0 text-center',
                                         i === 0 ? firstRowCellStyle : ''
                                     )}
                                 >
@@ -453,7 +454,7 @@ const PriceLookup = () => {
                                         }
                                         target={'_blank'}
                                         className={
-                                            'flex size-full items-center justify-start gap-1 hover:text-amber-500 hover:underline sm:gap-2  dark:hover:text-amber-400'
+                                            'flex w-full h-full items-center justify-start gap-1 p-2 sm:p-4 hover:text-amber-500 hover:underline sm:gap-2 dark:hover:text-amber-400'
                                         }
                                         onClick={() =>
                                             posthog.capture('exchange-link', {
@@ -464,8 +465,15 @@ const PriceLookup = () => {
                                             })
                                         }
                                     >
-                                        <ExchangeIcon exchange={row.exchange} withLabel />
-                                        <ExternalLink className={'size-4 min-h-[1rem] min-w-[1rem]'} />
+                                        <div className={' flex gap-2 items-center justify-start'}>
+                                            <ExchangeIcon
+                                                exchange={row.exchange}
+                                                withLabel
+                                                labelClassName={'py-0'}
+                                                className={'w-full h-full justify-start'}
+                                            />
+                                            <ExternalLink className={'size-4 min-h-[1rem] min-w-[1rem]'} />
+                                        </div>
                                     </a>
                                     {row.filteredReason && (
                                         <div className={'-mt-2 text-xs text-red-600 dark:text-red-400'}>
@@ -496,8 +504,22 @@ const PriceLookup = () => {
                                         </PopoverContent>
                                     </Popover>
                                 </TableCell>
-                                <TableCell className={cn('text-right', i === 0 ? firstRowCellStyle : '')}>
+                                <TableCell
+                                    className={cn(
+                                        'text-right',
+                                        i === 0 ? cn(firstRowCellStyle, 'sm:p-2 p-1 pr-2') : ''
+                                    )}
+                                >
                                     {currencyFormat(row.netCost)}
+                                    {i === 0 && (
+                                        <div
+                                            className={
+                                                'px-2 py-0.5 text-xs w-fit dark:text-green-500 text-green-600 dark:bg-green-900 bg-green-200 ml-auto rounded-lg ring-1 ring-green-500 mr-2 mt-1'
+                                            }
+                                        >
+                                            Best!
+                                        </div>
+                                    )}
                                 </TableCell>
                                 <TableCell className={cn('text-right', i === 0 ? 'text-white' : 'text-red-500')}>
                                     {row.dif}
@@ -514,15 +536,15 @@ const PriceLookup = () => {
                                     className={'bg-red-500/20 opacity-50 hover:bg-red-500/20'}
                                 >
                                     <TableCell
-                                        className={cn(
-                                            'mr-2 flex size-full items-center justify-start gap-2 whitespace-nowrap p-0 text-left sm:p-0'
-                                        )}
+                                        className={
+                                            'mr-2 flex size-full items-center justify-start gap-2 whitespace-nowrap p-0 text-left sm:p-0 hover:bg-amber-500'
+                                        }
                                     >
                                         <a
                                             href={affiliateUrl(name, coin, quote) ?? tradeUrl(name, coin, quote)}
                                             target={'_blank'}
                                             className={
-                                                'flex size-full items-center justify-start gap-1 p-2 hover:text-amber-600 hover:underline sm:gap-2 sm:p-4 dark:hover:text-amber-400'
+                                                'flex w-full h-full items-center justify-start gap-1 p-2 hover:text-amber-600 hover:underline sm:gap-2 sm:p-4 dark:hover:text-amber-400 min-w-fit min-h-[3rem]'
                                             }
                                             onClick={() =>
                                                 posthog.capture('exchange-link', {
@@ -531,7 +553,7 @@ const PriceLookup = () => {
                                                 })
                                             }
                                         >
-                                            <ExchangeIcon exchange={name} withLabel />
+                                            <ExchangeIcon exchange={name} withLabel className={'w-full h-full'} />
                                             <ExternalLink className={'size-4 min-h-[1rem] min-w-[1rem]'} />
                                         </a>
                                     </TableCell>
@@ -543,7 +565,9 @@ const PriceLookup = () => {
                         {(priceQueryResult.errors.length > 0 || tableData.some((row) => row.filteredReason)) && (
                             <TableRow className="hover:bg-transparent">
                                 <TableCell colSpan={6} className={'p-4'}>
-                                    <Button variant={'outline'} onClick={() => setHideFiltered((prev) => !prev)}
+                                    <Button
+                                        variant={'outline'}
+                                        onClick={() => setHideFiltered((prev) => !prev)}
                                         aria-label={`${hideFiltered ? 'Show' : 'Hide'} filtered results`}
                                     >
                                         {hideFiltered ? (

@@ -45,7 +45,7 @@ export function PriceHistoryDropdown({ className, raiseHistory }: Props) {
                 <table className="">
                     {history.map((x) => (
                         <tr
-                            className="my-1 cursor-pointer items-center font-semibold opacity-75 hover:bg-slate-100 hover:opacity-100 dark:hover:bg-slate-950"
+                            className="my-2 cursor-pointer items-center font-semibold hover:ring-1 hover:ring-slate-600 rounded-md"
                             onClick={() => {
                                 raiseHistory(x)
                                 setHistoryOpen(false)

@@ -16,7 +16,7 @@ const ExchangeIcon = ({
         'invert-0 dark:invert': ['swyftx'].includes(exchange),
     }
     return (
-        <div className={cn('flex items-center justify-center', withLabel && 'gap-2', className)} {...props}>
+        <div className={cn('flex items-center gap-2 min-w-fit', className)} {...props}>
             {isLoading ? (
                 <></>
             ) : (
@@ -26,7 +26,7 @@ const ExchangeIcon = ({
                     className={cn('my-0.5 size-5 items-center rounded-sm', invertColour, imageClassName)}
                 />
             )}
-            <span className={cn(labelClassName, hideLabelMobile && 'hidden sm:block')}>
+            <span className={cn('w-fit', labelClassName, hideLabelMobile && 'hidden sm:block')}>
                 {withLabel && formatExchangeName(exchange)}
             </span>
         </div>

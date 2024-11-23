@@ -54,7 +54,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     </PHProvider>
                     <footer
                         className={
-                            'fixed bottom-0 flex w-full items-center justify-center gap-4 bg-slate-50 font-mono text-sm text-slate-300 sm:text-base dark:bg-slate-950 dark:text-slate-700'
+                            'fixed bottom-0 flex w-full items-center justify-center gap-4 bg-slate-50 font-mono text-xs text-slate-300 sm:text-base dark:bg-slate-950 dark:text-slate-700'
                         }
                     >
                         <div>{'v' + process.env.APP_VERSION}</div>
