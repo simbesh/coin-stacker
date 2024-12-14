@@ -6,7 +6,7 @@ import { RotateCcw, Settings2 } from 'lucide-react'
 
 import { round } from 'lodash'
 import { Button } from '@/components/ui/button'
-import { exchangeFees, formatExchangeName } from '@/lib/utils'
+import { defaultExchangeFees, formatExchangeName } from '@/lib/utils'
 import { useLocalStorage } from '@uidotdev/usehooks'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Label } from '@/components/ui/label'
@@ -18,17 +18,17 @@ import posthog from 'posthog-js'
 
 export function FeeParams() {
     const [open, setOpen] = useState(false)
-    const [fees, setFees] = useLocalStorage<Record<string, number>>(LocalStorageKeys.ExchangeFees, exchangeFees)
+    const [fees, setFees] = useLocalStorage<Record<string, number>>(LocalStorageKeys.ExchangeFees, defaultExchangeFees)
 
     useEffect(() => {
-        const defaultExchangeKeys = Object.keys(exchangeFees)
+        const defaultExchangeKeys = Object.keys(defaultExchangeFees)
         const currentExchangeKeys = Object.keys(fees)
         const missingKeys = defaultExchangeKeys.filter((x) => !currentExchangeKeys.includes(x))
 
         if (missingKeys.length > 0) {
             setFees((prev) => ({
                 ...prev,
-                ...missingKeys.reduce((acc, curr) => ({ ...acc, [curr]: exchangeFees[curr] }), {}),
+                ...missingKeys.reduce((acc, curr) => ({ ...acc, [curr]: defaultExchangeFees[curr] }), {}),
             }))
         }
     }, [])
@@ -56,7 +56,7 @@ export function FeeParams() {
                                     size="size-4"
                                     className={'bg-transparent'}
                                     aria-label="Reset fees to default"
-                                    onClick={() => setFees(exchangeFees)}
+                                    onClick={() => setFees(defaultExchangeFees)}
                                 >
                                     <RotateCcw className="size-4" />
                                 </Button>

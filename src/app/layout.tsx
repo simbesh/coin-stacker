@@ -1,13 +1,13 @@
 import '@/styles/globals.css'
 
-import { Inter } from 'next/font/google'
-import { Analytics } from '@vercel/analytics/react'
-import { ThemeProvider } from '@/components/theme-provider'
-import NavBar from '@/components/NavBar'
-import { Button } from '@/components/ui/button'
 import { PHProvider, PostHogPageview } from '@/app/providers'
+import NavBar from '@/components/NavBar'
+import { ThemeProvider } from '@/components/theme-provider'
+import FlickeringGrid from '@/components/ui/flickering-grid'
+import { Analytics } from '@vercel/analytics/react'
+import { Inter } from 'next/font/google'
+import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import { Suspense } from 'react'
-import { RiGithubLine } from 'react-icons/ri'
 
 const inter = Inter({
     subsets: ['latin'],
@@ -43,30 +43,28 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                         <PostHogPageview />
                     </Suspense>
                     <PHProvider>
-                        <main
-                            id="main"
-                            className={
-                                'min-h-[100svh] bg-gradient-to-b from-slate-50 to-slate-100 p-2 dark:from-slate-900 dark:to-slate-950'
-                            }
-                        >
-                            {children}
-                        </main>
+                        <NuqsAdapter>
+                            <main
+                                id="main"
+                                className={
+                                    'min-h-[100dvh] bg-gradient-to-b from-slate-50 to-slate-100 p-2 dark:from-slate-900 dark:to-slate-950'
+                                }
+                            >
+                                {children}
+                            </main>
+                        </NuqsAdapter>
                     </PHProvider>
-                    <footer
-                        className={
-                            'fixed bottom-0 flex w-full items-center justify-center gap-4 bg-slate-50 font-mono text-xs text-slate-300 sm:text-base dark:bg-slate-950 dark:text-slate-700'
-                        }
-                    >
-                        <div>{'v' + process.env.APP_VERSION}</div>
-                        <div>{process.env.COMMIT_HASH}</div>
-                        <Button variant={'ghost'} size={'size-4'} aria-label="Open Github Repo">
-                            <a href={process.env.REPO_LINK} target={'_blank'}>
-                                <RiGithubLine className={'size-4'} />
-                            </a>
-                        </Button>
-                    </footer>
                 </ThemeProvider>
                 <Analytics />
+
+                <FlickeringGrid
+                    className="fixed inset-0 z-0 h-screen w-screen opacity-50"
+                    squareSize={2}
+                    gridGap={10}
+                    color="#fdc535"
+                    maxOpacity={0.6}
+                    flickerChance={0.5}
+                />
             </body>
         </html>
     )

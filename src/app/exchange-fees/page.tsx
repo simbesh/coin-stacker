@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card'
 import ClientOnly from '@/components/ClientOnly'
 
 const Page = () => (
-    <Card className="pb-4 sm:container sm:mt-8 sm:pb-8">
+    <Card className="pb-4 sm:container sm:mt-8 sm:pb-8 z-20 relative">
         <ClientOnly>
             <FeesChart />
         </ClientOnly>

@@ -1,5 +1,6 @@
 import { BrOrderBookResponse, CjOrderBookResponse, CsOrderBookResponseOk } from '@/types/types'
 import { type ClassValue, clsx } from 'clsx'
+import { round } from 'lodash'
 import { twMerge } from 'tailwind-merge'
 
 export const OLD_KRAKEN_TAKER_FEE = 0.0026
@@ -32,7 +33,7 @@ const formattedExchangeNames: Record<string, string> = {
     okx: 'OKX',
 }
 
-export const exchangeFees: Record<string, number> = {
+export const defaultExchangeFees: Record<string, number> = {
     btcmarkets: 0.0085,
     independentreserve: 0.005,
     kraken: 0.004,
@@ -63,7 +64,7 @@ export const defaultEnabledExchanges: Record<string, boolean> = {
 
 export function currencyFormat(num: number, currencyCode: string = 'AUD', digits: number = 2): string {
     const options = {
-        style: 'currency',
+        style: 'currency' as const,
         currency: currencyCode,
         minimumFractionDigits: digits,
         maximumFractionDigits: digits,
@@ -72,21 +73,17 @@ export function currencyFormat(num: number, currencyCode: string = 'AUD', digits
 }
 
 export function parseBrOrderBook(data: BrOrderBookResponse): any {
-    const bids = data.buy.map((bid) => [parseFloat(bid.price), parseFloat(bid.amount)]) as [number, number][]
-    const asks = data.sell.map((ask) => [parseFloat(ask.price), parseFloat(ask.amount)]) as [number, number][]
     return {
-        bids,
-        asks,
+        bids: data.buy.map(({ price, amount }) => [parseFloat(price), parseFloat(amount)]) as [number, number][],
+        asks: data.sell.map(({ price, amount }) => [parseFloat(price), parseFloat(amount)]) as [number, number][],
     }
 }
 
 export function parseCjOrderBook(data: CjOrderBookResponse): any {
-    const bids = data.bids.map((bid) => [parseFloat(bid[0]), parseFloat(bid[1])]) as [number, number][]
-    const asks = data.asks.map((ask) => [parseFloat(ask[0]), parseFloat(ask[1])]) as [number, number][]
     const timestamp = Date.now()
     return {
-        bids,
-        asks,
+        bids: data.bids.map(([price, amount]) => [parseFloat(price), parseFloat(amount)]) as [number, number][],
+        asks: data.asks.map(([price, amount]) => [parseFloat(price), parseFloat(amount)]) as [number, number][],
         timestamp,
         datetime: new Date(timestamp).toISOString(),
         nonce: timestamp,
@@ -94,8 +91,8 @@ export function parseCjOrderBook(data: CjOrderBookResponse): any {
 }
 
 export function parseCsOrderBook(data: CsOrderBookResponseOk): any {
-    const bids: [number, number][] = data.buyorders.map((o) => [o.rate, o.amount])
-    const asks: [number, number][] = data.sellorders.map((o) => [o.rate, o.amount])
+    const bids: [number, number][] = data.buyorders.map(({ rate, amount }) => [rate, amount])
+    const asks: [number, number][] = data.sellorders.map(({ rate, amount }) => [rate, amount])
     const timestamp = Date.now()
 
     let bidLevel, askLevel
@@ -145,38 +142,49 @@ type Best = {
     feeRate: number
 }
 
-export function getBestAsks(
-    orderbooks: any,
-    amountToBuy: number,
+export function getBestOrders(
+    orderbooks: Record<string, any>,
+    amount: number,
     exchangeFees: Record<string, number>,
     base: string,
-    quote: string
-): Best[] {
+    quote: string,
+    side: 'buy' | 'sell',
+    currency: string
+): { sortedBests: Best[]; orderbookErrors: { name: string; error: { name: string } }[] } {
     let sortedBests: Best[] = []
     const errors = []
-    for (const exchange of Object.keys(orderbooks)) {
-        if (orderbooks[exchange].value === undefined) {
+    for (const [exchange, orderbook] of Object.entries(orderbooks)) {
+        if (exchange === 'swyftx') {
+            console.log('swyftx', orderbook.value.asks)
+        }
+        if (orderbook.value === undefined || orderbook.value[side === 'buy' ? 'asks' : 'bids']?.flat().includes(NaN)) {
             errors.push({
-                exchange,
-                error: orderbooks[exchange].error,
+                name: exchange,
+                error: { name: orderbook.error ?? 'could not get price' },
             })
             continue
         }
+
         let grossCost = 0
-        let grossPrice = -Infinity
-        let askVolume = 0
-        let amountLeftToBuy = amountToBuy
-        for (const ask of orderbooks[exchange].value.asks || []) {
-            grossPrice = ask[0]
-            askVolume = ask[1]
-            if (askVolume >= amountLeftToBuy) {
-                grossCost += grossPrice * amountLeftToBuy
+        let grossPrice = side === 'buy' ? -Infinity : Infinity
+        let volume = 0
+        let amountLeft = amount
+        let sumVolume = 0
+
+        const orders = side === 'buy' ? orderbook.value.asks : orderbook.value.bids
+        for (const order of orders || []) {
+            grossPrice = order[0]
+            volume = order[1]
+            sumVolume += volume
+            if (volume >= amountLeft) {
+                grossCost += grossPrice * amountLeft
                 break
             } else {
-                amountLeftToBuy -= askVolume
-                grossCost += grossPrice * askVolume
+                amountLeft -= volume
+                grossCost += grossPrice * volume
             }
         }
+
         let feeRate = exchangeFees[exchange] ?? 0
         if (stableCoins.includes(base)) {
             feeRate = stableBaseFeeOverride[exchange] ?? feeRate
@@ -184,92 +192,35 @@ export function getBestAsks(
         if (stableCoins.includes(quote)) {
             feeRate = stableQuoteFeeOverride[exchange] ?? feeRate
         }
-        const fees = grossCost * feeRate
-        const netCost = grossCost + fees
-        const netPrice = grossPrice * (1 + feeRate)
 
-        if (
-            grossPrice > -Infinity &&
-            // && exchangeAudBal >= askNetCost
-            // && grossCost >= minOrderCost
-            askVolume >= amountLeftToBuy
-        ) {
+        const fees = grossCost * feeRate
+        const netCost = side === 'buy' ? grossCost + fees : grossCost - fees
+        const netPrice = side === 'buy' ? grossPrice * (1 + feeRate) : grossPrice * (1 - feeRate)
+
+        const priceCheck = side === 'buy' ? grossPrice > -Infinity : grossPrice < Infinity
+        if (priceCheck && volume >= amountLeft) {
             sortedBests.push({
                 exchange,
-                netCost, // sort by lowest askNetCost (fee adjusted)
-                grossPrice, // use to place order at this price
+                netCost,
+                grossPrice,
                 netPrice,
-                grossAveragePrice: grossCost / amountToBuy,
+                grossAveragePrice: grossCost / amount,
                 fees,
                 feeRate,
             })
-        }
-        // }
-    }
-    sortedBests = sortedBests.sort((a, b) => (a.netCost < b.netCost ? -1 : b.netCost < a.netCost ? 1 : 0))
-    // sortedBests.push(...errors)
-    return sortedBests
-}
-
-export function getBestBids(
-    orderbooks: any,
-    amountToSell: number,
-    exchangeFees: Record<string, number>,
-    base: string,
-    quote: string
-): Best[] {
-    let sortedBests: Best[] = []
-    const errors = []
-    for (const exchange of Object.keys(orderbooks)) {
-        if (orderbooks[exchange].value === undefined) {
+        } else {
             errors.push({
-                exchange,
-                error: orderbooks[exchange].error,
-            })
-            continue
-        }
-        let grossCost = 0
-        let grossPrice = Infinity
-        let bidVolume = 0
-        let amountLeftToSell = amountToSell
-        for (const bid of orderbooks[exchange].value.bids || []) {
-            grossPrice = bid[0]
-            bidVolume = bid[1]
-            if (bidVolume >= amountLeftToSell) {
-                grossCost += grossPrice * amountLeftToSell
-                break
-            } else {
-                amountLeftToSell -= bidVolume
-                grossCost += grossPrice * bidVolume
-            }
-        }
-        let feeRate = exchangeFees[exchange] ?? 0
-        if (stableCoins.includes(base)) {
-            feeRate = stableBaseFeeOverride[exchange] ?? feeRate
-        }
-        if (stableCoins.includes(quote)) {
-            feeRate = stableQuoteFeeOverride[exchange] ?? feeRate
-        }
-        const fees = grossCost * feeRate
-        const netCost = grossCost - fees
-        const netPrice = grossPrice * (1 - feeRate)
-
-        if (grossPrice < Infinity && bidVolume >= amountLeftToSell) {
-            sortedBests.push({
-                exchange,
-                netCost, // sort by lowest bidNetCost (fee adjusted)
-                grossPrice, // use to place order at this price
-                netPrice,
-                grossAveragePrice: grossCost / amountToSell,
-                fees,
-                feeRate,
+                name: exchange,
+                error: { name: `Insufficient liquidity: ${round(sumVolume, 8)} ${currency} available` },
             })
         }
     }
 
-    sortedBests = sortedBests.sort((a, b) => (a.netCost < b.netCost ? 1 : b.netCost < a.netCost ? -1 : 0))
-    // sortedBests.push(...errors)
-    return sortedBests
+    sortedBests = sortedBests.sort((a, b) => {
+        const sortMultiplier = side === 'buy' ? 1 : -1
+        return a.netCost < b.netCost ? -sortMultiplier : b.netCost < a.netCost ? sortMultiplier : 0
+    })
+    return { sortedBests, orderbookErrors: errors }
 }
 
 export const formatExchangeName = (exchange: string): string => {
@@ -303,4 +254,12 @@ export function toIsoString(date: Date) {
         ':' +
         pad(Math.abs(tzo) % 60)
     )
+}
+
+export function getExchangeUrl(exchange: string, coin?: string, quote?: string): string {
+    const params = new URLSearchParams({
+        ...(coin && { coin }),
+        ...(quote && { quote }),
+    })
+    return `/launch/${exchange}?${params.toString()}`
 }

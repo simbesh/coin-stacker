@@ -37,7 +37,7 @@ const items = [
         icon: <LineChart />,
     },
 ]
-const defaultNavBackground = 'bg-slate-50 dark:bg-slate-900 dark:border dark:border-transparent'
+const defaultNavBackground = 'bg-slate-50/40 dark:bg-slate-900/40 backdrop-blur dark:border dark:border-transparent'
 const NavBar = () => {
     const [sheetOpen, setSheetOpen] = useState(false)
     const activeSegment = useSelectedLayoutSegment()
@@ -45,9 +45,9 @@ const NavBar = () => {
     const [barBg, setBarBg] = useState(defaultNavBackground)
 
     useEffect(() => {
-        if (y && y > 56) {
+        if (y && y > 1) {
             setBarBg(
-                'bg-slate-50 dark:bg-slate-900 dark:border-b-border dark:border drop-shadow-lg dark:drop-shadow-none'
+                'bg-slate-50/40 dark:bg-slate-900/40 backdrop-blur dark:border-b-border dark:border drop-shadow-lg dark:drop-shadow-none'
             )
         } else {
             setBarBg(defaultNavBackground)

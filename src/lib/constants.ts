@@ -4,10 +4,14 @@ export enum LocalStorageKeys {
     EnabledExchanges = 'cs-user-enabled-exchanges-v2',
 }
 
-export const tradeUrl = (exchange: string, base: string, quote: string) => {
+export const getAfiliateOrTradeUrl = (exchange: string, base: string, quote: string) => {
+    return affiliateUrl(exchange, base, quote) ?? tradeUrl(exchange, base, quote)
+}
+
+const tradeUrl = (exchange: string, base: string, quote: string) => {
     switch (exchange) {
         case 'coinjar':
-            return `https://exchange.coinjar.com/trade`
+            return 'https://exchange.coinjar.com/trade'
         case 'btcmarkets':
             return `https://app.btcmarkets.net/buy-sell?market=${base}-${quote}`
         case 'independentreserve':
@@ -15,7 +19,7 @@ export const tradeUrl = (exchange: string, base: string, quote: string) => {
         // case "Binance":
         //     return `https://www.binance.com/en/trade/${base}_${quote}`
         case 'coinjar':
-            return `https://exchange.coinjar.com/trade`
+            return 'https://exchange.coinjar.com/trade'
         case 'coinspot':
             return `https://www.coinspot.com.au/trade/${base}`
         case 'kraken':
@@ -33,7 +37,7 @@ export const tradeUrl = (exchange: string, base: string, quote: string) => {
     }
 }
 
-export const affiliateUrl = (exchange: string, base: string, quote: string) => {
+const affiliateUrl = (exchange: string, base: string, quote: string) => {
     switch (exchange) {
         case 'coinjar':
             return `https://cjr.io/ASfU`
@@ -47,7 +51,7 @@ export const affiliateUrl = (exchange: string, base: string, quote: string) => {
             return `https://www.coinspot.com.au?affiliate=8XXR9B`
         // return `https://www.coinspot.com.au/join/REFJTP345`
         case 'kraken':
-            return `https://kraken.pxf.io/jrvM1n`
+            return `https://kraken.pxf.io/XmY53M`
         case 'luno':
             return `https://www.luno.com/invite/EUBQ4W`
         case 'bitaroo':

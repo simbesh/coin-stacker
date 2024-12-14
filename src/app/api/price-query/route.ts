@@ -4,6 +4,7 @@ import { btcmarkets, Exchange, independentreserve, kraken, luno, okx } from 'ccx
 import {
     getBestAsks,
     getBestBids,
+    getBestOrders,
     parseBrOrderBook,
     parseCjOrderBook,
     parseCsOrderBook,
@@ -241,7 +242,7 @@ const getDigitalSurgeMockOrderBook = async (
     }
 }
 
-const exchangesMethods: Record<
+const orderbookMethods: Record<
     string,
     (base: string, quote: string, side?: string, amount?: string, fee?: number) => Promise<any>
 > = {
@@ -280,10 +281,9 @@ export async function POST(request: Request): Promise<NextResponse<any>> {
             'okx',
         ]
         const exchanges = supportedExchanges.filter((e) => !omitExchanges.includes(e))
-        const promises: any[] = []
-        exchanges.forEach((exchange) => {
-            promises.push(exchangesMethods[exchange]?.(base, quote, side, amount, fees[exchange]))
-        })
+        const promises = exchanges.map((exchange) =>
+            orderbookMethods[exchange]?.(base, quote, side, amount, fees[exchange])
+        )
 
         const orderbooks: Record<string, { value?: any; error?: any }> = {}
         const results: PromiseSettledResult<string>[] = await Promise.allSettled(promises)
@@ -307,10 +307,17 @@ export async function POST(request: Request): Promise<NextResponse<any>> {
             }
         })
 
-        best =
-            side === 'buy'
-                ? getBestAsks(orderbooks, parseFloat(amount), fees, base, quote)
-                : getBestBids(orderbooks, parseFloat(amount), fees, base, quote)
+        const { sortedBests, orderbookErrors } = getBestOrders(
+            orderbooks,
+            parseFloat(amount),
+            fees,
+            base,
+            quote,
+            side,
+            base
+        )
+        best = sortedBests
+        errors.push(...orderbookErrors)
     }
 
     return NextResponse.json({ best, errors })

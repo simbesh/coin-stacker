@@ -1,34 +1,129 @@
 'use client'
 
-import React, { useEffect, useMemo, useState } from 'react'
-import { Button } from './ui/button'
+import Coin from '@/components/CoinIcon'
+import { Combobox } from '@/components/Combobox'
+import ExchangeIcon from '@/components/ExchangeIcon'
+import Spinner from '@/components/Spinner'
+import { FeeParams } from '@/components/fee-params'
+import { PriceHistoryDropdown } from '@/components/price-history-dropdown'
+import { Badge } from '@/components/ui/badge'
+import { Card } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { getAfiliateOrTradeUrl, LocalStorageKeys } from '@/lib/constants'
 import {
     cn,
     currencyFormat,
     defaultEnabledExchanges,
-    exchangeFees,
+    defaultExchangeFees,
     formatExchangeName,
+    getExchangeUrl,
     OLD_KRAKEN_TAKER_FEE,
 } from '@/lib/utils'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import Coin from '@/components/CoinIcon'
-import { round } from 'lodash'
-import { useLocalStorage, useWindowScroll } from '@uidotdev/usehooks'
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Card } from '@/components/ui/card'
-import ExchangeIcon from '@/components/ExchangeIcon'
-import { PriceHistoryDropdown } from '@/components/price-history-dropdown'
 import { PriceQueryParams } from '@/types/types'
-import Spinner from '@/components/Spinner'
-import { FeeParams } from '@/components/fee-params'
-import { tradeUrl, LocalStorageKeys, affiliateUrl } from '@/lib/constants'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { CornerLeftUp, ExternalLink, Search } from 'lucide-react'
-import { Combobox } from '@/components/Combobox'
-import posthog from 'posthog-js'
+import { useLocalStorage, useMediaQuery, useWindowScroll } from '@uidotdev/usehooks'
+import { round } from 'lodash'
+import { CornerLeftUp, ExternalLink, Search, TrendingUp } from 'lucide-react'
 import { useQueryState } from 'nuqs'
+import posthog from 'posthog-js'
+import { useEffect, useMemo, useState } from 'react'
+import { PriceCalculationInfoAlert } from './PriceCalculationInfoAlert'
 import TextSwitch from './TextSwitch'
+import { Button } from './ui/button'
+import HowDialog from './HowDialog'
+
+const mockData: any = {
+    best: [
+        {
+            exchange: 'independentreserve',
+            netCost: 3675.0890249999998,
+            grossPrice: 365.6805,
+            netPrice: 367.5089025,
+            grossAveragePrice: 365.6805,
+            fees: 18.284025,
+            feeRate: 0.005,
+        },
+        {
+            exchange: 'kraken',
+            netCost: 3676.8488,
+            grossPrice: 366.22,
+            netPrice: 367.68488,
+            grossAveragePrice: 366.22,
+            fees: 14.648800000000001,
+            feeRate: 0.004,
+        },
+        {
+            exchange: 'coinjar',
+            netCost: 3687.54386,
+            grossPrice: 368.4,
+            netPrice: 368.76839999999993,
+            grossAveragePrice: 368.386,
+            fees: 3.68386,
+            feeRate: 0.001,
+        },
+        {
+            exchange: 'btcmarkets',
+            netCost: 3694.1355,
+            grossPrice: 366.3,
+            netPrice: 369.41355,
+            grossAveragePrice: 366.3,
+            fees: 31.135500000000004,
+            feeRate: 0.0085,
+        },
+        {
+            exchange: 'coinspot',
+            netCost: 3699.721217192,
+            grossPrice: 369.6025192,
+            netPrice: 369.9721217192,
+            grossAveragePrice: 369.6025192,
+            fees: 3.696025192,
+            feeRate: 0.001,
+        },
+        {
+            exchange: 'digitalsurge',
+            netCost: 3705.6873720603903,
+            grossPrice: '368.7251116478',
+            netPrice: 370.568737206039,
+            grossAveragePrice: 368.7251116478,
+            fees: 18.43625558239,
+            feeRate: 0.005,
+        },
+        {
+            exchange: 'cointree',
+            netCost: 3718.50433359925,
+            grossPrice: 369.08231599,
+            netPrice: 371.85043335992503,
+            grossAveragePrice: 369.08231599,
+            fees: 27.68117369925,
+            feeRate: 0.0075,
+        },
+        {
+            exchange: 'swyftx',
+            netCost: 3719.1401398375365,
+            grossPrice: 369.69583895005337,
+            netPrice: 371.9140139837537,
+            grossAveragePrice: 369.69583895005337,
+            fees: 22.1817503370032,
+            feeRate: 0.006,
+        },
+        {
+            exchange: 'coinstash',
+            netCost: 3725.189443171356,
+            grossPrice: 369.3792209391528,
+            netPrice: 372.51894431713555,
+            grossAveragePrice: 369.3792209391528,
+            fees: 31.39723377982799,
+            feeRate: 0.0085,
+        },
+    ],
+    errors: [
+        {
+            name: 'okx',
+            error: 'MarketNotFoundError: Symbol SOL/AUD not found in okx',
+        },
+    ],
+}
 
 const markets = [
     'BTC',
@@ -84,7 +179,7 @@ const headers = [
     {
         id: 'exchange',
         title: 'Exchange',
-        className: 'w-[80px]',
+        className: 'min-w-[160px]',
     },
     {
         id: 'price',
@@ -133,7 +228,7 @@ const PriceLookup = () => {
     const [resultInput, setResultInput] = useState<PriceQueryParams>()
     const [{}, scrollTo] = useWindowScroll()
     const [history, setHistory] = useLocalStorage<PriceQueryParams[]>(LocalStorageKeys.PriceQueryHistory, [])
-    const [fees, setFees] = useLocalStorage<Record<string, number>>(LocalStorageKeys.ExchangeFees, exchangeFees)
+    const [fees, setFees] = useLocalStorage<Record<string, number>>(LocalStorageKeys.ExchangeFees, defaultExchangeFees)
     const [bestAvgPrice, setBestAvgPrice] = useState<number>()
     const [tableData, setTableData] = useState<
         (PriceQueryResult & { dif: string; pctDif: string | number; filteredReason?: string })[]
@@ -142,6 +237,7 @@ const PriceLookup = () => {
         LocalStorageKeys.EnabledExchanges,
         defaultEnabledExchanges
     )
+    const isDesktop = useMediaQuery('(min-width: 768px)')
 
     const handleKeyPress = (e: KeyboardEvent) => {
         if (e.key === 'Enter' && !submitDisabled) {
@@ -166,7 +262,7 @@ const PriceLookup = () => {
         const newFees = { ...fees }
         if (newFees.kraken === OLD_KRAKEN_TAKER_FEE) {
             // reset fee to new rate
-            newFees.kraken = Number(exchangeFees.kraken)
+            newFees.kraken = Number(defaultExchangeFees.kraken)
             setFees(newFees)
         }
     }, [fees])
@@ -232,26 +328,30 @@ const PriceLookup = () => {
         addToHistory({ quote, side, amount, coin })
         setIsLoading(true)
         try {
-            const prices = await fetch(`api/price-query`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    fees,
-                    base: coin,
-                    quote,
-                    side,
-                    amount: floatAmount,
-                    omitExchanges: Object.entries(enabledExchanges).reduce((acc: string[], [key, value]) => {
-                        if (!value) {
-                            acc.push(key)
-                        }
-                        return acc
-                    }, []),
-                }),
-            })
-            const priceResult = await prices.json()
-            setPriceQueryResult(priceResult)
-            setResultInput({ side, amount, coin, quote })
+            if (process.env.NEXT_PUBLIC_MOCK_PRICES === 'true') {
+                setPriceQueryResult(mockData)
+            } else {
+                const prices = await fetch(`api/price-query`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        fees,
+                        base: coin,
+                        quote,
+                        side,
+                        amount: floatAmount,
+                        omitExchanges: Object.entries(enabledExchanges).reduce((acc: string[], [key, value]) => {
+                            if (!value) {
+                                acc.push(key)
+                            }
+                            return acc
+                        }, []),
+                    }),
+                })
+                const priceResult = await prices.json()
+                setPriceQueryResult(priceResult)
+                setResultInput({ side, amount, coin, quote })
+            }
         } catch (e) {}
         scrollTo({ top: 9999, left: 0, behavior: 'smooth' })
         setTimeout(() => scrollTo({ top: 9999, left: 0, behavior: 'smooth' }), 300)
@@ -297,10 +397,10 @@ const PriceLookup = () => {
     const submitDisabled = useMemo(() => !amount || !coin || isLoading, [amount, coin, isLoading])
 
     return (
-        <div className={'mb-16 flex w-full flex-col items-center justify-center'}>
+        <div className={'mb-10 flex w-full flex-col items-center justify-center z-20'}>
             <Card
                 className={
-                    'relative mb-4 mt-8 flex w-full max-w-2xl select-none flex-col items-center justify-center gap-4 border py-8 text-lg font-bold sm:mt-20'
+                    'relative mb-4 mt-4 flex w-full max-w-2xl select-none flex-col items-center justify-center gap-4 border py-8 text-lg font-bold sm:mt-10'
                 }
             >
                 <PriceHistoryDropdown
@@ -374,7 +474,7 @@ const PriceLookup = () => {
                     </Button>
                 </div>
             </Card>
-            {/*{(coin === 'SOL' || (resultInput?.coin === 'SOL' && !isLoading)) && <CoinSpotInfoAlert />}*/}
+            {resultsReady && <HowDialog />}
             <div
                 className={cn(
                     'mt-4 flex h-6 w-full items-center justify-center text-sm font-bold',
@@ -418,7 +518,11 @@ const PriceLookup = () => {
                 )}
 
                 <Table>
-                    {priceQueryResult.best.length === 0 && <TableCaption className={'mb-4'}>{'No Data'}</TableCaption>}
+                    {priceQueryResult.best.length === 0 && (
+                        <TableCaption className={'mb-4'}>
+                            <div>{isLoading ? 'Loading...' : 'No Data'}</div>
+                        </TableCaption>
+                    )}
                     <TableHeader>
                         <TableRow className={'hover:bg-muted/0'}>
                             {headers.map((header) => (
@@ -441,17 +545,9 @@ const PriceLookup = () => {
                                     hidden: hideFiltered && row.filteredReason,
                                 })}
                             >
-                                <TableCell
-                                    className={cn(
-                                        'mr-2 flex size-full flex-col items-center justify-start gap-2 p-0 sm:p-0 text-center',
-                                        i === 0 ? firstRowCellStyle : ''
-                                    )}
-                                >
+                                <TableCell className={cn('mr-2 p-0 sm:p-0 text-center', i === 0 && firstRowCellStyle)}>
                                     <a
-                                        href={
-                                            affiliateUrl(row.exchange, coin, quote) ??
-                                            tradeUrl(row.exchange, coin, quote)
-                                        }
+                                        href={getExchangeUrl(row.exchange, coin, quote)}
                                         target={'_blank'}
                                         className={
                                             'flex w-full h-full items-center justify-start gap-1 p-2 sm:p-4 hover:text-amber-500 hover:underline sm:gap-2 dark:hover:text-amber-400'
@@ -459,20 +555,25 @@ const PriceLookup = () => {
                                         onClick={() =>
                                             posthog.capture('exchange-link', {
                                                 exchange: row.exchange,
-                                                url:
-                                                    affiliateUrl(row.exchange, coin, quote) ??
-                                                    tradeUrl(row.exchange, coin, quote),
+                                                url: getAfiliateOrTradeUrl(row.exchange, coin, quote),
                                             })
                                         }
                                     >
-                                        <div className={' flex gap-2 items-center justify-start'}>
+                                        <div className={cn('flex gap-1 sm:gap-2 items-center justify-start')}>
                                             <ExchangeIcon
                                                 exchange={row.exchange}
                                                 withLabel
-                                                labelClassName={'py-0'}
+                                                labelClassName={
+                                                    'py-0 max-w-[110px] truncate sm:max-w-none sm:truncate-none'
+                                                }
                                                 className={'w-full h-full justify-start'}
                                             />
-                                            <ExternalLink className={'size-4 min-h-[1rem] min-w-[1rem]'} />
+                                            <ExternalLink
+                                                className={cn(
+                                                    'size-4 min-h-[1rem] min-w-[1rem]',
+                                                    row.exchange.length > 15 && !isDesktop && '-ml-1.5'
+                                                )}
+                                            />
                                         </div>
                                     </a>
                                     {row.filteredReason && (
@@ -504,22 +605,19 @@ const PriceLookup = () => {
                                         </PopoverContent>
                                     </Popover>
                                 </TableCell>
-                                <TableCell
-                                    className={cn(
-                                        'text-right',
-                                        i === 0 ? cn(firstRowCellStyle, 'sm:p-2 p-1 pr-2') : ''
-                                    )}
-                                >
-                                    {currencyFormat(row.netCost)}
-                                    {i === 0 && (
-                                        <div
-                                            className={
-                                                'px-2 py-0.5 text-xs w-fit dark:text-green-500 text-green-600 dark:bg-green-900 bg-green-200 ml-auto rounded-lg ring-1 ring-green-500 mr-2 mt-1'
-                                            }
-                                        >
-                                            Best!
-                                        </div>
-                                    )}
+                                <TableCell className={cn('text-right', i === 0 ? cn(firstRowCellStyle, '') : '')}>
+                                    <div className="flex gap-2 justify-end">
+                                        {i === 0 && (
+                                            <div
+                                                className={
+                                                    'hidden sm:block px-2 py-0.5 text-xs w-fit dark:text-green-500 text-green-600 dark:bg-green-900 bg-green-100 ml-auto rounded-full'
+                                                }
+                                            >
+                                                Best
+                                            </div>
+                                        )}
+                                        {currencyFormat(row.netCost)}
+                                    </div>
                                 </TableCell>
                                 <TableCell className={cn('text-right', i === 0 ? 'text-white' : 'text-red-500')}>
                                     {row.dif}
@@ -537,28 +635,42 @@ const PriceLookup = () => {
                                 >
                                     <TableCell
                                         className={
-                                            'mr-2 flex size-full items-center justify-start gap-2 whitespace-nowrap p-0 text-left sm:p-0 hover:bg-amber-500'
+                                            'mr-2 flex size-full items-center justify-start gap-2 whitespace-nowrap p-0 text-left sm:p-0'
                                         }
                                     >
                                         <a
-                                            href={affiliateUrl(name, coin, quote) ?? tradeUrl(name, coin, quote)}
+                                            href={getExchangeUrl(name, coin, quote)}
                                             target={'_blank'}
                                             className={
-                                                'flex w-full h-full items-center justify-start gap-1 p-2 hover:text-amber-600 hover:underline sm:gap-2 sm:p-4 dark:hover:text-amber-400 min-w-fit min-h-[3rem]'
+                                                'flex w-full h-full items-center justify-start gap-1 p-2 sm:p-4 hover:text-amber-500 hover:underline sm:gap-2 dark:hover:text-amber-400'
                                             }
                                             onClick={() =>
                                                 posthog.capture('exchange-link', {
                                                     exchange: name,
-                                                    url: affiliateUrl(name, coin, quote) ?? tradeUrl(name, coin, quote),
+                                                    url: getAfiliateOrTradeUrl(name, coin, quote),
                                                 })
                                             }
                                         >
-                                            <ExchangeIcon exchange={name} withLabel className={'w-full h-full'} />
-                                            <ExternalLink className={'size-4 min-h-[1rem] min-w-[1rem]'} />
+                                            <div className={cn('flex gap-1 sm:gap-2 items-center justify-start')}>
+                                                <ExchangeIcon
+                                                    exchange={name}
+                                                    withLabel
+                                                    labelClassName={
+                                                        'py-0 max-w-[110px] truncate sm:max-w-none sm:truncate-none'
+                                                    }
+                                                    className={'w-full h-full justify-start'}
+                                                />
+                                                <ExternalLink
+                                                    className={cn(
+                                                        'size-4 min-h-[1rem] min-w-[1rem]',
+                                                        name.length > 15 && !isDesktop && '-ml-1.5'
+                                                    )}
+                                                />
+                                            </div>
                                         </a>
                                     </TableCell>
                                     <TableCell className={'text-red-600 dark:text-red-400'} colspan={5}>
-                                        {error.name ?? JSON.stringify(error)}
+                                        {error.name ?? error?.toString()}
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -593,17 +705,21 @@ const PriceLookup = () => {
                 </Table>
             </Card>
             {priceQueryResult.best.length > 0 && (
-                <div className={'w-full max-w-4xl pl-4 text-sm leading-4 text-slate-400 sm:pl-12 dark:text-slate-600'}>
-                    <span className={'mt-2 flex items-start justify-start gap-1'}>
+                <div
+                    className={
+                        'w-full max-w-4xl pb-4 pl-4 text-sm leading-4 text-slate-400 sm:pl-12 dark:text-slate-600 '
+                    }
+                >
+                    <span className={'mt-2 flex items-start justify-start gap-1 w-fit dark:bg-slate-950 px-2'}>
                         <CornerLeftUp className={'size-4'} />
                         Want to support CoinStacker?
                     </span>
-                    <span className={'flex justify-start gap-2'}>
+                    <span className={'flex justify-start gap-2 dark:bg-slate-950 px-2 w-fit'}>
                         Sign up to a new exchange using the referral links above.
                     </span>
                     <a
                         className={
-                            'flex w-40 justify-start gap-2 text-slate-400 underline underline-offset-4 hover:text-amber-600 dark:text-slate-400 dark:dark:hover:text-amber-400'
+                            'w-fit dark:bg-slate-950 px-2 flex justify-start gap-2 text-slate-600 underline underline-offset-4 hover:text-amber-600 dark:text-slate-400 dark:dark:hover:text-amber-400'
                         }
                         href={'https://ko-fi.com/simonbechard'}
                     >
