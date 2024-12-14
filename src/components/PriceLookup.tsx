@@ -24,14 +24,13 @@ import {
 import { PriceQueryParams } from '@/types/types'
 import { useLocalStorage, useMediaQuery, useWindowScroll } from '@uidotdev/usehooks'
 import { round } from 'lodash'
-import { CornerLeftUp, ExternalLink, Search, TrendingUp } from 'lucide-react'
+import { CornerLeftUp, ExternalLink, Search } from 'lucide-react'
 import { useQueryState } from 'nuqs'
 import posthog from 'posthog-js'
 import { useEffect, useMemo, useState } from 'react'
-import { PriceCalculationInfoAlert } from './PriceCalculationInfoAlert'
+import HowDialog from './HowDialog'
 import TextSwitch from './TextSwitch'
 import { Button } from './ui/button'
-import HowDialog from './HowDialog'
 
 const mockData: any = {
     best: [
@@ -397,10 +396,10 @@ const PriceLookup = () => {
     const submitDisabled = useMemo(() => !amount || !coin || isLoading, [amount, coin, isLoading])
 
     return (
-        <div className={'mb-10 flex w-full flex-col items-center justify-center z-20'}>
+        <div className={'z-20 mb-10 flex w-full flex-col items-center justify-center'}>
             <Card
                 className={
-                    'relative mb-4 mt-4 flex w-full max-w-2xl select-none flex-col items-center justify-center gap-4 border py-8 text-lg font-bold sm:mt-10'
+                    'relative my-4 flex w-full max-w-2xl select-none flex-col items-center justify-center gap-4 border py-8 text-lg font-bold sm:mt-10'
                 }
             >
                 <PriceHistoryDropdown
@@ -545,12 +544,12 @@ const PriceLookup = () => {
                                     hidden: hideFiltered && row.filteredReason,
                                 })}
                             >
-                                <TableCell className={cn('mr-2 p-0 sm:p-0 text-center', i === 0 && firstRowCellStyle)}>
+                                <TableCell className={cn('mr-2 p-0 text-center sm:p-0', i === 0 && firstRowCellStyle)}>
                                     <a
                                         href={getExchangeUrl(row.exchange, coin, quote)}
                                         target={'_blank'}
                                         className={
-                                            'flex w-full h-full items-center justify-start gap-1 p-2 sm:p-4 hover:text-amber-500 hover:underline sm:gap-2 dark:hover:text-amber-400'
+                                            'flex size-full items-center justify-start gap-1 p-2 hover:text-amber-500 hover:underline sm:gap-2 sm:p-4 dark:hover:text-amber-400'
                                         }
                                         onClick={() =>
                                             posthog.capture('exchange-link', {
@@ -559,14 +558,14 @@ const PriceLookup = () => {
                                             })
                                         }
                                     >
-                                        <div className={cn('flex gap-1 sm:gap-2 items-center justify-start')}>
+                                        <div className={cn('flex items-center justify-start gap-1 sm:gap-2')}>
                                             <ExchangeIcon
                                                 exchange={row.exchange}
                                                 withLabel
                                                 labelClassName={
                                                     'py-0 max-w-[110px] truncate sm:max-w-none sm:truncate-none'
                                                 }
-                                                className={'w-full h-full justify-start'}
+                                                className={'size-full justify-start'}
                                             />
                                             <ExternalLink
                                                 className={cn(
@@ -606,11 +605,11 @@ const PriceLookup = () => {
                                     </Popover>
                                 </TableCell>
                                 <TableCell className={cn('text-right', i === 0 ? cn(firstRowCellStyle, '') : '')}>
-                                    <div className="flex gap-2 justify-end">
+                                    <div className="flex justify-end gap-2">
                                         {i === 0 && (
                                             <div
                                                 className={
-                                                    'hidden sm:block px-2 py-0.5 text-xs w-fit dark:text-green-500 text-green-600 dark:bg-green-900 bg-green-100 ml-auto rounded-full'
+                                                    'ml-auto hidden w-fit rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-600 sm:block dark:bg-green-900 dark:text-green-500'
                                                 }
                                             >
                                                 Best
@@ -642,7 +641,7 @@ const PriceLookup = () => {
                                             href={getExchangeUrl(name, coin, quote)}
                                             target={'_blank'}
                                             className={
-                                                'flex w-full h-full items-center justify-start gap-1 p-2 sm:p-4 hover:text-amber-500 hover:underline sm:gap-2 dark:hover:text-amber-400'
+                                                'flex size-full items-center justify-start gap-1 p-2 hover:text-amber-500 hover:underline sm:gap-2 sm:p-4 dark:hover:text-amber-400'
                                             }
                                             onClick={() =>
                                                 posthog.capture('exchange-link', {
@@ -651,14 +650,14 @@ const PriceLookup = () => {
                                                 })
                                             }
                                         >
-                                            <div className={cn('flex gap-1 sm:gap-2 items-center justify-start')}>
+                                            <div className={cn('flex items-center justify-start gap-1 sm:gap-2')}>
                                                 <ExchangeIcon
                                                     exchange={name}
                                                     withLabel
                                                     labelClassName={
                                                         'py-0 max-w-[110px] truncate sm:max-w-none sm:truncate-none'
                                                     }
-                                                    className={'w-full h-full justify-start'}
+                                                    className={'size-full justify-start'}
                                                 />
                                                 <ExternalLink
                                                     className={cn(
@@ -670,7 +669,7 @@ const PriceLookup = () => {
                                         </a>
                                     </TableCell>
                                     <TableCell className={'text-red-600 dark:text-red-400'} colspan={5}>
-                                        {error.name ?? error?.toString()}
+                                        {error.name ?? error.toString()}
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -710,16 +709,16 @@ const PriceLookup = () => {
                         'w-full max-w-4xl pb-4 pl-4 text-sm leading-4 text-slate-400 sm:pl-12 dark:text-slate-600 '
                     }
                 >
-                    <span className={'mt-2 flex items-start justify-start gap-1 w-fit dark:bg-slate-950 px-2'}>
+                    <span className={'mt-2 flex w-fit items-start justify-start gap-1 px-2 dark:bg-slate-950'}>
                         <CornerLeftUp className={'size-4'} />
                         Want to support CoinStacker?
                     </span>
-                    <span className={'flex justify-start gap-2 dark:bg-slate-950 px-2 w-fit'}>
+                    <span className={'flex w-fit justify-start gap-2 px-2 dark:bg-slate-950'}>
                         Sign up to a new exchange using the referral links above.
                     </span>
                     <a
                         className={
-                            'w-fit dark:bg-slate-950 px-2 flex justify-start gap-2 text-slate-600 underline underline-offset-4 hover:text-amber-600 dark:text-slate-400 dark:dark:hover:text-amber-400'
+                            'flex w-fit justify-start gap-2 px-2 text-slate-600 underline underline-offset-4 hover:text-amber-600 dark:bg-slate-950 dark:text-slate-400 dark:dark:hover:text-amber-400'
                         }
                         href={'https://ko-fi.com/simonbechard'}
                     >

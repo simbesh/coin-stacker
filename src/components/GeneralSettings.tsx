@@ -1,17 +1,16 @@
 'use client'
 
-import React, { useEffect } from 'react'
+import ExchangeIcon from '@/components/ExchangeIcon'
+import Feedback from '@/components/Feedback'
 import { Button } from '@/components/ui/button'
-import { Settings } from 'lucide-react'
+import { Separator } from '@/components/ui/separator'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
-import { useLocalStorage } from '@uidotdev/usehooks'
+import { Switch } from '@/components/ui/switch'
 import { LocalStorageKeys } from '@/lib/constants'
 import { cn, defaultEnabledExchanges } from '@/lib/utils'
-import ExchangeIcon from '@/components/ExchangeIcon'
-import { Separator } from '@/components/ui/separator'
-import Feedback from '@/components/Feedback'
-import { Switch } from '@/components/ui/switch'
-import { RiGithubLine } from 'react-icons/ri'
+import { useLocalStorage } from '@uidotdev/usehooks'
+import { Settings } from 'lucide-react'
+import { useEffect } from 'react'
 
 const GeneralSettings = () => {
     const [enabledExchanges, setEnabledExchanges] = useLocalStorage<Record<string, boolean>>(
@@ -78,7 +77,7 @@ const GeneralSettings = () => {
                         </Button>
                     ))}
                 </div>
-                <div className={'flex w-full justify-end gap-2 my-4'}>
+                <div className={'my-4 flex w-full justify-end gap-2'}>
                     <Button
                         variant={'secondary'}
                         aria-label={`Disable All Exchanges (${Object.keys(defaultEnabledExchanges).length})`}
@@ -98,7 +97,7 @@ const GeneralSettings = () => {
                 </div>
                 <Separator className={'mt-4'} />
 
-                <div className={'flex items-center justify-end gap-2 text-muted-foreground/50 text-sm mt-2'}>
+                <div className={'text-muted-foreground/50 mt-2 flex items-center justify-end gap-2 text-sm'}>
                     <div>{'v' + process.env.APP_VERSION}</div>
                     <div>{process.env.COMMIT_HASH}</div>
                 </div>

@@ -1,15 +1,4 @@
-import { NextResponse } from 'next/server'
-import * as Sentry from '@sentry/nextjs'
-import { btcmarkets, Exchange, independentreserve, kraken, luno, okx } from 'ccxt'
-import {
-    getBestAsks,
-    getBestBids,
-    getBestOrders,
-    parseBrOrderBook,
-    parseCjOrderBook,
-    parseCsOrderBook,
-    toIsoString,
-} from '@/lib/utils'
+import { getBestOrders, parseBrOrderBook, parseCjOrderBook, parseCsOrderBook, toIsoString } from '@/lib/utils'
 import {
     BrOrderBookResponse,
     CjOrderBookResponse,
@@ -18,8 +7,11 @@ import {
     CsOrderBookResponse,
     SwOrdersResponse,
 } from '@/types/types'
+import * as Sentry from '@sentry/nextjs'
 import { sql } from '@vercel/postgres'
+import { btcmarkets, Exchange, independentreserve, kraken, luno, okx } from 'ccxt'
 import { differenceInDays } from 'date-fns'
+import { NextResponse } from 'next/server'
 
 const cointreeOrderLimit: Record<string, number> = {
     AUD: 52_500,

@@ -16,7 +16,7 @@ const ExchangeIcon = ({
         'invert-0 dark:invert': ['swyftx'].includes(exchange),
     }
     return (
-        <div className={cn('flex items-center gap-2 min-w-fit', className)} {...props}>
+        <div className={cn('flex min-w-fit items-center gap-2', className)} {...props}>
             {isLoading ? (
                 <></>
             ) : (

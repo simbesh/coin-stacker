@@ -154,9 +154,6 @@ export function getBestOrders(
     let sortedBests: Best[] = []
     const errors = []
     for (const [exchange, orderbook] of Object.entries(orderbooks)) {
-        if (exchange === 'swyftx') {
-            console.log('swyftx', orderbook.value.asks)
-        }
         if (orderbook.value === undefined || orderbook.value[side === 'buy' ? 'asks' : 'bids']?.flat().includes(NaN)) {
             errors.push({
                 name: exchange,
