@@ -48,14 +48,14 @@ class MarketNotFoundError extends Error {
     }
 }
 
-class NotImplementedError extends Error {
-    sentryIgnore = true
+// class NotImplementedError extends Error {
+//     sentryIgnore = true
 
-    constructor(exchangeId: string) {
-        super(`${exchangeId} not implemented`)
-        this.name = 'Coming soon..'
-    }
-}
+//     constructor(exchangeId: string) {
+//         super(`${exchangeId} not implemented`)
+//         this.name = 'Coming soon..'
+//     }
+// }
 
 const getOrderBook = async (exchange: Exchange, symbol: string) => {
     exchange.fetchImplementation = fetcher
