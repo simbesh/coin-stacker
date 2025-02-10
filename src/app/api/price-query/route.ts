@@ -5,6 +5,7 @@ import {
     CoinstashQuotes,
     CointreeQuotes,
     CsOrderBookResponse,
+    HardblockTicker,
     SwOrdersResponse,
 } from '@/types/types'
 import * as Sentry from '@sentry/nextjs'
@@ -12,6 +13,24 @@ import { sql } from '@vercel/postgres'
 import { btcmarkets, Exchange, independentreserve, kraken, luno, okx } from 'ccxt'
 import { differenceInDays } from 'date-fns'
 import { NextResponse } from 'next/server'
+import { json } from 'stream/consumers'
+
+const supportedExchanges = [
+    'btcmarkets',
+    'independentreserve',
+    'kraken',
+    'luno',
+    'coinspot',
+    'coinjar',
+    'bitaroo',
+    'swyftx',
+    'coinstash',
+    'cointree',
+    'digitalsurge',
+    'okx',
+    'hardblock',
+    'elbaite',
+]
 
 const cointreeOrderLimit: Record<string, number> = {
     AUD: 52_500,
@@ -27,6 +46,15 @@ class MarketNotFoundError extends Error {
     constructor(symbol: string, exchangeId: string) {
         super(`Symbol ${symbol} not found in ${exchangeId}`)
         this.name = 'MarketNotFoundError'
+    }
+}
+
+class NotImplementedError extends Error {
+    sentryIgnore = true
+
+    constructor(exchangeId: string) {
+        super(`${exchangeId} not implemented`)
+        this.name = 'Coming soon..'
     }
 }
 
@@ -166,6 +194,30 @@ const getCoinstashMockOrderBook = async (base: string, quote: string, side?: str
     }
 }
 
+const getHardblockMockOrderBook = async (base: string, quote: string, side?: string, amount?: string, fee?: number) => {
+    if (base === 'BTC' && quote === 'AUD' && fee !== undefined && amount !== undefined) {
+        const res = await fetch(`https://www.hardblock.com.au/sluh/ticker`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'user-agent':
+                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+            },
+        })
+
+        const { status, buy, sell }: HardblockTicker = await res.json()
+        if (status) {
+            return side === 'buy'
+                ? {
+                      asks: [[buy, parseFloat(amount)]],
+                  }
+                : {
+                      bids: [[sell, parseFloat(amount)]],
+                  }
+        }
+    }
+}
+
 const getCointreeMockOrderBook = async (base: string, quote: string, side?: string, amount?: string, fee?: number) => {
     const liquidityLimit = cointreeOrderLimit[quote]
     if (fee !== undefined && amount !== undefined && liquidityLimit !== undefined) {
@@ -250,6 +302,7 @@ const orderbookMethods: Record<
     cointree: getCointreeMockOrderBook,
     digitalsurge: getDigitalSurgeMockOrderBook,
     okx: getOkxOrderBook,
+    hardblock: getHardblockMockOrderBook,
 }
 
 export async function POST(request: Request): Promise<NextResponse<any>> {
@@ -258,20 +311,6 @@ export async function POST(request: Request): Promise<NextResponse<any>> {
     const errors: Record<string, any>[] = []
     let best
     if (base && quote && amount && side) {
-        const supportedExchanges = [
-            'btcmarkets',
-            'independentreserve',
-            'kraken',
-            'luno',
-            'coinspot',
-            'coinjar',
-            'bitaroo',
-            'swyftx',
-            'coinstash',
-            'cointree',
-            'digitalsurge',
-            'okx',
-        ]
         const exchanges = supportedExchanges.filter((e) => !omitExchanges.includes(e))
         const promises = exchanges.map((exchange) =>
             orderbookMethods[exchange]?.(base, quote, side, amount, fees[exchange])

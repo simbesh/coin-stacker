@@ -54,6 +54,16 @@ export interface CoinstashQuotes {
     targetCurrency: string
     prices?: { [key: string]: Price }
 }
+
+//{"status":true,"buy":157884.39,"sell":154140.09,"market":155700.84,"spot":156012.24}
+export interface HardblockTicker {
+    status: boolean
+    buy: number
+    sell: number
+    market: number
+    spot: number
+}
+
 export interface CointreeQuotes {
     sell: string
     buy: string

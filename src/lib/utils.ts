@@ -31,6 +31,7 @@ const formattedExchangeNames: Record<string, string> = {
     cointree: 'Cointree',
     digitalsurge: 'DigitalSurge',
     okx: 'OKX',
+    hardblock: 'HardBlock',
 }
 
 export const defaultExchangeFees: Record<string, number> = {
@@ -46,6 +47,7 @@ export const defaultExchangeFees: Record<string, number> = {
     cointree: 0.0075,
     digitalsurge: 0.005,
     okx: 0.005,
+    hardblock: 0,
 }
 export const defaultEnabledExchanges: Record<string, boolean> = {
     btcmarkets: true,
@@ -60,6 +62,7 @@ export const defaultEnabledExchanges: Record<string, boolean> = {
     cointree: true,
     digitalsurge: true,
     okx: true,
+    hardblock: true,
 }
 
 export function currencyFormat(num: number, currencyCode: string = 'AUD', digits: number = 2): string {
@@ -154,7 +157,12 @@ export function getBestOrders(
     let sortedBests: Best[] = []
     const errors = []
     for (const [exchange, orderbook] of Object.entries(orderbooks)) {
-        if (orderbook.value === undefined || orderbook.value[side === 'buy' ? 'asks' : 'bids']?.flat().includes(NaN)) {
+        if (orderbook.error) {
+            continue
+        } else if (
+            orderbook.value === undefined ||
+            orderbook.value[side === 'buy' ? 'asks' : 'bids']?.flat().includes(NaN)
+        ) {
             errors.push({
                 name: exchange,
                 error: { name: orderbook.error ?? 'could not get price' },

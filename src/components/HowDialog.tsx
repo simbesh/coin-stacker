@@ -7,7 +7,7 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog'
 import { useState } from 'react'
-import { PriceCalculationInfoAlert } from './PriceCalculationInfoAlert'
+import { Button } from './ui/button'
 
 const HighlightedText = ({ children }: { children: React.ReactNode }) => (
     <span className="bg-muted rounded-md px-1">{children}</span>
@@ -18,7 +18,9 @@ const HowDialog = () => {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <PriceCalculationInfoAlert onClick={() => setOpen(true)} />
+                <Button variant={'link'} className="text-default" onClick={() => setOpen(true)}>
+                    How are these prices calculated?
+                </Button>
             </DialogTrigger>
             <DialogContent
                 className="bg-card h-fit p-2 pt-6 transition-all duration-1000 sm:p-6"

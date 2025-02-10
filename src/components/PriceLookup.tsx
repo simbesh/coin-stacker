@@ -9,7 +9,7 @@ import { PriceHistoryDropdown } from '@/components/price-history-dropdown'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+// import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { getAfiliateOrTradeUrl, LocalStorageKeys } from '@/lib/constants'
 import {
@@ -24,116 +24,31 @@ import {
 import { PriceQueryParams } from '@/types/types'
 import { useLocalStorage, useMediaQuery, useWindowScroll } from '@uidotdev/usehooks'
 import { round } from 'lodash'
-import { CornerLeftUp, ExternalLink, Search } from 'lucide-react'
+import { CornerLeftUp, ExternalLink, HelpCircle, Search } from 'lucide-react'
 import { useQueryState } from 'nuqs'
 import posthog from 'posthog-js'
 import { useEffect, useMemo, useState } from 'react'
 import HowDialog from './HowDialog'
+// import { LabeledSwitch } from './LabeledSwitch'
 import TextSwitch from './TextSwitch'
 import { Button } from './ui/button'
+import { HybridTooltip, HybridTooltipContent, HybridTooltipTrigger } from './ui/hybrid-tooltip'
+import { mockData } from './mock-data'
+// import NewBadge from './new-badge'
 
-const mockData: any = {
-    best: [
-        {
-            exchange: 'independentreserve',
-            netCost: 3675.0890249999998,
-            grossPrice: 365.6805,
-            netPrice: 367.5089025,
-            grossAveragePrice: 365.6805,
-            fees: 18.284025,
-            feeRate: 0.005,
-        },
-        {
-            exchange: 'kraken',
-            netCost: 3676.8488,
-            grossPrice: 366.22,
-            netPrice: 367.68488,
-            grossAveragePrice: 366.22,
-            fees: 14.648800000000001,
-            feeRate: 0.004,
-        },
-        {
-            exchange: 'coinjar',
-            netCost: 3687.54386,
-            grossPrice: 368.4,
-            netPrice: 368.76839999999993,
-            grossAveragePrice: 368.386,
-            fees: 3.68386,
-            feeRate: 0.001,
-        },
-        {
-            exchange: 'btcmarkets',
-            netCost: 3694.1355,
-            grossPrice: 366.3,
-            netPrice: 369.41355,
-            grossAveragePrice: 366.3,
-            fees: 31.135500000000004,
-            feeRate: 0.0085,
-        },
-        {
-            exchange: 'coinspot',
-            netCost: 3699.721217192,
-            grossPrice: 369.6025192,
-            netPrice: 369.9721217192,
-            grossAveragePrice: 369.6025192,
-            fees: 3.696025192,
-            feeRate: 0.001,
-        },
-        {
-            exchange: 'digitalsurge',
-            netCost: 3705.6873720603903,
-            grossPrice: '368.7251116478',
-            netPrice: 370.568737206039,
-            grossAveragePrice: 368.7251116478,
-            fees: 18.43625558239,
-            feeRate: 0.005,
-        },
-        {
-            exchange: 'cointree',
-            netCost: 3718.50433359925,
-            grossPrice: 369.08231599,
-            netPrice: 371.85043335992503,
-            grossAveragePrice: 369.08231599,
-            fees: 27.68117369925,
-            feeRate: 0.0075,
-        },
-        {
-            exchange: 'swyftx',
-            netCost: 3719.1401398375365,
-            grossPrice: 369.69583895005337,
-            netPrice: 371.9140139837537,
-            grossAveragePrice: 369.69583895005337,
-            fees: 22.1817503370032,
-            feeRate: 0.006,
-        },
-        {
-            exchange: 'coinstash',
-            netCost: 3725.189443171356,
-            grossPrice: 369.3792209391528,
-            netPrice: 372.51894431713555,
-            grossAveragePrice: 369.3792209391528,
-            fees: 31.39723377982799,
-            feeRate: 0.0085,
-        },
-    ],
-    errors: [
-        {
-            name: 'okx',
-            error: 'MarketNotFoundError: Symbol SOL/AUD not found in okx',
-        },
-    ],
-}
+const DEBUG = process.env.NEXT_PUBLIC_MOCK_PRICES === 'true'
 
 const markets = [
     'BTC',
     'ETH',
     'SOL',
+    'USDT',
     'XRP',
     'ADA',
     'LTC',
     'DOGE',
+    'TRUMP',
     ...[
-        'USDT',
         'LINK',
         'USDC',
         'AAVE',
@@ -208,7 +123,7 @@ const headers = [
 ]
 
 const firstRowCellStyle = 'text-green-600 dark:text-green-500'
-const quickSelectCoins = ['BTC', 'ETH', 'SOL', 'USDC', 'USDT']
+const quickSelectCoins = ['TRUMP', 'BTC', 'ETH', 'SOL', 'USDC', 'USDT']
 
 const PriceLookup = () => {
     const [side, setSide] = useQueryState<'buy' | 'sell'>('side', {
@@ -216,6 +131,10 @@ const PriceLookup = () => {
         parse: (value: string): 'buy' | 'sell' => (value === 'buy' || value === 'sell' ? value : 'buy'),
     })
     const [hideFiltered, setHideFiltered] = useState(true)
+    const [includeWithdrawalFees, setIncludeWithdrawalFees] = useLocalStorage(
+        LocalStorageKeys.IncludeWithdrawalFees,
+        false
+    )
     const [amount, setAmount] = useQueryState('amount', { defaultValue: '' })
     const [coin, setCoin] = useQueryState('coin', { defaultValue: '' })
     const [quote, setQuote] = useQueryState('quote', { defaultValue: 'AUD' })
@@ -224,7 +143,16 @@ const PriceLookup = () => {
         best: PriceQueryResult[]
         errors: { name: string; error: { name?: string } }[]
     }>({ best: [], errors: [] })
-    const [resultInput, setResultInput] = useState<PriceQueryParams>()
+    const [resultInput, setResultInput] = useState<PriceQueryParams | undefined>(
+        DEBUG
+            ? {
+                  side: 'buy',
+                  amount: '1',
+                  coin: 'BTC',
+                  quote: 'AUD',
+              }
+            : undefined
+    )
     const [{}, scrollTo] = useWindowScroll()
     const [history, setHistory] = useLocalStorage<PriceQueryParams[]>(LocalStorageKeys.PriceQueryHistory, [])
     const [fees, setFees] = useLocalStorage<Record<string, number>>(LocalStorageKeys.ExchangeFees, defaultExchangeFees)
@@ -281,19 +209,48 @@ const PriceLookup = () => {
                 )
                 setBestAvgPrice(highestAvgPrice)
             }
+            const removedOutliers: number[] = filterPriceOutliers(
+                priceQueryResult.best.map((best) => best.grossAveragePrice)
+            )
+
+            priceQueryResult.best.sort((a, b) => {
+                const aInOutliers = removedOutliers.includes(a.grossAveragePrice)
+                const bInOutliers = removedOutliers.includes(b.grossAveragePrice)
+                if (aInOutliers && !bInOutliers) return -1
+                if (!aInOutliers && bInOutliers) return 1
+                return 0
+            })
+
             const data = priceQueryResult.best.map((best, i) => ({
                 ...best,
                 dif: getDif(priceQueryResult.best, i),
                 pctDif: getDifPct(priceQueryResult.best, i),
-                filteredReason:
-                    Number(getDifPct(priceQueryResult.best, i, false)) <= -0.1 ||
-                    Number(getDifPct(priceQueryResult.best, i, false)) >= 0.1
-                        ? 'High price slippage: ' + getDifPct(priceQueryResult.best, i)
-                        : undefined,
+                filteredReason: !removedOutliers.includes(best.grossAveragePrice)
+                    ? 'Price outlier: ' + getDifPct(priceQueryResult.best, i)
+                    : undefined,
             }))
             setTableData(data)
         }
     }, [priceQueryResult.best])
+
+    function filterPriceOutliers(prices: number[]) {
+        if (prices.length === 0) return []
+
+        // Calculate median
+        const sortedPrices = [...prices].sort((a, b) => a - b)
+        const mid = Math.floor(sortedPrices.length / 2)
+        const median =
+            sortedPrices.length % 2 === 0 ? (sortedPrices[mid - 1]! + sortedPrices[mid]!) / 2 : sortedPrices[mid]
+
+        if (typeof median !== 'number') return prices
+
+        // Calculate threshold bounds (±10% from median)
+        const lowerBound = median * 0.9
+        const upperBound = median * 1.1
+
+        // Filter prices within bounds
+        return prices.filter((price) => price >= lowerBound && price <= upperBound)
+    }
 
     async function getPrices({ side, amount, coin }: PriceQueryParams) {
         if (!amount) {
@@ -327,7 +284,7 @@ const PriceLookup = () => {
         addToHistory({ quote, side, amount, coin })
         setIsLoading(true)
         try {
-            if (process.env.NEXT_PUBLIC_MOCK_PRICES === 'true') {
+            if (DEBUG) {
                 setPriceQueryResult(mockData)
             } else {
                 const prices = await fetch(`api/price-query`, {
@@ -473,37 +430,59 @@ const PriceLookup = () => {
                     </Button>
                 </div>
             </Card>
-            {resultsReady && <HowDialog />}
-            <div
-                className={cn(
-                    'mt-4 flex h-6 w-full items-center justify-center text-sm font-bold',
-                    isLoading && 'opacity-30'
-                )}
-            >
+            <div className="relative w-full max-w-4xl">
                 {resultsReady && (
-                    <>
-                        <div
-                            className={cn(
-                                'bg-card flex items-center gap-2 rounded-t-md border px-2 capitalize ',
-                                resultInput.side === 'buy' ? 'border-green-800' : 'border-red-800'
-                            )}
-                        >
+                    <div className="absolute left-0 -bottom-2 flex items-center gap-2">
+                        <HowDialog />
+                    </div>
+                )}
+                <div
+                    className={cn(
+                        'mt-4 flex h-6 w-full items-center justify-start sm:justify-center text-sm font-bold',
+                        isLoading && 'opacity-30'
+                    )}
+                >
+                    {resultsReady && (
+                        <>
                             <div
                                 className={cn(
-                                    resultInput.side === 'buy'
-                                        ? 'text-green-600 dark:text-green-400'
-                                        : 'text-red-600 dark:text-red-400'
+                                    'bg-card flex items-center gap-2 rounded-t-md border px-2 capitalize ',
+                                    resultInput.side === 'buy' ? 'border-green-800' : 'border-red-800'
                                 )}
                             >
-                                {resultInput.side}
+                                <div
+                                    className={cn(
+                                        resultInput.side === 'buy'
+                                            ? 'text-green-600 dark:text-green-400'
+                                            : 'text-red-600 dark:text-red-400'
+                                    )}
+                                >
+                                    {resultInput.side}
+                                </div>
+                                <div>{resultInput.amount}</div>
+                                <Coin symbol={resultInput.coin} className={'size-6'} />
+                                <div>{resultInput.coin}</div>
+                                <div className="text-slate-500">for {resultInput.quote}</div>
                             </div>
-                            <div>{resultInput.amount}</div>
-                            <Coin symbol={resultInput.coin} className={'size-6'} />
-                            <div>{resultInput.coin}</div>
-                            <div className="text-slate-500">for {resultInput.quote}</div>
-                        </div>
-                    </>
-                )}
+                        </>
+                    )}
+                </div>
+                {/* <div className="absolute right-0 bottom-0 flex items-center gap-2">
+                    <NewBadge className={'-mr-4'} />
+                    <LabeledSwitch
+                        label="Withdrawal Fee"
+                        checked={includeWithdrawalFees}
+                        onCheckedChange={setIncludeWithdrawalFees}
+                    />
+                    <HybridTooltip>
+                        <HybridTooltipTrigger>
+                            <HelpCircle className={'size-4'} />
+                        </HybridTooltipTrigger>
+                        <HybridTooltipContent className={'dark:border-slate-600'}>
+                            <p>{`Add the exchanges ${coin ? ` ${coin}` : ''} withdrawal fee to total price.`}</p>
+                        </HybridTooltipContent>
+                    </HybridTooltip>
+                </div> */}
             </div>
             <Card className={'relative !mb-0 w-full max-w-4xl'}>
                 {isLoading && priceQueryResult.best.length > 0 && (
@@ -590,19 +569,19 @@ const PriceLookup = () => {
                                     {currencyFormat(row.grossAveragePrice, 'AUD', row.grossAveragePrice < 5 ? 4 : 2)}
                                 </TableCell>
                                 <TableCell className={cn('text-right')}>
-                                    <Popover>
-                                        <PopoverTrigger
+                                    <HybridTooltip>
+                                        <HybridTooltipTrigger
                                             className={'cursor-help underline decoration-dashed underline-offset-2'}
                                         >
                                             {currencyFormat(row.fees)}
-                                        </PopoverTrigger>
-                                        <PopoverContent className={'w-fit p-2 text-sm'}>
+                                        </HybridTooltipTrigger>
+                                        <HybridTooltipContent className={'w-fit p-1.5 dark:border-slate-600'}>
                                             <p>
                                                 {formatExchangeName(row.exchange)} fee:{' '}
                                                 {round(row.feeRate * 100, 3) + '%'}
                                             </p>
-                                        </PopoverContent>
-                                    </Popover>
+                                        </HybridTooltipContent>
+                                    </HybridTooltip>
                                 </TableCell>
                                 <TableCell className={cn('text-right', i === 0 ? cn(firstRowCellStyle, '') : '')}>
                                     <div className="flex justify-end gap-2">

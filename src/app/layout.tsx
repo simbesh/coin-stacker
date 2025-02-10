@@ -8,6 +8,8 @@ import { Analytics } from '@vercel/analytics/react'
 import { Inter } from 'next/font/google'
 import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import { Suspense } from 'react'
+import { TouchProvider } from '@/components/ui/hybrid-tooltip'
+import { TooltipProvider } from '@/components/ui/tooltip'
 
 const inter = Inter({
     subsets: ['latin'],
@@ -38,22 +40,26 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <html lang="en" suppressHydrationWarning>
             <body className={`font-sans ${inter.variable}`}>
                 <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-                    <NavBar />
-                    <Suspense>
-                        <PostHogPageview />
-                    </Suspense>
-                    <PHProvider>
-                        <NuqsAdapter>
-                            <main
-                                id="main"
-                                className={
-                                    'min-h-[100dvh] bg-gradient-to-b from-slate-50 to-slate-100 p-2 dark:from-slate-900 dark:to-slate-950'
-                                }
-                            >
-                                {children}
-                            </main>
-                        </NuqsAdapter>
-                    </PHProvider>
+                    <TooltipProvider>
+                        <TouchProvider>
+                            <NavBar />
+                            <Suspense>
+                                <PostHogPageview />
+                            </Suspense>
+                            <PHProvider>
+                                <NuqsAdapter>
+                                    <main
+                                        id="main"
+                                        className={
+                                            'min-h-[100dvh] bg-gradient-to-b from-slate-50 to-slate-100 p-2 dark:from-slate-900 dark:to-slate-950'
+                                        }
+                                    >
+                                        {children}
+                                    </main>
+                                </NuqsAdapter>
+                            </PHProvider>
+                        </TouchProvider>
+                    </TooltipProvider>
                 </ThemeProvider>
                 <Analytics />
 

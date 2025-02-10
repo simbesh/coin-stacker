@@ -2,6 +2,7 @@ export enum LocalStorageKeys {
     PriceQueryHistory = 'cs-price-query-history',
     ExchangeFees = 'cs-user-exchange-fees',
     EnabledExchanges = 'cs-user-enabled-exchanges-v2',
+    IncludeWithdrawalFees = 'cs-include-withdrawal-fees',
 }
 
 export const getAfiliateOrTradeUrl = (exchange: string, base: string, quote: string) => {
@@ -66,6 +67,8 @@ const affiliateUrl = (exchange: string, base: string, quote: string) => {
             return `https://okx.com/join/95847721`
         case 'cointree':
             return `https://www.cointree.com?r=12C3C211-46A4-430B-B3A1-36028E9FF9F8`
+        case 'hardblock':
+            return `https://www.hardblock.com.au/join/2da97d02`
         default:
             return undefined
     }
