@@ -24,7 +24,7 @@ import {
 import { PriceQueryParams } from '@/types/types'
 import { useLocalStorage, useMediaQuery, useWindowScroll } from '@uidotdev/usehooks'
 import { round } from 'lodash'
-import { CornerLeftUp, ExternalLink, HelpCircle, Search } from 'lucide-react'
+import { CornerLeftUp, ExternalLink, Search } from 'lucide-react'
 import { useQueryState } from 'nuqs'
 import posthog from 'posthog-js'
 import { useEffect, useMemo, useState } from 'react'
@@ -131,10 +131,10 @@ const PriceLookup = () => {
         parse: (value: string): 'buy' | 'sell' => (value === 'buy' || value === 'sell' ? value : 'buy'),
     })
     const [hideFiltered, setHideFiltered] = useState(true)
-    const [includeWithdrawalFees, setIncludeWithdrawalFees] = useLocalStorage(
-        LocalStorageKeys.IncludeWithdrawalFees,
-        false
-    )
+    // const [includeWithdrawalFees, setIncludeWithdrawalFees] = useLocalStorage(
+    //     LocalStorageKeys.IncludeWithdrawalFees,
+    //     false
+    // )
     const [amount, setAmount] = useQueryState('amount', { defaultValue: '' })
     const [coin, setCoin] = useQueryState('coin', { defaultValue: '' })
     const [quote, setQuote] = useQueryState('quote', { defaultValue: 'AUD' })
@@ -432,13 +432,13 @@ const PriceLookup = () => {
             </Card>
             <div className="relative w-full max-w-4xl">
                 {resultsReady && (
-                    <div className="absolute left-0 -bottom-2 flex items-center gap-2">
+                    <div className="absolute -bottom-2 left-0 flex items-center gap-2">
                         <HowDialog />
                     </div>
                 )}
                 <div
                     className={cn(
-                        'mt-4 flex h-6 w-full items-center justify-start sm:justify-center text-sm font-bold',
+                        'mt-4 flex h-6 w-full items-center justify-start text-sm font-bold sm:justify-center',
                         isLoading && 'opacity-30'
                     )}
                 >

@@ -13,7 +13,6 @@ import { sql } from '@vercel/postgres'
 import { btcmarkets, Exchange, independentreserve, kraken, luno, okx } from 'ccxt'
 import { differenceInDays } from 'date-fns'
 import { NextResponse } from 'next/server'
-import { json } from 'stream/consumers'
 
 const supportedExchanges = [
     'btcmarkets',

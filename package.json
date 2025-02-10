@@ -6,9 +6,8 @@
         "build": "next build",
         "dev": "next dev",
         "scan": "next dev & npx react-scan@latest localhost:3000",
-        "lint": "next lint",
         "start": "next start",
-        "lint:fix:tsc": "next lint --quiet --fix && tsc --noEmit"
+        "lint": "next lint --quiet --fix && tsc --noEmit"
     },
     "dependencies": {
         "@radix-ui/react-dialog": "^1.0.5",

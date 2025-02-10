@@ -11,7 +11,7 @@ interface LabeledSwitchProps {
 
 export function LabeledSwitch({ label, checked, onCheckedChange, disabled = false, size = 'xs' }: LabeledSwitchProps) {
     return (
-        <label className="flex w-full items-center justify-between gap-2 hover:ring-1 hover:ring-muted p-1 rounded-md">
+        <label className="hover:ring-muted flex w-full items-center justify-between gap-2 rounded-md p-1 hover:ring-1">
             <span className={cn('text-xs', disabled && 'opacity-60')}>{label}</span>
             <Switch size={size} checked={checked} onCheckedChange={onCheckedChange} disabled={disabled} />
         </label>
