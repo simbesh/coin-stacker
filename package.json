@@ -1,6 +1,6 @@
 {
     "name": "coin-stacker",
-    "version": "2024.5.0",
+    "version": "2025.1.0",
     "repo": "https://github.com/simbesh/coin-stacker",
     "scripts": {
         "build": "next build",

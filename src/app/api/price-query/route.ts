@@ -1,10 +1,18 @@
-import { getBestOrders, parseBrOrderBook, parseCjOrderBook, parseCsOrderBook, toIsoString } from '@/lib/utils'
+import {
+    getBestOrders,
+    parseBrOrderBook,
+    parseCjOrderBook,
+    parseCsOrderBook,
+    parseD1OrderBook,
+    toIsoString,
+} from '@/lib/utils'
 import {
     BrOrderBookResponse,
     CjOrderBookResponse,
     CoinstashQuotes,
     CointreeQuotes,
     CsOrderBookResponse,
+    D1OrderBookResponse,
     HardblockTicker,
     SwOrdersResponse,
 } from '@/types/types'
@@ -28,7 +36,8 @@ const supportedExchanges = [
     'digitalsurge',
     'okx',
     'hardblock',
-    'elbaite',
+    'day1x',
+    // 'elbaite',
 ]
 
 const cointreeOrderLimit: Record<string, number> = {
@@ -105,6 +114,7 @@ const getCoinJarOrderBook = async (base: string, quote: string) => {
     const json: CjOrderBookResponse = await res.json()
     return parseCjOrderBook(json)
 }
+
 const getBitarooOrderBook = async (base: string, quote: string) => {
     if (base !== 'BTC' || quote !== 'AUD') {
         return
@@ -113,6 +123,16 @@ const getBitarooOrderBook = async (base: string, quote: string) => {
     const res = await fetch(`https://api.bitaroo.com.au/v1/market/order-book`)
     const json: BrOrderBookResponse = await res.json()
     return parseBrOrderBook(json)
+}
+
+// const getElbaiteMockOrderBook = async () => {
+//     throw new NotImplementedError('Elbaite')
+// }
+
+const getDay1xOrderBook = async (base: string, quote: string) => {
+    const res = await fetch(`https://exchange-api.day1x.io/api/coinmarketcap/orderbook/${base}-${quote}`)
+    const json: D1OrderBookResponse = await res.json()
+    return parseD1OrderBook(json)
 }
 
 const getSwyftxMockOrderBook = async (base: string, quote: string, side?: string, amount?: string, fee?: number) => {
@@ -302,6 +322,8 @@ const orderbookMethods: Record<
     digitalsurge: getDigitalSurgeMockOrderBook,
     okx: getOkxOrderBook,
     hardblock: getHardblockMockOrderBook,
+    day1x: getDay1xOrderBook,
+    // elbaite: getElbaiteMockOrderBook,
 }
 
 export async function POST(request: Request): Promise<NextResponse<any>> {

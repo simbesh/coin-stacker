@@ -24,7 +24,7 @@ import {
 import { PriceQueryParams } from '@/types/types'
 import { useLocalStorage, useMediaQuery, useWindowScroll } from '@uidotdev/usehooks'
 import { round } from 'lodash'
-import { CornerLeftUp, ExternalLink, Search } from 'lucide-react'
+import { CornerLeftUp, ExternalLink, Search, X } from 'lucide-react'
 import { useQueryState } from 'nuqs'
 import posthog from 'posthog-js'
 import { useEffect, useMemo, useState } from 'react'
@@ -35,6 +35,7 @@ import { Button } from './ui/button'
 import { HybridTooltip, HybridTooltipContent, HybridTooltipTrigger } from './ui/hybrid-tooltip'
 import { mockData } from './mock-data'
 // import NewBadge from './new-badge'
+import { differenceInDays } from 'date-fns'
 
 const DEBUG = process.env.NEXT_PUBLIC_MOCK_PRICES === 'true'
 
@@ -47,7 +48,6 @@ const markets = [
     'ADA',
     'LTC',
     'DOGE',
-    'TRUMP',
     ...[
         'LINK',
         'USDC',
@@ -76,6 +76,7 @@ const markets = [
         'ZRX',
         'EUR',
         'XTZ',
+        'TRUMP',
     ].sort(),
 ]
 
@@ -123,7 +124,15 @@ const headers = [
 ]
 
 const firstRowCellStyle = 'text-green-600 dark:text-green-500'
-const quickSelectCoins = ['TRUMP', 'BTC', 'ETH', 'SOL', 'USDC', 'USDT']
+const quickSelectCoins = ['BTC', 'ETH', 'SOL', 'USDC', 'USDT']
+
+const DAY1X_BANNER_KEY = 'day1x-banner-state'
+const BANNER_EXPIRY_DAYS = 7
+
+type Day1xBannerState = {
+    dismissed: boolean
+    firstView: string | null
+}
 
 const PriceLookup = () => {
     const [side, setSide] = useQueryState<'buy' | 'sell'>('side', {
@@ -165,6 +174,10 @@ const PriceLookup = () => {
         defaultEnabledExchanges
     )
     const isDesktop = useMediaQuery('(min-width: 768px)')
+    const [day1xBannerState, setDay1xBannerState] = useLocalStorage<Day1xBannerState>(DAY1X_BANNER_KEY, {
+        dismissed: false,
+        firstView: null,
+    })
 
     const handleKeyPress = (e: KeyboardEvent) => {
         if (e.key === 'Enter' && !submitDisabled) {
@@ -352,286 +365,242 @@ const PriceLookup = () => {
     const resultsReady = priceQueryResult.best.length > 0 && resultInput
     const submitDisabled = useMemo(() => !amount || !coin || isLoading, [amount, coin, isLoading])
 
+    // Check if banner should be shown
+    const showDay1xBanner = useMemo(() => {
+        if (day1xBannerState.dismissed) return false
+
+        if (!day1xBannerState.firstView) {
+            // First time viewing - set the timestamp
+            setDay1xBannerState((prev) => ({
+                ...prev,
+                firstView: new Date().toISOString(),
+            }))
+            return true
+        }
+
+        // Check if a week has passed since first view
+        const daysSinceFirstView = differenceInDays(new Date(), new Date(day1xBannerState.firstView))
+        return daysSinceFirstView < BANNER_EXPIRY_DAYS
+    }, [day1xBannerState])
+
+    const handleDismissBanner = () => {
+        setDay1xBannerState((prev) => ({
+            ...prev,
+            dismissed: true,
+        }))
+    }
+
     return (
-        <div className={'z-20 mb-10 flex w-full flex-col items-center justify-center'}>
-            <Card
-                className={
-                    'relative my-4 flex w-full max-w-2xl select-none flex-col items-center justify-center gap-4 border py-8 text-lg font-bold sm:mt-10'
-                }
-            >
-                <PriceHistoryDropdown
-                    className={'absolute left-2 top-2 bg-transparent'}
-                    raiseHistory={handleHistoryClick}
-                />
-                <div className={'absolute right-2 top-2 flex gap-2'}>
-                    <Combobox
-                        className={'bg-card w-20'}
-                        optionType={'Quote'}
-                        value={quote}
-                        setValue={setQuote}
-                        options={['AUD', 'USD', 'USDT', 'USDC'].map((q) => ({
-                            value: q,
-                            label: <div className={'flex items-center gap-2 text-lg font-semibold'}>{q}</div>,
-                        }))}
-                    />
-                    <FeeParams />
-                </div>
-                <div className="mt-8 w-full max-w-[16rem]">
-                    <TextSwitch side={side} setSide={setSide} />
-                </div>
-                <div className={'flex gap-2'}>
-                    <Input
-                        value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
-                        type={'number'}
-                        className={'w-40 text-right text-lg ring-0 focus-visible:ring-0'}
-                    />
-                    <Combobox
-                        className={'bg-card w-[160px]'}
-                        optionType={'Coin'}
-                        value={coin}
-                        setValue={setCoin}
-                        options={markets.map((market) => ({
-                            value: market,
-                            label: (
-                                <div className={'flex items-center gap-2 text-lg font-semibold'}>
-                                    <Coin symbol={market} />
-                                    {market}
-                                </div>
-                            ),
-                        }))}
-                    />
-                </div>
-                <div>
-                    {quickSelectCoins.map((coin) => (
-                        <Badge
-                            variant={'outline'}
-                            onClick={() => setCoin(coin)}
-                            className={'group h-8 cursor-pointer gap-2 border hover:border-slate-400'}
-                        >
-                            <Coin symbol={coin} className={cn('size-4 group-hover:text-slate-300')} />
-                            {coin}
-                        </Badge>
-                    ))}
-                </div>
-                <div className={'flex w-full justify-center'}>
-                    <Button
-                        variant={'default'}
-                        className={
-                            'mx-4 mt-4 flex w-full items-center gap-2 rounded-lg text-base font-bold text-black sm:w-44'
-                        }
-                        onClick={() => getPrices({ side, amount, coin })}
-                        disabled={submitDisabled}
-                        isLoading={isLoading}
-                        aria-label="Search for prices"
+        <>
+            {showDay1xBanner && (
+                <div className="relative z-20 w-full space-x-2 bg-gradient-to-r from-blue-500 via-blue-300 to-blue-500 px-4 py-2 text-center text-sm sm:text-base dark:from-blue-800 dark:via-blue-500 dark:to-blue-800">
+                    <a
+                        href={getExchangeUrl('day1x')}
+                        target="_blank"
+                        className="inline-flex cursor-pointer items-center hover:underline"
                     >
-                        <Search strokeWidth={3} className={'size-4'} />
-                        Search
-                    </Button>
+                        🎉 New Exchange{' '}
+                        <ExchangeIcon exchange="day1x" withLabel className="mx-1 px-1" labelClassName="font-bold" /> has
+                        been added!{' '}
+                    </a>
+                    <button
+                        onClick={handleDismissBanner}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 hover:bg-blue-600/50"
+                        aria-label="Dismiss banner"
+                    >
+                        <X className="size-4" />
+                    </button>
                 </div>
-            </Card>
-            <div className="relative w-full max-w-4xl">
-                {resultsReady && (
-                    <div className="absolute -bottom-2 left-0 flex items-center gap-2">
-                        <HowDialog />
-                    </div>
-                )}
-                <div
-                    className={cn(
-                        'mt-4 flex h-6 w-full items-center justify-start text-sm font-bold sm:justify-center',
-                        isLoading && 'opacity-30'
-                    )}
+            )}
+            <div className={'z-20 mb-10 flex w-full flex-col items-center justify-center'}>
+                <Card
+                    className={
+                        'relative my-4 flex w-full max-w-2xl select-none flex-col items-center justify-center gap-4 border py-8 text-lg font-bold sm:mt-10'
+                    }
                 >
-                    {resultsReady && (
-                        <>
-                            <div
-                                className={cn(
-                                    'bg-card flex items-center gap-2 rounded-t-md border px-2 capitalize ',
-                                    resultInput.side === 'buy' ? 'border-green-800' : 'border-red-800'
-                                )}
+                    <PriceHistoryDropdown
+                        className={'absolute left-2 top-2 bg-transparent'}
+                        raiseHistory={handleHistoryClick}
+                    />
+                    <div className={'absolute right-2 top-2 flex gap-2'}>
+                        <Combobox
+                            className={'bg-card w-20'}
+                            optionType={'Quote'}
+                            value={quote}
+                            setValue={setQuote}
+                            options={['AUD', 'USD', 'USDT', 'USDC'].map((q) => ({
+                                value: q,
+                                label: <div className={'flex items-center gap-2 text-lg font-semibold'}>{q}</div>,
+                            }))}
+                        />
+                        <FeeParams />
+                    </div>
+                    <div className="mt-8 w-full max-w-[16rem]">
+                        <TextSwitch side={side} setSide={setSide} />
+                    </div>
+                    <div className={'flex gap-2'}>
+                        <Input
+                            value={amount}
+                            onChange={(e) => setAmount(e.target.value)}
+                            type={'number'}
+                            className={'w-40 text-right text-lg ring-0 focus-visible:ring-0'}
+                        />
+                        <Combobox
+                            className={'bg-card w-[160px]'}
+                            optionType={'Coin'}
+                            value={coin}
+                            setValue={setCoin}
+                            options={markets.map((market) => ({
+                                value: market,
+                                label: (
+                                    <div className={'flex items-center gap-2 text-lg font-semibold'}>
+                                        <Coin symbol={market} />
+                                        {market}
+                                    </div>
+                                ),
+                            }))}
+                        />
+                    </div>
+                    <div>
+                        {quickSelectCoins.map((coin) => (
+                            <Badge
+                                variant={'outline'}
+                                onClick={() => setCoin(coin)}
+                                className={'group h-8 cursor-pointer gap-2 border hover:border-slate-400'}
                             >
+                                <Coin symbol={coin} className={cn('size-4 group-hover:text-slate-300')} />
+                                {coin}
+                            </Badge>
+                        ))}
+                    </div>
+                    <div className={'flex w-full justify-center'}>
+                        <Button
+                            variant={'default'}
+                            className={
+                                'mx-4 mt-4 flex w-full items-center gap-2 rounded-lg text-base font-bold text-black sm:w-44'
+                            }
+                            onClick={() => getPrices({ side, amount, coin })}
+                            disabled={submitDisabled}
+                            isLoading={isLoading}
+                            aria-label="Search for prices"
+                        >
+                            <Search strokeWidth={3} className={'size-4'} />
+                            Search
+                        </Button>
+                    </div>
+                </Card>
+                <div className="relative w-full max-w-4xl">
+                    {resultsReady && (
+                        <div className="absolute -bottom-2 left-0 flex items-center gap-2">
+                            <HowDialog />
+                        </div>
+                    )}
+                    <div
+                        className={cn(
+                            'mt-4 flex h-6 w-full items-center justify-start text-sm font-bold sm:justify-center',
+                            isLoading && 'opacity-30'
+                        )}
+                    >
+                        {resultsReady && (
+                            <>
                                 <div
                                     className={cn(
-                                        resultInput.side === 'buy'
-                                            ? 'text-green-600 dark:text-green-400'
-                                            : 'text-red-600 dark:text-red-400'
+                                        'bg-card flex items-center gap-2 rounded-t-md border px-2 capitalize ',
+                                        resultInput.side === 'buy' ? 'border-green-800' : 'border-red-800'
                                     )}
                                 >
-                                    {resultInput.side}
+                                    <div
+                                        className={cn(
+                                            resultInput.side === 'buy'
+                                                ? 'text-green-600 dark:text-green-400'
+                                                : 'text-red-600 dark:text-red-400'
+                                        )}
+                                    >
+                                        {resultInput.side}
+                                    </div>
+                                    <div>{resultInput.amount}</div>
+                                    <Coin symbol={resultInput.coin} className={'size-6'} />
+                                    <div>{resultInput.coin}</div>
+                                    <div className="text-slate-500">for {resultInput.quote}</div>
                                 </div>
-                                <div>{resultInput.amount}</div>
-                                <Coin symbol={resultInput.coin} className={'size-6'} />
-                                <div>{resultInput.coin}</div>
-                                <div className="text-slate-500">for {resultInput.quote}</div>
-                            </div>
-                        </>
-                    )}
+                            </>
+                        )}
+                    </div>
+                    {/* <div className="absolute right-0 bottom-0 flex items-center gap-2">
+                        <NewBadge className={'-mr-4'} />
+                        <LabeledSwitch
+                            label="Withdrawal Fee"
+                            checked={includeWithdrawalFees}
+                            onCheckedChange={setIncludeWithdrawalFees}
+                        />
+                        <HybridTooltip>
+                            <HybridTooltipTrigger>
+                                <HelpCircle className={'size-4'} />
+                            </HybridTooltipTrigger>
+                            <HybridTooltipContent className={'dark:border-slate-600'}>
+                                <p>{`Add the exchanges ${coin ? ` ${coin}` : ''} withdrawal fee to total price.`}</p>
+                            </HybridTooltipContent>
+                        </HybridTooltip>
+                    </div> */}
                 </div>
-                {/* <div className="absolute right-0 bottom-0 flex items-center gap-2">
-                    <NewBadge className={'-mr-4'} />
-                    <LabeledSwitch
-                        label="Withdrawal Fee"
-                        checked={includeWithdrawalFees}
-                        onCheckedChange={setIncludeWithdrawalFees}
-                    />
-                    <HybridTooltip>
-                        <HybridTooltipTrigger>
-                            <HelpCircle className={'size-4'} />
-                        </HybridTooltipTrigger>
-                        <HybridTooltipContent className={'dark:border-slate-600'}>
-                            <p>{`Add the exchanges ${coin ? ` ${coin}` : ''} withdrawal fee to total price.`}</p>
-                        </HybridTooltipContent>
-                    </HybridTooltip>
-                </div> */}
-            </div>
-            <Card className={'relative !mb-0 w-full max-w-4xl'}>
-                {isLoading && priceQueryResult.best.length > 0 && (
-                    <div className="absolute inset-0 z-50">
-                        <div className="flex size-full items-center justify-center">
-                            <div className={'border-accent rounded-md border bg-slate-50 p-5 dark:bg-slate-950'}>
-                                <Spinner className={'size-10 opacity-100'} />
+                <Card className={'relative !mb-0 w-full max-w-4xl'}>
+                    {isLoading && priceQueryResult.best.length > 0 && (
+                        <div className="absolute inset-0 z-50">
+                            <div className="flex size-full items-center justify-center">
+                                <div className={'border-accent rounded-md border bg-slate-50 p-5 dark:bg-slate-950'}>
+                                    <Spinner className={'size-10 opacity-100'} />
+                                </div>
                             </div>
                         </div>
-                    </div>
-                )}
-
-                <Table>
-                    {priceQueryResult.best.length === 0 && (
-                        <TableCaption className={'mb-4'}>
-                            <div>{isLoading ? 'Loading...' : 'No Data'}</div>
-                        </TableCaption>
                     )}
-                    <TableHeader>
-                        <TableRow className={'hover:bg-muted/0'}>
-                            {headers.map((header) => (
-                                <TableHead key={header.id} className={cn(header.className)}>
-                                    {header.title}
-                                    {header.title === 'Fees' && resultInput?.quote && ` (${resultInput.quote})`}
-                                </TableHead>
-                            ))}
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody className={cn('font-semibold', isLoading && 'opacity-30')}>
-                        {tableData.map((row, i) => (
-                            <TableRow
-                                key={row.exchange + '_' + i}
-                                className={cn('border-2', {
-                                    'border-green-500/30 dark:bg-green-950/30 bg-green-50/30': i === 0 && isLoading,
-                                    'border-green-400 dark:border-green-900 dark:bg-gradient-to-t dark:from-background dark:to-green-900/40 bg-gradient-to-t from-white to-green-100/30':
-                                        i === 0 && !isLoading,
-                                    'opacity-50': row.filteredReason,
-                                    hidden: hideFiltered && row.filteredReason,
-                                })}
-                            >
-                                <TableCell className={cn('mr-2 p-0 text-center sm:p-0', i === 0 && firstRowCellStyle)}>
-                                    <a
-                                        href={getExchangeUrl(row.exchange, coin, quote)}
-                                        target={'_blank'}
-                                        className={
-                                            'flex size-full items-center justify-start gap-1 p-2 hover:text-amber-500 hover:underline sm:gap-2 sm:p-4 dark:hover:text-amber-400'
-                                        }
-                                        onClick={() =>
-                                            posthog.capture('exchange-link', {
-                                                exchange: row.exchange,
-                                                url: getAfiliateOrTradeUrl(row.exchange, coin, quote),
-                                            })
-                                        }
-                                    >
-                                        <div className={cn('flex items-center justify-start gap-1 sm:gap-2')}>
-                                            <ExchangeIcon
-                                                exchange={row.exchange}
-                                                withLabel
-                                                labelClassName={
-                                                    'py-0 max-w-[110px] truncate sm:max-w-none sm:truncate-none'
-                                                }
-                                                className={'size-full justify-start'}
-                                            />
-                                            <ExternalLink
-                                                className={cn(
-                                                    'size-4 min-h-[1rem] min-w-[1rem]',
-                                                    row.exchange.length > 15 && !isDesktop && '-ml-1.5'
-                                                )}
-                                            />
-                                        </div>
-                                    </a>
-                                    {row.filteredReason && (
-                                        <div className={'-mt-2 text-xs text-red-600 dark:text-red-400'}>
-                                            {row.filteredReason}
-                                        </div>
-                                    )}
-                                </TableCell>
-                                <TableCell
-                                    className={cn(
-                                        'text-right',
-                                        bestAvgPrice === row.grossAveragePrice ? 'text-green-500' : ''
-                                    )}
-                                >
-                                    {currencyFormat(row.grossAveragePrice, 'AUD', row.grossAveragePrice < 5 ? 4 : 2)}
-                                </TableCell>
-                                <TableCell className={cn('text-right')}>
-                                    <HybridTooltip>
-                                        <HybridTooltipTrigger
-                                            className={'cursor-help underline decoration-dashed underline-offset-2'}
-                                        >
-                                            {currencyFormat(row.fees)}
-                                        </HybridTooltipTrigger>
-                                        <HybridTooltipContent className={'w-fit p-1.5 dark:border-slate-600'}>
-                                            <p>
-                                                {formatExchangeName(row.exchange)} fee:{' '}
-                                                {round(row.feeRate * 100, 3) + '%'}
-                                            </p>
-                                        </HybridTooltipContent>
-                                    </HybridTooltip>
-                                </TableCell>
-                                <TableCell className={cn('text-right', i === 0 ? cn(firstRowCellStyle, '') : '')}>
-                                    <div className="flex justify-end gap-2">
-                                        {i === 0 && (
-                                            <div
-                                                className={
-                                                    'ml-auto hidden w-fit rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-600 sm:block dark:bg-green-900 dark:text-green-500'
-                                                }
-                                            >
-                                                Best
-                                            </div>
-                                        )}
-                                        {currencyFormat(row.netCost)}
-                                    </div>
-                                </TableCell>
-                                <TableCell className={cn('text-right', i === 0 ? 'text-white' : 'text-red-500')}>
-                                    {row.dif}
-                                </TableCell>
-                                <TableCell className={cn('text-right', i === 0 ? 'text-white' : 'text-red-500')}>
-                                    {row.pctDif}
-                                </TableCell>
+
+                    <Table>
+                        {priceQueryResult.best.length === 0 && (
+                            <TableCaption className={'mb-4'}>
+                                <div>{isLoading ? 'Loading...' : 'No Data'}</div>
+                            </TableCaption>
+                        )}
+                        <TableHeader>
+                            <TableRow className={'hover:bg-muted/0'}>
+                                {headers.map((header) => (
+                                    <TableHead key={header.id} className={cn(header.className)}>
+                                        {header.title}
+                                        {header.title === 'Fees' && resultInput?.quote && ` (${resultInput.quote})`}
+                                    </TableHead>
+                                ))}
                             </TableRow>
-                        ))}
-                        {!hideFiltered &&
-                            priceQueryResult.errors.map(({ name, error }) => (
+                        </TableHeader>
+                        <TableBody className={cn('font-semibold', isLoading && 'opacity-30')}>
+                            {tableData.map((row, i) => (
                                 <TableRow
-                                    key={name + '_error_row'}
-                                    className={'bg-red-500/20 opacity-50 hover:bg-red-500/20'}
+                                    key={row.exchange + '_' + i}
+                                    className={cn('border-2', {
+                                        'border-green-500/30 dark:bg-green-950/30 bg-green-50/30': i === 0 && isLoading,
+                                        'border-green-400 dark:border-green-900 dark:bg-gradient-to-t dark:from-background dark:to-green-900/40 bg-gradient-to-t from-white to-green-100/30':
+                                            i === 0 && !isLoading,
+                                        'opacity-50': row.filteredReason,
+                                        hidden: hideFiltered && row.filteredReason,
+                                    })}
                                 >
                                     <TableCell
-                                        className={
-                                            'mr-2 flex size-full items-center justify-start gap-2 whitespace-nowrap p-0 text-left sm:p-0'
-                                        }
+                                        className={cn('mr-2 p-0 text-center sm:p-0', i === 0 && firstRowCellStyle)}
                                     >
                                         <a
-                                            href={getExchangeUrl(name, coin, quote)}
+                                            href={getExchangeUrl(row.exchange, coin, quote)}
                                             target={'_blank'}
                                             className={
                                                 'flex size-full items-center justify-start gap-1 p-2 hover:text-amber-500 hover:underline sm:gap-2 sm:p-4 dark:hover:text-amber-400'
                                             }
                                             onClick={() =>
                                                 posthog.capture('exchange-link', {
-                                                    exchange: name,
-                                                    url: getAfiliateOrTradeUrl(name, coin, quote),
+                                                    exchange: row.exchange,
+                                                    url: getAfiliateOrTradeUrl(row.exchange, coin, quote),
                                                 })
                                             }
                                         >
                                             <div className={cn('flex items-center justify-start gap-1 sm:gap-2')}>
                                                 <ExchangeIcon
-                                                    exchange={name}
+                                                    exchange={row.exchange}
                                                     withLabel
                                                     labelClassName={
                                                         'py-0 max-w-[110px] truncate sm:max-w-none sm:truncate-none'
@@ -641,71 +610,168 @@ const PriceLookup = () => {
                                                 <ExternalLink
                                                     className={cn(
                                                         'size-4 min-h-[1rem] min-w-[1rem]',
-                                                        name.length > 15 && !isDesktop && '-ml-1.5'
+                                                        row.exchange.length > 15 && !isDesktop && '-ml-1.5'
                                                     )}
                                                 />
                                             </div>
                                         </a>
+                                        {row.filteredReason && (
+                                            <div className={'-mt-2 text-xs text-red-600 dark:text-red-400'}>
+                                                {row.filteredReason}
+                                            </div>
+                                        )}
                                     </TableCell>
-                                    <TableCell className={'text-red-600 dark:text-red-400'} colspan={5}>
-                                        {error.name ?? error.toString()}
+                                    <TableCell
+                                        className={cn(
+                                            'text-right',
+                                            bestAvgPrice === row.grossAveragePrice ? 'text-green-500' : ''
+                                        )}
+                                    >
+                                        {currencyFormat(
+                                            row.grossAveragePrice,
+                                            'AUD',
+                                            row.grossAveragePrice < 5 ? 4 : 2
+                                        )}
+                                    </TableCell>
+                                    <TableCell className={cn('text-right')}>
+                                        <HybridTooltip>
+                                            <HybridTooltipTrigger
+                                                className={'cursor-help underline decoration-dashed underline-offset-2'}
+                                            >
+                                                {currencyFormat(row.fees)}
+                                            </HybridTooltipTrigger>
+                                            <HybridTooltipContent className={'w-fit p-1.5 dark:border-slate-600'}>
+                                                <p>
+                                                    {formatExchangeName(row.exchange)} fee:{' '}
+                                                    {round(row.feeRate * 100, 3) + '%'}
+                                                </p>
+                                            </HybridTooltipContent>
+                                        </HybridTooltip>
+                                    </TableCell>
+                                    <TableCell className={cn('text-right', i === 0 ? cn(firstRowCellStyle, '') : '')}>
+                                        <div className="flex justify-end gap-2">
+                                            {i === 0 && (
+                                                <div
+                                                    className={
+                                                        'ml-auto hidden w-fit rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-600 sm:block dark:bg-green-900 dark:text-green-500'
+                                                    }
+                                                >
+                                                    Best
+                                                </div>
+                                            )}
+                                            {currencyFormat(row.netCost)}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className={cn('text-right', i === 0 ? 'text-white' : 'text-red-500')}>
+                                        {row.dif}
+                                    </TableCell>
+                                    <TableCell className={cn('text-right', i === 0 ? 'text-white' : 'text-red-500')}>
+                                        {row.pctDif}
                                     </TableCell>
                                 </TableRow>
                             ))}
-                        {(priceQueryResult.errors.length > 0 || tableData.some((row) => row.filteredReason)) && (
-                            <TableRow className="hover:bg-transparent">
-                                <TableCell colSpan={6} className={'p-4'}>
-                                    <Button
-                                        variant={'outline'}
-                                        onClick={() => setHideFiltered((prev) => !prev)}
-                                        aria-label={`${hideFiltered ? 'Show' : 'Hide'} filtered results`}
+                            {!hideFiltered &&
+                                priceQueryResult.errors.map(({ name, error }) => (
+                                    <TableRow
+                                        key={name + '_error_row'}
+                                        className={'bg-red-500/20 opacity-50 hover:bg-red-500/20'}
                                     >
-                                        {hideFiltered ? (
-                                            <>
-                                                {`Show ${
-                                                    tableData.filter((row) => row.filteredReason).length +
-                                                    priceQueryResult.errors.length
-                                                } filtered results`}
-                                            </>
-                                        ) : (
-                                            <>
-                                                {`Hide ${
-                                                    tableData.filter((row) => row.filteredReason).length +
-                                                    priceQueryResult.errors.length
-                                                } filtered results`}
-                                            </>
-                                        )}
-                                    </Button>
-                                </TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
-            </Card>
-            {priceQueryResult.best.length > 0 && (
-                <div
-                    className={
-                        'w-full max-w-4xl pb-4 pl-4 text-sm leading-4 text-slate-400 sm:pl-12 dark:text-slate-600 '
-                    }
-                >
-                    <span className={'mt-2 flex w-fit items-start justify-start gap-1 px-2 dark:bg-slate-950'}>
-                        <CornerLeftUp className={'size-4'} />
-                        Want to support CoinStacker?
-                    </span>
-                    <span className={'flex w-fit justify-start gap-2 px-2 dark:bg-slate-950'}>
-                        Sign up to a new exchange using the referral links above.
-                    </span>
-                    <a
+                                        <TableCell
+                                            className={
+                                                'mr-2 flex size-full items-center justify-start gap-2 whitespace-nowrap p-0 text-left sm:p-0'
+                                            }
+                                        >
+                                            <a
+                                                href={getExchangeUrl(name, coin, quote)}
+                                                target={'_blank'}
+                                                className={
+                                                    'flex size-full items-center justify-start gap-1 p-2 hover:text-amber-500 hover:underline sm:gap-2 sm:p-4 dark:hover:text-amber-400'
+                                                }
+                                                onClick={() =>
+                                                    posthog.capture('exchange-link', {
+                                                        exchange: name,
+                                                        url: getAfiliateOrTradeUrl(name, coin, quote),
+                                                    })
+                                                }
+                                            >
+                                                <div className={cn('flex items-center justify-start gap-1 sm:gap-2')}>
+                                                    <ExchangeIcon
+                                                        exchange={name}
+                                                        withLabel
+                                                        labelClassName={
+                                                            'py-0 max-w-[110px] truncate sm:max-w-none sm:truncate-none'
+                                                        }
+                                                        className={'size-full justify-start'}
+                                                    />
+                                                    <ExternalLink
+                                                        className={cn(
+                                                            'size-4 min-h-[1rem] min-w-[1rem]',
+                                                            name.length > 15 && !isDesktop && '-ml-1.5'
+                                                        )}
+                                                    />
+                                                </div>
+                                            </a>
+                                        </TableCell>
+                                        <TableCell className={'text-red-600 dark:text-red-400'} colspan={5}>
+                                            {error.name ?? error.toString()}
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            {(priceQueryResult.errors.length > 0 || tableData.some((row) => row.filteredReason)) && (
+                                <TableRow className="hover:bg-transparent">
+                                    <TableCell colSpan={6} className={'p-4'}>
+                                        <Button
+                                            variant={'outline'}
+                                            onClick={() => setHideFiltered((prev) => !prev)}
+                                            aria-label={`${hideFiltered ? 'Show' : 'Hide'} filtered results`}
+                                        >
+                                            {hideFiltered ? (
+                                                <>
+                                                    {`Show ${
+                                                        tableData.filter((row) => row.filteredReason).length +
+                                                        priceQueryResult.errors.length
+                                                    } filtered results`}
+                                                </>
+                                            ) : (
+                                                <>
+                                                    {`Hide ${
+                                                        tableData.filter((row) => row.filteredReason).length +
+                                                        priceQueryResult.errors.length
+                                                    } filtered results`}
+                                                </>
+                                            )}
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </Card>
+                {priceQueryResult.best.length > 0 && (
+                    <div
                         className={
-                            'flex w-fit justify-start gap-2 px-2 text-slate-600 underline underline-offset-4 hover:text-amber-600 dark:bg-slate-950 dark:text-slate-400 dark:dark:hover:text-amber-400'
+                            'w-full max-w-4xl pb-4 pl-4 text-sm leading-4 text-slate-400 sm:pl-12 dark:text-slate-600 '
                         }
-                        href={'https://ko-fi.com/simonbechard'}
                     >
-                        or buy us a coffee! ☕
-                    </a>
-                </div>
-            )}
-        </div>
+                        <span className={'mt-2 flex w-fit items-start justify-start gap-1 px-2 dark:bg-slate-950'}>
+                            <CornerLeftUp className={'size-4'} />
+                            Want to support CoinStacker?
+                        </span>
+                        <span className={'flex w-fit justify-start gap-2 px-2 dark:bg-slate-950'}>
+                            Sign up to a new exchange using the referral links above.
+                        </span>
+                        <a
+                            className={
+                                'flex w-fit justify-start gap-2 px-2 text-slate-600 underline underline-offset-4 hover:text-amber-600 dark:bg-slate-950 dark:text-slate-400 dark:dark:hover:text-amber-400'
+                            }
+                            href={'https://ko-fi.com/simonbechard'}
+                        >
+                            or buy us a coffee! ☕
+                        </a>
+                    </div>
+                )}
+            </div>
+        </>
     )
 }
 

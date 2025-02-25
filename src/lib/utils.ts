@@ -1,4 +1,4 @@
-import { BrOrderBookResponse, CjOrderBookResponse, CsOrderBookResponseOk } from '@/types/types'
+import { BrOrderBookResponse, CjOrderBookResponse, CsOrderBookResponseOk, D1OrderBookResponse } from '@/types/types'
 import { type ClassValue, clsx } from 'clsx'
 import { round } from 'lodash'
 import { twMerge } from 'tailwind-merge'
@@ -32,6 +32,8 @@ const formattedExchangeNames: Record<string, string> = {
     digitalsurge: 'DigitalSurge',
     okx: 'OKX',
     hardblock: 'HardBlock',
+    day1x: 'Day1x',
+    // elbaite: 'Elbaite',
 }
 
 export const defaultExchangeFees: Record<string, number> = {
@@ -48,6 +50,8 @@ export const defaultExchangeFees: Record<string, number> = {
     digitalsurge: 0.005,
     okx: 0.005,
     hardblock: 0,
+    day1x: 0.0025,
+    // elbaite: 0.011,
 }
 export const defaultEnabledExchanges: Record<string, boolean> = {
     btcmarkets: true,
@@ -63,6 +67,8 @@ export const defaultEnabledExchanges: Record<string, boolean> = {
     digitalsurge: true,
     okx: true,
     hardblock: true,
+    day1x: true,
+    // elbaite: true,
 }
 
 export function currencyFormat(num: number, currencyCode: string = 'AUD', digits: number = 2): string {
@@ -75,18 +81,29 @@ export function currencyFormat(num: number, currencyCode: string = 'AUD', digits
     return new Intl.NumberFormat('en-AU', options).format(num)
 }
 
+function parseOrderBookStringTuple(tuple: [string, string]): [number, number] {
+    return [parseFloat(tuple[0]), parseFloat(tuple[1])]
+}
+
 export function parseBrOrderBook(data: BrOrderBookResponse): any {
     return {
-        bids: data.buy.map(({ price, amount }) => [parseFloat(price), parseFloat(amount)]) as [number, number][],
-        asks: data.sell.map(({ price, amount }) => [parseFloat(price), parseFloat(amount)]) as [number, number][],
+        bids: data.buy.map(({ price, amount }) => parseOrderBookStringTuple([price, amount])) as [number, number][],
+        asks: data.sell.map(({ price, amount }) => parseOrderBookStringTuple([price, amount])) as [number, number][],
+    }
+}
+
+export function parseD1OrderBook(data: D1OrderBookResponse): any {
+    return {
+        bids: data.bids.map(parseOrderBookStringTuple),
+        asks: data.asks.map(parseOrderBookStringTuple),
     }
 }
 
 export function parseCjOrderBook(data: CjOrderBookResponse): any {
     const timestamp = Date.now()
     return {
-        bids: data.bids.map(([price, amount]) => [parseFloat(price), parseFloat(amount)]) as [number, number][],
-        asks: data.asks.map(([price, amount]) => [parseFloat(price), parseFloat(amount)]) as [number, number][],
+        bids: data.bids.map(parseOrderBookStringTuple),
+        asks: data.asks.map(parseOrderBookStringTuple),
         timestamp,
         datetime: new Date(timestamp).toISOString(),
         nonce: timestamp,
@@ -266,5 +283,5 @@ export function getExchangeUrl(exchange: string, coin?: string, quote?: string):
         ...(coin && { coin }),
         ...(quote && { quote }),
     })
-    return `/launch/${exchange}?${params.toString()}`
+    return coin && quote ? `/launch/${exchange}?${params.toString()}` : `/launch/${exchange}`
 }

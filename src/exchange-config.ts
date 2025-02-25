@@ -16,6 +16,8 @@ const EXCHANGE_URLS: Record<string, string> = {
     cointree: 'https://www.cointree.com',
     okx: 'https://www.okx.com',
     hardblock: 'https://www.hardblock.com.au',
+    day1x: 'https://www.day1x.io',
+    // elbaite: 'https://www.elbaite.com',
 }
 const ALT_EXCHANGE_URLS: Record<string, string> = {
     coinjar: 'https://exchange.coinjar.com/assets/favicons/favicon.ico',
@@ -39,4 +41,5 @@ export const EXCHANGE_COLOUR: Record<string, string> = {
     kraken: '#5d45dc',
     liquid: '#0055ff',
     luno: '#0091ff',
+    day1x: '#1943c3',
 }

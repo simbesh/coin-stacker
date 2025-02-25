@@ -33,6 +33,10 @@ const tradeUrl = (exchange: string, base: string, quote: string) => {
             return `https://trade.swyftx.com/trade`
         case 'coinstash':
             return `https://coinstash.com.au/trade`
+        case 'day1x':
+            return `https://exchange.day1x.io/exchange`
+        // case 'elbaite':
+        //     return 'https://www.elbaite.com/'
         default:
             return ``
     }
@@ -69,6 +73,8 @@ const affiliateUrl = (exchange: string, base: string, quote: string) => {
             return `https://www.cointree.com?r=12C3C211-46A4-430B-B3A1-36028E9FF9F8`
         case 'hardblock':
             return `https://www.hardblock.com.au/join/2da97d02`
+        case 'day1x':
+            return `https://day1x.io/?refcode=83277`
         default:
             return undefined
     }

@@ -20,6 +20,12 @@ export interface BrOrderBookResponse {
     sell: BrOrderBookLevel[]
 }
 
+export interface D1OrderBookResponse {
+    timestamp: number
+    asks: [string, string][]
+    bids: [string, string][]
+}
+
 export interface SwOrdersResponse {
     price: string
     total: string
