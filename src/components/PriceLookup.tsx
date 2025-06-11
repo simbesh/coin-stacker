@@ -378,9 +378,10 @@ const PriceLookup = () => {
             return true
         }
 
-        // Check if a week has passed since first view
+        // Check if a week has passed since first view and if date is before June 1 2025
         const daysSinceFirstView = differenceInDays(new Date(), new Date(day1xBannerState.firstView))
-        return daysSinceFirstView < BANNER_EXPIRY_DAYS
+        const isBeforeJune2025 = new Date() < new Date('2025-06-01')
+        return daysSinceFirstView < BANNER_EXPIRY_DAYS && isBeforeJune2025
     }, [day1xBannerState])
 
     const handleDismissBanner = () => {
