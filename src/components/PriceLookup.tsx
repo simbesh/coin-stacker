@@ -169,6 +169,22 @@ const PriceLookup = () => {
     const [tableData, setTableData] = useState<
         (PriceQueryResult & { dif: string; pctDif: string | number; filteredReason?: string })[]
     >([])
+
+    const [tryUpdateFees, setTryUpdateFees] = useState(false)
+
+    // update fees to NEW default from old default
+    useEffect(() => {
+        if (!tryUpdateFees) {
+            setTryUpdateFees(true)
+            if (fees.day1x === 0.0025) {
+                setFees((prev) => ({
+                    ...prev,
+                    day1x: defaultExchangeFees.day1x as number,
+                }))
+            }
+        }
+    }, [fees])
+
     const [enabledExchanges] = useLocalStorage<Record<string, boolean>>(
         LocalStorageKeys.EnabledExchanges,
         defaultEnabledExchanges

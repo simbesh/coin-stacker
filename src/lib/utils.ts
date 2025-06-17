@@ -50,7 +50,7 @@ export const defaultExchangeFees: Record<string, number> = {
     digitalsurge: 0.005,
     okx: 0.005,
     hardblock: 0,
-    day1x: 0.0025,
+    day1x: 0.001,
     // elbaite: 0.011,
 }
 export const defaultEnabledExchanges: Record<string, boolean> = {
