@@ -8,7 +8,7 @@ export const env = createEnv({
    */
   server: {
     NODE_ENV: z.enum(["development", "test", "production"]),
-    UMAMI_KEY: z.string(),
+    UMAMI_KEY: z.string().optional(),
   },
 
   /**
