@@ -46,7 +46,7 @@ Object.keys(exchangeConfig).forEach((exchange) => {
         if (!marketConfig[market]) {
             marketConfig[market] = []
         }
-        marketConfig[market]?.push(exchange)
+        marketConfig[market].push(exchange)
     })
 })
 
