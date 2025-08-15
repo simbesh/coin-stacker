@@ -3,6 +3,8 @@ import AUD from 'cryptocurrency-icons/svg/color/usd.svg'
 import ADA from '@/assets/icons/coins/ada.svg'
 import SOL from '@/assets/icons/coins/sol.svg'
 import TRUMP from '@/assets/icons/coins/trump.png'
+import SUI from '@/assets/icons/coins/sui.png'
+import HYPE from '@/assets/icons/coins/hype.png'
 import assetsManifest from 'cryptocurrency-icons/manifest.json'
 import generic from 'cryptocurrency-icons/svg/color/generic.svg'
 import { cn } from '@/lib/utils'
@@ -19,6 +21,8 @@ const symbolOverride: Record<string, StaticImport> = {
     SOL,
     ADA,
     TRUMP,
+    SUI,
+    HYPE,
 }
 const getCoin = (market: string) => {
     return (market.includes('/') ? market.split('/')[0] : market) ?? ''

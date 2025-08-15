@@ -77,6 +77,8 @@ const markets = [
         'EUR',
         'XTZ',
         'TRUMP',
+        'SUI',
+        'HYPE',
     ].sort(),
 ]
 
