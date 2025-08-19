@@ -34,7 +34,7 @@ export default function GradientText() {
             {isSmallDevice ? (
                 <>
                     <div className={'whitespace-nowrap'}>Find the best price...</div>
-                    <div className="from-primary bg-gradient-to-l to-slate-600 bg-clip-text text-transparent dark:to-slate-200">
+                    <div className="from-primary bg-linear-to-l to-slate-600 bg-clip-text text-transparent dark:to-slate-200">
                         Stack more coins!
                     </div>
                 </>

@@ -412,7 +412,7 @@ const PriceLookup = () => {
     return (
         <>
             {showDay1xBanner && (
-                <div className="relative z-20 w-full space-x-2 bg-gradient-to-r from-blue-500 via-blue-300 to-blue-500 px-4 py-2 text-center text-sm sm:text-base dark:from-blue-800 dark:via-blue-500 dark:to-blue-800">
+                <div className="relative z-20 w-full space-x-2 bg-linear-to-r from-blue-500 via-blue-300 to-blue-500 px-4 py-2 text-center text-sm sm:text-base dark:from-blue-800 dark:via-blue-500 dark:to-blue-800">
                     <a
                         href={getExchangeUrl('day1x')}
                         target="_blank"
@@ -562,7 +562,7 @@ const PriceLookup = () => {
                         </HybridTooltip>
                     </div> */}
                 </div>
-                <Card className={'relative !mb-0 w-full max-w-4xl'}>
+                <Card className={'relative mb-0! w-full max-w-4xl'}>
                     {isLoading && priceQueryResult.best.length > 0 && (
                         <div className="absolute inset-0 z-50">
                             <div className="flex size-full items-center justify-center">
@@ -595,7 +595,7 @@ const PriceLookup = () => {
                                     key={row.exchange + '_' + i}
                                     className={cn('border-2', {
                                         'border-green-500/30 dark:bg-green-950/30 bg-green-50/30': i === 0 && isLoading,
-                                        'border-green-400 dark:border-green-900 dark:bg-gradient-to-t dark:from-background dark:to-green-900/40 bg-gradient-to-t from-white to-green-100/30':
+                                        'border-green-400 dark:border-green-900 dark:bg-linear-to-t dark:from-background dark:to-green-900/40 bg-linear-to-t from-white to-green-100/30':
                                             i === 0 && !isLoading,
                                         'opacity-50': row.filteredReason,
                                         hidden: hideFiltered && row.filteredReason,
@@ -628,7 +628,7 @@ const PriceLookup = () => {
                                                 />
                                                 <ExternalLink
                                                     className={cn(
-                                                        'size-4 min-h-[1rem] min-w-[1rem]',
+                                                        'size-4 min-h-4 min-w-4',
                                                         row.exchange.length > 15 && !isDesktop && '-ml-1.5'
                                                     )}
                                                 />
@@ -724,7 +724,7 @@ const PriceLookup = () => {
                                                     />
                                                     <ExternalLink
                                                         className={cn(
-                                                            'size-4 min-h-[1rem] min-w-[1rem]',
+                                                            'size-4 min-h-4 min-w-4',
                                                             name.length > 15 && !isDesktop && '-ml-1.5'
                                                         )}
                                                     />

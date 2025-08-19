@@ -51,7 +51,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                                     <main
                                         id="main"
                                         className={
-                                            'min-h-[100dvh] bg-gradient-to-b from-slate-50 to-slate-100 p-2 dark:from-slate-900 dark:to-slate-950'
+                                            'min-h-dvh bg-linear-to-b from-slate-50 to-slate-100 p-2 dark:from-slate-900 dark:to-slate-950'
                                         }
                                     >
                                         {children}

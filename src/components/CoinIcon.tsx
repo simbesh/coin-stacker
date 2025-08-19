@@ -38,7 +38,7 @@ const Coin = ({ symbol, className }: { symbol: string; className?: string }) => 
                 ) : exists ? (
                     <Image
                         title={currency}
-                        src={require(`/node_modules/cryptocurrency-icons/svg/color/${currency.toLowerCase()}.svg`)}
+                        src={require(`cryptocurrency-icons/svg/color/${currency.toLowerCase()}.svg`)}
                         height={24}
                         width={24}
                         alt={currency}

@@ -1,7 +1,8 @@
 import { getAfiliateOrTradeUrl } from '@/lib/constants'
 import { NextRequest } from 'next/server'
 
-export async function GET(request: NextRequest, { params }: { params: { exchange: string } }) {
+export async function GET(request: NextRequest, props: { params: Promise<{ exchange: string }> }) {
+    const params = await props.params;
     const { exchange } = params
     const searchParams = request.nextUrl.searchParams
     const coin = searchParams.get('coin')
