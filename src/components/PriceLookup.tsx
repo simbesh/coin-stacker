@@ -102,6 +102,11 @@ const headers = [
         className: 'min-w-[160px]',
     },
     {
+        id: 'type',
+        title: '',
+        className: 'px-0',
+    },
+    {
         id: 'total',
         title: 'Total inc fees',
         className: 'text-right',
@@ -608,7 +613,6 @@ const PriceLookup = () => {
                                             i === 0 && firstRowCellStyle
                                         )}
                                     >
-                                        <ExchangeType type={exchangeTypes[row.exchange]} />
                                         <a
                                             href={getExchangeUrl(row.exchange, coin, quote)}
                                             target={'_blank'}
@@ -644,6 +648,11 @@ const PriceLookup = () => {
                                                 {row.filteredReason}
                                             </div>
                                         )}
+                                    </TableCell>
+                                    <TableCell
+                                        className={cn('text-right px-0', i === 0 ? cn(firstRowCellStyle, '') : '')}
+                                    >
+                                        <ExchangeType type={exchangeTypes[row.exchange]} />
                                     </TableCell>
                                     <TableCell className={cn('text-right', i === 0 ? cn(firstRowCellStyle, '') : '')}>
                                         <div className="flex justify-end gap-2 font-mono font-bold antialiased">
