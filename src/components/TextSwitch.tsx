@@ -31,7 +31,7 @@ const TextSwitch = ({
     setSide,
 }: { side: 'buy' | 'sell'; setSide: (side: 'buy' | 'sell') => void } & React.ComponentPropsWithoutRef<'div'>) => {
     return (
-        <div className="border-border relative mx-8 mt-4 flex h-12 items-center rounded-md border p-1 shadow">
+        <div className="border-border relative mx-8 flex h-12 items-center rounded-md border p-1 shadow">
             <div className="flex w-full justify-center">
                 <Button side="buy" setSide={setSide} selectedSide={side} />
             </div>

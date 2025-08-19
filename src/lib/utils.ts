@@ -36,6 +36,23 @@ const formattedExchangeNames: Record<string, string> = {
     // elbaite: 'Elbaite',
 }
 
+export const exchangeTypes: Record<string, 'orderbook' | 'broker'> = {
+    btcmarkets: 'orderbook',
+    independentreserve: 'orderbook',
+    kraken: 'orderbook',
+    luno: 'orderbook',
+    coinspot: 'orderbook',
+    coinjar: 'orderbook',
+    bitaroo: 'orderbook',
+    swyftx: 'broker',
+    coinstash: 'broker',
+    cointree: 'broker',
+    digitalsurge: 'broker',
+    okx: 'orderbook',
+    hardblock: 'broker',
+    day1x: 'orderbook',
+}
+
 export const defaultExchangeFees: Record<string, number> = {
     btcmarkets: 0.0085,
     independentreserve: 0.005,

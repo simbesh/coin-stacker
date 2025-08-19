@@ -17,17 +17,18 @@ import {
     currencyFormat,
     defaultEnabledExchanges,
     defaultExchangeFees,
+    exchangeTypes,
     formatExchangeName,
     getExchangeUrl,
     OLD_KRAKEN_TAKER_FEE,
 } from '@/lib/utils'
 import { PriceQueryParams } from '@/types/types'
-import { useLocalStorage, useMediaQuery, useWindowScroll } from '@uidotdev/usehooks'
+import { useLocalStorage, useMediaQuery } from '@uidotdev/usehooks'
 import { round } from 'lodash'
 import { CornerLeftUp, ExternalLink, Search, X } from 'lucide-react'
 import { useQueryState } from 'nuqs'
 import posthog from 'posthog-js'
-import { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import HowDialog from './HowDialog'
 // import { LabeledSwitch } from './LabeledSwitch'
 import TextSwitch from './TextSwitch'
@@ -36,6 +37,8 @@ import { HybridTooltip, HybridTooltipContent, HybridTooltipTrigger } from './ui/
 import { mockData } from './mock-data'
 // import NewBadge from './new-badge'
 import { differenceInDays } from 'date-fns'
+import ExchangeType from './ExchangeType'
+import { TextShimmer } from './ui/text-shimmer'
 
 const DEBUG = process.env.NEXT_PUBLIC_MOCK_PRICES === 'true'
 
@@ -99,6 +102,11 @@ const headers = [
         className: 'min-w-[160px]',
     },
     {
+        id: 'total',
+        title: 'Total inc fees',
+        className: 'text-right',
+    },
+    {
         id: 'price',
         title: 'Avg. Price',
         className: 'text-right',
@@ -106,11 +114,6 @@ const headers = [
     {
         id: 'fees',
         title: 'Fees',
-        className: 'text-right',
-    },
-    {
-        id: 'total',
-        title: 'Total inc fees',
         className: 'text-right',
     },
     {
@@ -164,15 +167,15 @@ const PriceLookup = () => {
               }
             : undefined
     )
-    const [{}, scrollTo] = useWindowScroll()
     const [history, setHistory] = useLocalStorage<PriceQueryParams[]>(LocalStorageKeys.PriceQueryHistory, [])
     const [fees, setFees] = useLocalStorage<Record<string, number>>(LocalStorageKeys.ExchangeFees, defaultExchangeFees)
     const [bestAvgPrice, setBestAvgPrice] = useState<number>()
     const [tableData, setTableData] = useState<
-        (PriceQueryResult & { dif: string; pctDif: string | number; filteredReason?: string })[]
+        (PriceQueryResult & { dif: string; pctDif: string; filteredReason?: string })[]
     >([])
 
     const [tryUpdateFees, setTryUpdateFees] = useState(false)
+    const summaryTabRef = useRef<HTMLDivElement>(null)
 
     // update fees to NEW default from old default
     useEffect(() => {
@@ -255,7 +258,7 @@ const PriceLookup = () => {
             const data = priceQueryResult.best.map((best, i) => ({
                 ...best,
                 dif: getDif(priceQueryResult.best, i),
-                pctDif: getDifPct(priceQueryResult.best, i),
+                pctDif: getDifPct(priceQueryResult.best, i) as string,
                 filteredReason: !removedOutliers.includes(best.grossAveragePrice)
                     ? 'Price outlier: ' + getDifPct(priceQueryResult.best, i)
                     : undefined,
@@ -340,8 +343,14 @@ const PriceLookup = () => {
                 setResultInput({ side, amount, coin, quote })
             }
         } catch (e) {}
-        scrollTo({ top: 9999, left: 0, behavior: 'smooth' })
-        setTimeout(() => scrollTo({ top: 9999, left: 0, behavior: 'smooth' }), 300)
+        // Scroll to the SummaryTab
+        setTimeout(() => {
+            if (summaryTabRef.current) {
+                const rect = summaryTabRef.current.getBoundingClientRect()
+                const offsetTop = window.pageYOffset + rect.top - 80
+                window.scrollTo({ top: offsetTop, left: 0, behavior: 'smooth' })
+            }
+        }, 300)
         setIsLoading(false)
     }
 
@@ -434,7 +443,7 @@ const PriceLookup = () => {
             <div className={'z-20 mb-10 flex w-full flex-col items-center justify-center'}>
                 <Card
                     className={
-                        'relative my-4 flex w-full max-w-2xl select-none flex-col items-center justify-center gap-4 border py-8 text-lg font-bold sm:mt-10'
+                        'relative my-4 flex w-full max-w-2xl select-none flex-col items-center justify-center gap-4 border py-8 text-lg font-bold sm:mt-4'
                     }
                 >
                     <PriceHistoryDropdown
@@ -449,12 +458,16 @@ const PriceLookup = () => {
                             setValue={setQuote}
                             options={['AUD', 'USD', 'USDT', 'USDC'].map((q) => ({
                                 value: q,
-                                label: <div className={'flex items-center gap-2 text-lg font-semibold'}>{q}</div>,
+                                label: (
+                                    <div key={q} className={'flex items-center gap-2 text-lg font-semibold'}>
+                                        {q}
+                                    </div>
+                                ),
                             }))}
                         />
                         <FeeParams />
                     </div>
-                    <div className="mt-8 w-full max-w-[16rem]">
+                    <div className="mt-8 sm:mt-0 w-full max-w-[16rem]">
                         <TextSwitch side={side} setSide={setSide} />
                     </div>
                     <div className={'flex gap-2'}>
@@ -472,7 +485,7 @@ const PriceLookup = () => {
                             options={markets.map((market) => ({
                                 value: market,
                                 label: (
-                                    <div className={'flex items-center gap-2 text-lg font-semibold'}>
+                                    <div key={market} className={'flex items-center gap-2 text-lg font-semibold'}>
                                         <Coin symbol={market} />
                                         {market}
                                     </div>
@@ -483,6 +496,7 @@ const PriceLookup = () => {
                     <div>
                         {quickSelectCoins.map((coin) => (
                             <Badge
+                                key={coin}
                                 variant={'outline'}
                                 onClick={() => setCoin(coin)}
                                 className={'group h-8 cursor-pointer gap-2 border hover:border-slate-400'}
@@ -496,7 +510,7 @@ const PriceLookup = () => {
                         <Button
                             variant={'default'}
                             className={
-                                'mx-4 mt-4 flex w-full items-center gap-2 rounded-lg text-base font-bold text-black sm:w-44'
+                                'mx-4 flex w-full items-center gap-2 rounded-lg text-base font-bold text-black sm:w-44'
                             }
                             onClick={() => getPrices({ side, amount, coin })}
                             disabled={submitDisabled}
@@ -510,7 +524,7 @@ const PriceLookup = () => {
                 </Card>
                 <div className="relative w-full max-w-4xl">
                     {resultsReady && (
-                        <div className="absolute -bottom-2 left-0 flex items-center gap-2">
+                        <div className="sm:absolute sm:-bottom-2 left-0 flex items-center gap-2 mx-auto w-fit">
                             <HowDialog />
                         </div>
                     )}
@@ -521,28 +535,7 @@ const PriceLookup = () => {
                         )}
                     >
                         {resultsReady && (
-                            <>
-                                <div
-                                    className={cn(
-                                        'bg-card flex items-center gap-2 rounded-t-md border px-2 capitalize ',
-                                        resultInput.side === 'buy' ? 'border-green-800' : 'border-red-800'
-                                    )}
-                                >
-                                    <div
-                                        className={cn(
-                                            resultInput.side === 'buy'
-                                                ? 'text-green-600 dark:text-green-400'
-                                                : 'text-red-600 dark:text-red-400'
-                                        )}
-                                    >
-                                        {resultInput.side}
-                                    </div>
-                                    <div>{resultInput.amount}</div>
-                                    <Coin symbol={resultInput.coin} className={'size-6'} />
-                                    <div>{resultInput.coin}</div>
-                                    <div className="text-slate-500">for {resultInput.quote}</div>
-                                </div>
-                            </>
+                            <SummaryTab ref={summaryTabRef} side={side} amount={amount} coin={coin} quote={quote} />
                         )}
                     </div>
                     {/* <div className="absolute right-0 bottom-0 flex items-center gap-2">
@@ -576,7 +569,15 @@ const PriceLookup = () => {
                     <Table>
                         {priceQueryResult.best.length === 0 && (
                             <TableCaption className={'mb-4'}>
-                                <div>{isLoading ? 'Loading...' : 'No Data'}</div>
+                                <div>
+                                    {isLoading ? (
+                                        <TextShimmer className="text-sm" duration={1}>
+                                            Getting prices...
+                                        </TextShimmer>
+                                    ) : (
+                                        'No Data'
+                                    )}
+                                </div>
                             </TableCaption>
                         )}
                         <TableHeader>
@@ -592,7 +593,7 @@ const PriceLookup = () => {
                         <TableBody className={cn('font-semibold', isLoading && 'opacity-30')}>
                             {tableData.map((row, i) => (
                                 <TableRow
-                                    key={row.exchange + '_' + i}
+                                    key={row.exchange + '_row_' + i}
                                     className={cn('border-2', {
                                         'border-green-500/30 dark:bg-green-950/30 bg-green-50/30': i === 0 && isLoading,
                                         'border-green-400 dark:border-green-900 dark:bg-linear-to-t dark:from-background dark:to-green-900/40 bg-linear-to-t from-white to-green-100/30':
@@ -602,13 +603,17 @@ const PriceLookup = () => {
                                     })}
                                 >
                                     <TableCell
-                                        className={cn('mr-2 p-0 text-center sm:p-0', i === 0 && firstRowCellStyle)}
+                                        className={cn(
+                                            'ml-1 sm:ml-2 mr-2 p-0 text-center sm:p-0 flex items-center justify-start max-w-20',
+                                            i === 0 && firstRowCellStyle
+                                        )}
                                     >
+                                        <ExchangeType type={exchangeTypes[row.exchange]} />
                                         <a
                                             href={getExchangeUrl(row.exchange, coin, quote)}
                                             target={'_blank'}
                                             className={
-                                                'flex size-full items-center justify-start gap-1 p-2 hover:text-amber-500 hover:underline sm:gap-2 sm:p-4 dark:hover:text-amber-400'
+                                                'group flex size-full items-center justify-start gap-1 p-2 hover:text-amber-500 hover:underline sm:gap-2 sm:p-4 dark:hover:text-amber-400'
                                             }
                                             onClick={() =>
                                                 posthog.capture('exchange-link', {
@@ -628,7 +633,7 @@ const PriceLookup = () => {
                                                 />
                                                 <ExternalLink
                                                     className={cn(
-                                                        'size-4 min-h-4 min-w-4',
+                                                        'size-4 min-h-[1rem] min-w-[1rem] opacity-0 transition-opacity group-hover:opacity-100',
                                                         row.exchange.length > 15 && !isDesktop && '-ml-1.5'
                                                     )}
                                                 />
@@ -640,9 +645,33 @@ const PriceLookup = () => {
                                             </div>
                                         )}
                                     </TableCell>
+                                    <TableCell className={cn('text-right', i === 0 ? cn(firstRowCellStyle, '') : '')}>
+                                        <div className="flex justify-end gap-2 font-mono font-bold antialiased">
+                                            {i === 0 && (
+                                                <div
+                                                    className={
+                                                        'ml-auto font-sans hidden w-fit rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-600 sm:block dark:bg-green-900 dark:text-green-400'
+                                                    }
+                                                >
+                                                    Best
+                                                </div>
+                                            )}
+                                            {i === 0 ? (
+                                                <TextShimmer
+                                                    duration={1.2}
+                                                    spread={3}
+                                                    className="[--base-color:var(--color-green-700)] [--base-gradient-color:var(--color-green-400)] dark:[--base-color:var(--color-green-500)] dark:[--base-gradient-color:var(--color-green-300)]"
+                                                >
+                                                    {currencyFormat(row.netCost)}
+                                                </TextShimmer>
+                                            ) : (
+                                                currencyFormat(row.netCost)
+                                            )}
+                                        </div>
+                                    </TableCell>
                                     <TableCell
                                         className={cn(
-                                            'text-right',
+                                            'text-right font-mono font-bold antialiased',
                                             bestAvgPrice === row.grossAveragePrice ? 'text-green-500' : ''
                                         )}
                                     >
@@ -652,7 +681,7 @@ const PriceLookup = () => {
                                             row.grossAveragePrice < 5 ? 4 : 2
                                         )}
                                     </TableCell>
-                                    <TableCell className={cn('text-right')}>
+                                    <TableCell className={cn('text-right font-mono font-bold antialiased')}>
                                         <HybridTooltip>
                                             <HybridTooltipTrigger
                                                 className={'cursor-help underline decoration-dashed underline-offset-2'}
@@ -667,20 +696,6 @@ const PriceLookup = () => {
                                             </HybridTooltipContent>
                                         </HybridTooltip>
                                     </TableCell>
-                                    <TableCell className={cn('text-right', i === 0 ? cn(firstRowCellStyle, '') : '')}>
-                                        <div className="flex justify-end gap-2">
-                                            {i === 0 && (
-                                                <div
-                                                    className={
-                                                        'ml-auto hidden w-fit rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-600 sm:block dark:bg-green-900 dark:text-green-500'
-                                                    }
-                                                >
-                                                    Best
-                                                </div>
-                                            )}
-                                            {currencyFormat(row.netCost)}
-                                        </div>
-                                    </TableCell>
                                     <TableCell className={cn('text-right', i === 0 ? 'text-white' : 'text-red-500')}>
                                         {row.dif}
                                     </TableCell>
@@ -691,20 +706,18 @@ const PriceLookup = () => {
                             ))}
                             {!hideFiltered &&
                                 priceQueryResult.errors.map(({ name, error }) => (
-                                    <TableRow
-                                        key={name + '_error_row'}
-                                        className={'bg-red-500/20 opacity-50 hover:bg-red-500/20'}
-                                    >
+                                    <TableRow key={name + '_error_row'} className={'bg-red-700/20 hover:bg-red-700/25'}>
                                         <TableCell
                                             className={
-                                                'mr-2 flex size-full items-center justify-start gap-2 whitespace-nowrap p-0 text-left sm:p-0'
+                                                'ml-1 sm:ml-2 mr-2 flex size-full items-center justify-start gap-2 whitespace-nowrap p-0 text-left sm:p-0'
                                             }
                                         >
+                                            <ExchangeType type={exchangeTypes[name]} />
                                             <a
                                                 href={getExchangeUrl(name, coin, quote)}
                                                 target={'_blank'}
                                                 className={
-                                                    'flex size-full items-center justify-start gap-1 p-2 hover:text-amber-500 hover:underline sm:gap-2 sm:p-4 dark:hover:text-amber-400'
+                                                    'group flex size-full items-center justify-start gap-1 p-2 hover:text-amber-500 hover:underline sm:gap-2 sm:p-4 dark:hover:text-amber-400'
                                                 }
                                                 onClick={() =>
                                                     posthog.capture('exchange-link', {
@@ -713,7 +726,11 @@ const PriceLookup = () => {
                                                     })
                                                 }
                                             >
-                                                <div className={cn('flex items-center justify-start gap-1 sm:gap-2')}>
+                                                <div
+                                                    className={cn(
+                                                        'flex items-center justify-start gap-1 sm:gap-2 opacity-50'
+                                                    )}
+                                                >
                                                     <ExchangeIcon
                                                         exchange={name}
                                                         withLabel
@@ -724,20 +741,20 @@ const PriceLookup = () => {
                                                     />
                                                     <ExternalLink
                                                         className={cn(
-                                                            'size-4 min-h-4 min-w-4',
+                                                            'size-4 min-h-4 min-w-4 opacity-0 transition-opacity group-hover:opacity-100',
                                                             name.length > 15 && !isDesktop && '-ml-1.5'
                                                         )}
                                                     />
                                                 </div>
                                             </a>
                                         </TableCell>
-                                        <TableCell className={'text-red-600 dark:text-red-400'} colspan={5}>
+                                        <TableCell className={'text-red-600 dark:text-red-400 opacity-50'} colspan={5}>
                                             {error.name ?? error.toString()}
                                         </TableCell>
                                     </TableRow>
                                 ))}
                             {(priceQueryResult.errors.length > 0 || tableData.some((row) => row.filteredReason)) && (
-                                <TableRow className="hover:bg-transparent">
+                                <TableRow className="hover:bg-transparent opacity-80">
                                     <TableCell colSpan={6} className={'p-4'}>
                                         <Button
                                             variant={'outline'}
@@ -795,3 +812,35 @@ const PriceLookup = () => {
 }
 
 export default PriceLookup
+
+const SummaryTab = React.forwardRef<
+    HTMLDivElement,
+    {
+        side: 'buy' | 'sell'
+        amount: string
+        coin: string
+        quote: string
+    }
+>(({ side, amount, coin, quote }, ref) => {
+    return (
+        <div
+            ref={ref}
+            className={cn(
+                'bg-card flex items-center gap-2 rounded-t-md border px-2 capitalize ',
+                side === 'buy' ? 'border-green-800' : 'border-red-800'
+            )}
+        >
+            <div
+                className={cn(side === 'buy' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400')}
+            >
+                {side}
+            </div>
+            <div>{amount}</div>
+            <Coin symbol={coin} className={'size-6'} />
+            <div>{coin}</div>
+            <div className="text-slate-500">for {quote}</div>
+        </div>
+    )
+})
+
+SummaryTab.displayName = 'SummaryTab'
