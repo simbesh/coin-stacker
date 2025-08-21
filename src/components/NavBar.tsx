@@ -13,6 +13,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import GeneralSettings from '@/components/GeneralSettings'
 import ClientOnly from '@/components/ClientOnly'
 import Feedback from '@/components/Feedback'
+import { AnimatedThemeToggler } from './magicui/animated-theme-toggler'
 
 const items = [
     {
@@ -121,7 +122,7 @@ const NavBar = () => {
                 <ClientOnly>
                     <GeneralSettings />
                 </ClientOnly>
-                <ThemeToggle simple />
+                <AnimatedThemeToggler />
             </div>
         </nav>
     )
