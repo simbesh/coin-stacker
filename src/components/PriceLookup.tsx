@@ -25,10 +25,10 @@ import {
 import { PriceQueryParams } from '@/types/types'
 import { useLocalStorage, useMediaQuery } from '@uidotdev/usehooks'
 import { round } from 'lodash'
-import { CornerLeftUp, ExternalLink, Search, X } from 'lucide-react'
+import { CornerLeftUp, ExternalLink, HelpCircle, Search, X } from 'lucide-react'
 import { useQueryState } from 'nuqs'
 import posthog from 'posthog-js'
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import HowDialog from './HowDialog'
 // import { LabeledSwitch } from './LabeledSwitch'
 import TextSwitch from './TextSwitch'
@@ -39,8 +39,37 @@ import { mockData } from './mock-data'
 import { differenceInDays } from 'date-fns'
 import ExchangeType from './ExchangeType'
 import { TextShimmer } from './ui/text-shimmer'
+import NewBadge from './new-badge'
+import { LabeledSwitch } from './LabeledSwitch'
 
 const DEBUG = process.env.NEXT_PUBLIC_MOCK_PRICES === 'true'
+
+// Helper functions for withdrawal fees
+const getWithdrawalFeeDisplay = (
+    withdrawalFees: Record<string, Record<string, number>>,
+    exchange: string,
+    coin: string
+) => {
+    const exchangeFees = withdrawalFees[exchange.toLowerCase()]
+    if (!exchangeFees || !exchangeFees[coin]) {
+        return `!`
+    }
+    return `${exchangeFees[coin]}`
+}
+
+const getWithdrawalFeeAUD = (
+    withdrawalFees: Record<string, Record<string, number>>,
+    exchange: string,
+    coin: string,
+    netPrice: number
+) => {
+    const exchangeFees = withdrawalFees[exchange.toLowerCase()]
+    if (!exchangeFees || !exchangeFees[coin] || !netPrice) {
+        return '$0.00'
+    }
+    const feeValue = exchangeFees[coin] * netPrice
+    return `${currencyFormat(feeValue)}`
+}
 
 const markets = [
     'BTC',
@@ -122,6 +151,11 @@ const headers = [
         className: 'text-right',
     },
     {
+        id: 'withdrawalFee',
+        title: 'Withdrawal Fee',
+        className: 'text-right',
+    },
+    {
         id: 'dif',
         title: '+$',
         className: 'text-right',
@@ -150,10 +184,10 @@ const PriceLookup = () => {
         parse: (value: string): 'buy' | 'sell' => (value === 'buy' || value === 'sell' ? value : 'buy'),
     })
     const [hideFiltered, setHideFiltered] = useState(true)
-    // const [includeWithdrawalFees, setIncludeWithdrawalFees] = useLocalStorage(
-    //     LocalStorageKeys.IncludeWithdrawalFees,
-    //     false
-    // )
+    const [includeWithdrawalFees, setIncludeWithdrawalFees] = useLocalStorage(
+        LocalStorageKeys.IncludeWithdrawalFees,
+        false
+    )
     const [amount, setAmount] = useQueryState('amount', { defaultValue: '' })
     const [coin, setCoin] = useQueryState('coin', { defaultValue: '' })
     const [quote, setQuote] = useQueryState('quote', { defaultValue: 'AUD' })
@@ -180,7 +214,24 @@ const PriceLookup = () => {
     >([])
 
     const [tryUpdateFees, setTryUpdateFees] = useState(false)
+    const [withdrawalFees, setWithdrawalFees] = useState<Record<string, Record<string, number>>>({})
     const summaryTabRef = useRef<HTMLDivElement>(null)
+
+    // Fetch withdrawal fees from API
+    const fetchWithdrawalFees = useCallback(async (exchange: string) => {
+        try {
+            const response = await fetch(`/api/exchange/withdrawal-fee?exchange=${exchange}`)
+            if (response.ok) {
+                const fees = await response.json()
+                setWithdrawalFees((prev) => ({
+                    ...prev,
+                    [exchange.toLowerCase()]: fees,
+                }))
+            }
+        } catch (error) {
+            console.error('Error fetching withdrawal fees:', error)
+        }
+    }, [])
 
     // update fees to NEW default from old default
     useEffect(() => {
@@ -271,6 +322,16 @@ const PriceLookup = () => {
             setTableData(data)
         }
     }, [priceQueryResult.best])
+
+    // Fetch withdrawal fees when table data changes
+    useEffect(() => {
+        if (tableData.length > 0) {
+            const exchanges = [...new Set(tableData.map((row) => row.exchange))]
+            exchanges.forEach((exchange) => {
+                fetchWithdrawalFees(exchange)
+            })
+        }
+    }, [tableData, fetchWithdrawalFees])
 
     function filterPriceOutliers(prices: number[]) {
         if (prices.length === 0) return []
@@ -529,7 +590,7 @@ const PriceLookup = () => {
                 </Card>
                 <div className="relative w-full max-w-4xl">
                     {resultsReady && (
-                        <div className="sm:absolute sm:-bottom-2 left-0 flex items-center gap-2 mx-auto w-fit">
+                        <div className="sm:absolute sm:-bottom-2 left-0 flex items-center gap-2 mx-auto w-fit mb-8 sm:mb-0">
                             <HowDialog />
                         </div>
                     )}
@@ -543,22 +604,26 @@ const PriceLookup = () => {
                             <SummaryTab ref={summaryTabRef} side={side} amount={amount} coin={coin} quote={quote} />
                         )}
                     </div>
-                    {/* <div className="absolute right-0 bottom-0 flex items-center gap-2">
-                        <NewBadge className={'-mr-4'} />
-                        <LabeledSwitch
-                            label="Withdrawal Fee"
-                            checked={includeWithdrawalFees}
-                            onCheckedChange={setIncludeWithdrawalFees}
-                        />
-                        <HybridTooltip>
-                            <HybridTooltipTrigger>
-                                <HelpCircle className={'size-4'} />
-                            </HybridTooltipTrigger>
-                            <HybridTooltipContent className={'dark:border-slate-600'}>
-                                <p>{`Add the exchanges ${coin ? ` ${coin}` : ''} withdrawal fee to total price.`}</p>
-                            </HybridTooltipContent>
-                        </HybridTooltip>
-                    </div> */}
+                    <div className="absolute right-0 bottom-0 flex flex-col items-end">
+                        <div className="flex justify-center w-full">
+                            <NewBadge className={'animate-breathe'} />
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <LabeledSwitch
+                                label="Withdrawal Fee"
+                                checked={includeWithdrawalFees}
+                                onCheckedChange={setIncludeWithdrawalFees}
+                            />
+                            <HybridTooltip>
+                                <HybridTooltipTrigger>
+                                    <HelpCircle className={'size-4'} />
+                                </HybridTooltipTrigger>
+                                <HybridTooltipContent className={'dark:border-slate-600'}>
+                                    <p>{`Add the exchanges ${coin ? ` ${coin}` : ''} withdrawal fee to total price.`}</p>
+                                </HybridTooltipContent>
+                            </HybridTooltip>
+                        </div>
+                    </div>
                 </div>
                 <Card className={'relative mb-0! w-full max-w-4xl'}>
                     {isLoading && priceQueryResult.best.length > 0 && (
@@ -701,6 +766,38 @@ const PriceLookup = () => {
                                                 <p>
                                                     {formatExchangeName(row.exchange)} fee:{' '}
                                                     {round(row.feeRate * 100, 3) + '%'}
+                                                </p>
+                                            </HybridTooltipContent>
+                                        </HybridTooltip>
+                                    </TableCell>
+                                    <TableCell className={cn('text-right font-mono font-bold antialiased')}>
+                                        <HybridTooltip>
+                                            <HybridTooltipTrigger className={'cursor-help'}>
+                                                {resultInput && (
+                                                    <div>
+                                                        <div className=" underline decoration-dashed underline-offset-2">
+                                                            {getWithdrawalFeeAUD(
+                                                                withdrawalFees,
+                                                                row.exchange,
+                                                                resultInput.coin,
+                                                                row.netPrice
+                                                            )}
+                                                        </div>
+                                                        <div className="text-xs text-muted-foreground flex items-center gap-1 whitespace-nowrap">
+                                                            {getWithdrawalFeeDisplay(
+                                                                withdrawalFees,
+                                                                row.exchange,
+                                                                resultInput.coin
+                                                            )}
+                                                            <Coin symbol={resultInput.coin} className={'size-4'} />
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </HybridTooltipTrigger>
+                                            <HybridTooltipContent className={'w-fit p-1.5 dark:border-slate-600'}>
+                                                <p>
+                                                    {formatExchangeName(row.exchange)} withdrawal fee for{' '}
+                                                    {resultInput?.coin}
                                                 </p>
                                             </HybridTooltipContent>
                                         </HybridTooltip>
