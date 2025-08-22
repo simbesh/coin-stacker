@@ -4,7 +4,7 @@ import { binance, luno, okx } from 'ccxt'
 import { NextRequest, NextResponse } from 'next/server'
 
 // Cache for 24 hours (86400 seconds)
-export const revalidate = 0
+export const revalidate = 86400
 
 // Mock withdrawal fees data - in production, this would come from an external API
 const withdrawalFees: Record<string, Record<string, number>> = {
