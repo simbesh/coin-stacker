@@ -1,6 +1,6 @@
 import { coinstashWithdrawFees } from '@/lib/constants/coinstash-withdraw-fees'
 import { swyftxWithdrawFees } from '@/lib/constants/swyftx-withdraw-fees'
-import { binance, luno, okx } from 'ccxt'
+import { luno, okx } from 'ccxt'
 import { NextRequest, NextResponse } from 'next/server'
 
 // Cache for 24 hours (86400 seconds)
@@ -794,26 +794,26 @@ async function getOKXFee(): Promise<Record<string, number>> {
 }
 
 // use binance as proxy for coinspot
-async function getCoinspotFee(): Promise<Record<string, number>> {
-    const exchange = new binance({
-        apiKey: process.env.BINANCE_KEY,
-        secret: process.env.BINANCE_SECRET,
-    })
-    await exchange.loadProxyModules()
-    exchange.socksProxy = process.env.SOCKS_PROXY_URL!
-    await exchange.loadMarkets()
-    await exchange.fetchCurrencies()
+// async function getCoinspotFee(): Promise<Record<string, number>> {
+//     const exchange = new binance({
+//         apiKey: process.env.BINANCE_KEY,
+//         secret: process.env.BINANCE_SECRET,
+//     })
+//     await exchange.loadProxyModules()
+//     exchange.socksProxy = process.env.SOCKS_PROXY_URL!
+//     await exchange.loadMarkets()
+//     await exchange.fetchCurrencies()
 
-    const currencies = await exchange.fetchCurrencies()
+//     const currencies = await exchange.fetchCurrencies()
 
-    const fees: Record<string, number> = {}
+//     const fees: Record<string, number> = {}
 
-    for (const [coin, info] of Object.entries(currencies)) {
-        fees[coin] = info.fee as number
-    }
+//     for (const [coin, info] of Object.entries(currencies)) {
+//         fees[coin] = info.fee as number
+//     }
 
-    return fees
-}
+//     return fees
+// }
 
 const dummyAddresses: Record<string, string> = {
     ETH: '0x0000000000000000000000000000000000000000',
