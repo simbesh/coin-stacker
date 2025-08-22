@@ -5,7 +5,7 @@ import { LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { HybridTooltip, HybridTooltipContent, HybridTooltipTrigger } from './hybrid-tooltip'
 
-const informationIconVariants = cva('flex items-center justify-center rounded-md', {
+const informationIconVariants = cva('flex items-center justify-center rounded-[0.35rem]', {
     variants: {
         variant: {
             default: 'bg-primary/20',

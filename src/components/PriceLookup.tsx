@@ -32,7 +32,6 @@ import { HybridTooltip, HybridTooltipContent, HybridTooltipTrigger } from './ui/
 import { differenceInDays } from 'date-fns'
 import { cloneDeep, round } from 'lodash'
 import { LabeledSwitch } from './LabeledSwitch'
-import NewBadge from './new-badge'
 import PriceLookupTable from './PriceLookupTable'
 
 const DEBUG = process.env.NEXT_PUBLIC_MOCK_PRICES === 'true'
@@ -605,9 +604,6 @@ const PriceLookup = () => {
                         )}
                     </div>
                     <div className="absolute right-0 bottom-0 flex flex-col items-end">
-                        <div className="flex justify-center w-full">
-                            <NewBadge className={'animate-breathe'} />
-                        </div>
                         <div className="flex items-center gap-2">
                             <LabeledSwitch
                                 label="Withdrawal Fee"
@@ -683,11 +679,13 @@ const SummaryTab = React.forwardRef<
             ref={ref}
             className={cn(
                 'bg-card flex items-center gap-2 rounded-t-md border px-2 capitalize ',
-                side === 'buy' ? 'border-green-800' : 'border-red-800'
+                side === 'buy' ? 'border-emerald-800' : 'border-red-800'
             )}
         >
             <div
-                className={cn(side === 'buy' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400')}
+                className={cn(
+                    side === 'buy' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
+                )}
             >
                 {side}
             </div>

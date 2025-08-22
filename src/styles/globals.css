@@ -304,6 +304,8 @@
         --input: 217.2 32.6% 17.5%;
         /* hsl(35.5 91.7% 32.9%) */
         --ring: 35.5 91.7% 32.9%;
+
+        --radius: 0.8rem;
     }
 }
 
@@ -337,7 +339,7 @@
     }
 
     .gradient-text {
-        background: linear-gradient(90deg, #fdbd19 0%, #495668 10%, #495668 90%, #fdbd19 100%);
+        background: linear-gradient(90deg, #fdbd19 0%, #0f172b 10%, #0f172b 90%, #fdbd19 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-position: 0;
@@ -354,7 +356,8 @@
     }
 }
 
-::view-transition-old(root), ::view-transition-new(root) {
+::view-transition-old(root),
+::view-transition-new(root) {
     animation: none;
     mix-blend-mode: normal;
 }

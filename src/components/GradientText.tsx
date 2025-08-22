@@ -28,13 +28,13 @@ export default function GradientText() {
 
     return (
         <h2
-            className="gradient-text mt-2 flex w-screen flex-wrap items-end justify-center gap-1 text-2xl font-bold text-slate-600 sm:text-3xl dark:text-slate-200"
+            className="gradient-text mt-2 flex w-screen flex-wrap items-end justify-center gap-1 text-2xl font-bold text-slate-900 sm:text-3xl dark:text-slate-200"
             ref={refText}
         >
             {isSmallDevice ? (
                 <>
                     <div className={'whitespace-nowrap'}>Find the best price...</div>
-                    <div className="from-primary bg-linear-to-l to-slate-600 bg-clip-text text-transparent dark:to-slate-200">
+                    <div className="from-primary bg-linear-to-l to-slate-900 bg-clip-text text-transparent dark:to-slate-200">
                         Stack more coins!
                     </div>
                 </>

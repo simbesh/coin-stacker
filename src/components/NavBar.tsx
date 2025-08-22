@@ -5,16 +5,16 @@ import Feedback from '@/components/Feedback'
 import GeneralSettings from '@/components/GeneralSettings'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
+import { LocalStorageKeys } from '@/lib/constants'
 import { cn } from '@/lib/utils'
 import { useLocalStorage, useWindowScroll } from '@uidotdev/usehooks'
-import { Home, LineChart, Menu } from 'lucide-react'
+import { Home, Menu } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useSelectedLayoutSegment } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { AnimatedThemeToggler } from './magicui/animated-theme-toggler'
 import WithdrawalFeeDialog from './WithdrawalFeeDialog'
-import { LocalStorageKeys } from '@/lib/constants'
 
 const items = [
     {
@@ -25,19 +25,12 @@ const items = [
         icon: <Home />,
     },
     // {
-    //     id: 'nav-link-prices',
-    //     title: 'Prices',
-    //     href: '/prices',
-    //     activeSegment: 'prices',
-    //     icon: <BookOpenText />,
+    //     id: 'nav-link-exchange-fees',
+    //     title: 'Exchange Fees',
+    //     href: '/exchange-fees',
+    //     activeSegment: 'exchange-fees',
+    //     icon: <LineChart />,
     // },
-    {
-        id: 'nav-link-exchange-fees',
-        title: 'Exchange Fees',
-        href: '/exchange-fees',
-        activeSegment: 'exchange-fees',
-        icon: <LineChart />,
-    },
 ]
 const defaultNavBackground = 'bg-slate-50/40 dark:bg-slate-900/40 backdrop-blur dark:border dark:border-transparent'
 const NavBar = () => {

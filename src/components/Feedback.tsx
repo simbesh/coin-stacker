@@ -78,7 +78,7 @@ const Feedback = () => {
                     aria-label="Open Feedback Dialog"
                     onClick={() => posthog.capture('open-feedback')}
                 >
-                    <MessageCircleHeart className={'group-hover:text-primary size-5'} />
+                    <MessageCircleHeart className={'group-hover:text-primary transition-color duration-200 size-5'} />
                     <span className={''}>Feedback</span>
                 </Button>
             </DialogTrigger>

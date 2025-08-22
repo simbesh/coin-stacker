@@ -41,7 +41,7 @@ const TextSwitch = ({
             <span
                 className={cn(
                     side === 'buy'
-                        ? 'left-1 bg-green-400 dark:bg-green-800'
+                        ? 'left-1 bg-emerald-400 dark:bg-emerald-800'
                         : 'translate-x-[calc(100%-0.5rem)] bg-red-400 dark:bg-red-800',
                     'absolute flex h-10 w-1/2 items-center justify-center rounded-sm font-bold capitalize text-white shadow transition-all'
                 )}
