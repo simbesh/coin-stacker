@@ -3,6 +3,7 @@ export enum LocalStorageKeys {
     ExchangeFees = 'cs-user-exchange-fees',
     EnabledExchanges = 'cs-user-enabled-exchanges-v2',
     IncludeWithdrawalFees = 'cs-include-withdrawal-fees',
+    WithdrawalFeeDialogDismissed = 'cs-withdrawal-fee-dialog-dismissed',
 }
 
 export const getAfiliateOrTradeUrl = (exchange: string, base: string, quote: string) => {

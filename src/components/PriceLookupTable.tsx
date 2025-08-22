@@ -260,7 +260,7 @@ const PriceLookupTable: React.FC<PriceLookupTableProps> = memo(
                                         href={getExchangeUrl(row.exchange, coin, quote)}
                                         target={'_blank'}
                                         className={
-                                            'group flex size-full items-center justify-start gap-1 p-2 hover:text-amber-500 hover:underline sm:gap-2 sm:p-4 dark:hover:text-amber-400'
+                                            'group flex size-full items-center justify-start gap-1 p-2 hover:text-amber-500 underline sm:gap-2 sm:p-4 dark:hover:text-amber-400'
                                         }
                                         onClick={() =>
                                             posthog.capture('exchange-link', {

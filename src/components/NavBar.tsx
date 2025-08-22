@@ -6,13 +6,15 @@ import GeneralSettings from '@/components/GeneralSettings'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
-import { useWindowScroll } from '@uidotdev/usehooks'
+import { useLocalStorage, useWindowScroll } from '@uidotdev/usehooks'
 import { Home, LineChart, Menu } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useSelectedLayoutSegment } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { AnimatedThemeToggler } from './magicui/animated-theme-toggler'
+import WithdrawalFeeDialog from './WithdrawalFeeDialog'
+import { LocalStorageKeys } from '@/lib/constants'
 
 const items = [
     {
@@ -43,6 +45,7 @@ const NavBar = () => {
     const activeSegment = useSelectedLayoutSegment()
     const [{ y }] = useWindowScroll()
     const [barBg, setBarBg] = useState(defaultNavBackground)
+    const [withdrawalFeeDialogDismissed] = useLocalStorage(LocalStorageKeys.WithdrawalFeeDialogDismissed, false)
 
     useEffect(() => {
         if (y && y > 1) {
@@ -114,7 +117,8 @@ const NavBar = () => {
                     ))}
                 </div>
             </div>
-            <div className={'ml-auto flex items-center gap-2 sm:ml-0'}>
+            <div className={'ml-auto flex items-center gap-1 sm:gap-2 sm:ml-0'}>
+                <WithdrawalFeeDialog defaultOpen={!withdrawalFeeDialogDismissed} />
                 <div className={'hidden sm:block'}>
                     <Feedback />
                 </div>
