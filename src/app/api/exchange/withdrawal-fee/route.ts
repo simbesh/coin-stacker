@@ -183,6 +183,8 @@ async function getCoinspotFee(): Promise<Record<string, number>> {
         apiKey: process.env.BINANCE_KEY,
         secret: process.env.BINANCE_SECRET,
     })
+    await exchange.loadProxyModules()
+    exchange.socksProxy = process.env.SOCKS_PROXY_URL!
     await exchange.loadMarkets()
     await exchange.fetchCurrencies()
     await exchange.loadMarkets()
