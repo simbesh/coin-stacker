@@ -21,7 +21,7 @@ const EXCHANGE_URLS: Record<string, string> = {
 }
 const ALT_EXCHANGE_URLS: Record<string, string> = {
     coinjar: 'https://exchange.coinjar.com/assets/favicons/favicon.ico',
-    swyftx: 'https://trade.swyftx.com/favicon.ico',
+    swyftx: 'https://swyftx.com/favicon.ico',
     day1x: 'https://icons.duckduckgo.com/ip3/www.day1x.io.ico',
 }
 

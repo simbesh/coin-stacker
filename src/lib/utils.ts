@@ -88,7 +88,10 @@ export const defaultEnabledExchanges: Record<string, boolean> = {
     // elbaite: true,
 }
 
-export function currencyFormat(num: number, currencyCode: string = 'AUD', digits: number = 2): string {
+export function currencyFormat(num: number | undefined, currencyCode: string = 'AUD', digits: number = 2): string {
+    if (num === undefined) {
+        return ''
+    }
     const options = {
         style: 'currency' as const,
         currency: currencyCode,
@@ -301,4 +304,17 @@ export function getExchangeUrl(exchange: string, coin?: string, quote?: string):
         ...(quote && { quote }),
     })
     return coin && quote ? `/launch/${exchange}?${params.toString()}` : `/launch/${exchange}`
+}
+
+export const median = (array: number[]): number | undefined => {
+    if (array.length === 0) {
+        return undefined
+    }
+    array.sort((a: number, b: number) => b - a)
+    const length = array.length
+    if (length % 2 === 0) {
+        return (array[length / 2]! + array[length / 2 - 1]!) / 2
+    } else {
+        return array[Math.floor(length / 2)]!
+    }
 }

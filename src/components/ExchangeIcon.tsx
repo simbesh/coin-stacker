@@ -13,7 +13,7 @@ const ExchangeIcon = ({
     ...props
 }: string | any) => {
     const invertColour = {
-        'invert-0 dark:invert': ['swyftx'].includes(exchange),
+        'invert-0': ['swyftx'].includes(exchange),
     }
     return (
         <div className={cn('flex min-w-fit items-center gap-2', className)} {...props}>

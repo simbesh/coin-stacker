@@ -3,116 +3,44 @@
 import Coin from '@/components/CoinIcon'
 import { Combobox } from '@/components/Combobox'
 import ExchangeIcon from '@/components/ExchangeIcon'
-import Spinner from '@/components/Spinner'
 import { FeeParams } from '@/components/fee-params'
 import { PriceHistoryDropdown } from '@/components/price-history-dropdown'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-// import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { getAfiliateOrTradeUrl, LocalStorageKeys } from '@/lib/constants'
+import { LocalStorageKeys, markets } from '@/lib/constants'
 import {
     cn,
     currencyFormat,
     defaultEnabledExchanges,
     defaultExchangeFees,
-    exchangeTypes,
-    formatExchangeName,
     getExchangeUrl,
+    median,
     OLD_KRAKEN_TAKER_FEE,
 } from '@/lib/utils'
 import { PriceQueryParams } from '@/types/types'
-import { useLocalStorage, useMediaQuery } from '@uidotdev/usehooks'
-import { round } from 'lodash'
-import { CornerLeftUp, ExternalLink, HelpCircle, Search, X } from 'lucide-react'
+import { useLocalStorage } from '@uidotdev/usehooks'
+import { CornerLeftUp, HelpCircle, Search, X } from 'lucide-react'
 import { useQueryState } from 'nuqs'
 import posthog from 'posthog-js'
-import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react'
+import React, { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import HowDialog from './HowDialog'
-// import { LabeledSwitch } from './LabeledSwitch'
+import { mockData, mockQuery } from './mock-data'
 import TextSwitch from './TextSwitch'
 import { Button } from './ui/button'
 import { HybridTooltip, HybridTooltipContent, HybridTooltipTrigger } from './ui/hybrid-tooltip'
-import { mockData } from './mock-data'
-// import NewBadge from './new-badge'
 import { differenceInDays } from 'date-fns'
-import ExchangeType from './ExchangeType'
-import { TextShimmer } from './ui/text-shimmer'
-import NewBadge from './new-badge'
+import { cloneDeep, round } from 'lodash'
 import { LabeledSwitch } from './LabeledSwitch'
+import NewBadge from './new-badge'
+import PriceLookupTable from './PriceLookupTable'
 
 const DEBUG = process.env.NEXT_PUBLIC_MOCK_PRICES === 'true'
 
-// Helper functions for withdrawal fees
-const getWithdrawalFeeDisplay = (
-    withdrawalFees: Record<string, Record<string, number>>,
-    exchange: string,
-    coin: string
-) => {
-    const exchangeFees = withdrawalFees[exchange.toLowerCase()]
-    if (!exchangeFees || !exchangeFees[coin]) {
-        return `!`
-    }
-    return `${exchangeFees[coin]}`
+export type WithdrawalFees = {
+    fees: Record<string, number>
+    feeType?: 'dynamic' | 'static' | 'unavailable'
 }
-
-const getWithdrawalFeeAUD = (
-    withdrawalFees: Record<string, Record<string, number>>,
-    exchange: string,
-    coin: string,
-    netPrice: number
-) => {
-    const exchangeFees = withdrawalFees[exchange.toLowerCase()]
-    if (!exchangeFees || !exchangeFees[coin] || !netPrice) {
-        return '$0.00'
-    }
-    const feeValue = exchangeFees[coin] * netPrice
-    return `${currencyFormat(feeValue)}`
-}
-
-const markets = [
-    'BTC',
-    'ETH',
-    'SOL',
-    'USDT',
-    'XRP',
-    'ADA',
-    'LTC',
-    'DOGE',
-    ...[
-        'LINK',
-        'USDC',
-        'AAVE',
-        'BAT',
-        'BCH',
-        'COMP',
-        'DOT',
-        'SAND',
-        'UNI',
-        'XLM',
-        'EOS',
-        'MATIC',
-        'ALGO',
-        'AVAX',
-        'ENJ',
-        'ETC',
-        'MANA',
-        'OMG',
-        'POWR',
-        'DAI',
-        'GRT',
-        'MKR',
-        'SNX',
-        'YFI',
-        'ZRX',
-        'EUR',
-        'XTZ',
-        'TRUMP',
-        'SUI',
-        'HYPE',
-    ].sort(),
-]
 
 type PriceQueryResult = {
     exchange: string
@@ -124,50 +52,6 @@ type PriceQueryResult = {
     feeRate: number
 }
 
-const headers = [
-    {
-        id: 'exchange',
-        title: 'Exchange',
-        className: 'min-w-[160px]',
-    },
-    {
-        id: 'type',
-        title: '',
-        className: 'px-0',
-    },
-    {
-        id: 'total',
-        title: 'Total inc fees',
-        className: 'text-right',
-    },
-    {
-        id: 'price',
-        title: 'Avg. Price',
-        className: 'text-right',
-    },
-    {
-        id: 'fees',
-        title: 'Fees',
-        className: 'text-right',
-    },
-    {
-        id: 'withdrawalFee',
-        title: 'Withdrawal Fee',
-        className: 'text-right',
-    },
-    {
-        id: 'dif',
-        title: '+$',
-        className: 'text-right',
-    },
-    {
-        id: 'pctDif',
-        title: '+%',
-        className: 'text-right',
-    },
-]
-
-const firstRowCellStyle = 'text-green-600 dark:text-green-500'
 const quickSelectCoins = ['BTC', 'ETH', 'SOL', 'USDC', 'USDT']
 
 const DAY1X_BANNER_KEY = 'day1x-banner-state'
@@ -186,26 +70,23 @@ const PriceLookup = () => {
     const [hideFiltered, setHideFiltered] = useState(true)
     const [includeWithdrawalFees, setIncludeWithdrawalFees] = useLocalStorage(
         LocalStorageKeys.IncludeWithdrawalFees,
-        false
+        true
     )
     const [amount, setAmount] = useQueryState('amount', { defaultValue: '' })
+    const [localAmount, setLocalAmount] = useState('')
+    const localAmountRef = useRef('')
     const [coin, setCoin] = useQueryState('coin', { defaultValue: '' })
+
+    // Local state for inputs that shouldn't trigger immediate updates
+    const [localSide, setLocalSide] = useState<'buy' | 'sell'>(side)
+    const [localCoin, setLocalCoin] = useState(coin)
     const [quote, setQuote] = useQueryState('quote', { defaultValue: 'AUD' })
     const [isLoading, setIsLoading] = useState(false)
     const [priceQueryResult, setPriceQueryResult] = useState<{
         best: PriceQueryResult[]
         errors: { name: string; error: { name?: string } }[]
     }>({ best: [], errors: [] })
-    const [resultInput, setResultInput] = useState<PriceQueryParams | undefined>(
-        DEBUG
-            ? {
-                  side: 'buy',
-                  amount: '1',
-                  coin: 'BTC',
-                  quote: 'AUD',
-              }
-            : undefined
-    )
+    const [resultInput, setResultInput] = useState<PriceQueryParams | undefined>(DEBUG ? mockQuery : undefined)
     const [history, setHistory] = useLocalStorage<PriceQueryParams[]>(LocalStorageKeys.PriceQueryHistory, [])
     const [fees, setFees] = useLocalStorage<Record<string, number>>(LocalStorageKeys.ExchangeFees, defaultExchangeFees)
     const [bestAvgPrice, setBestAvgPrice] = useState<number>()
@@ -213,19 +94,44 @@ const PriceLookup = () => {
         (PriceQueryResult & { dif: string; pctDif: string; filteredReason?: string })[]
     >([])
 
+    // Defer expensive table updates while user is typing
+    const deferredTableData = useDeferredValue(tableData)
+
     const [tryUpdateFees, setTryUpdateFees] = useState(false)
-    const [withdrawalFees, setWithdrawalFees] = useState<Record<string, Record<string, number>>>({})
+    const [withdrawalFees, setWithdrawalFees] = useState<Record<string, WithdrawalFees>>({})
     const summaryTabRef = useRef<HTMLDivElement>(null)
+    const [loadingWithdrawalFees, setLoadingWithdrawalFees] = useState<Record<string, boolean>>({})
+    const fetchedWithdrawalFeesRef = useRef<Set<string>>(new Set())
+    const [finalWithdrawalFees, setFinalWithdrawalFees] = useState<Record<string, WithdrawalFees>>({})
+
+    useEffect(() => {
+        const allFees = []
+        const newWithdrawalFees = cloneDeep(withdrawalFees)
+        for (const data of Object.values(newWithdrawalFees)) {
+            if (data.feeType !== undefined && data.fees[coin] !== undefined) {
+                allFees.push(data.fees[coin])
+            }
+        }
+        const medianFee = median(allFees)
+        if (medianFee !== undefined) {
+            for (const [exchange, data] of Object.entries(newWithdrawalFees)) {
+                if (data.feeType == undefined) {
+                    newWithdrawalFees[exchange]!.fees[coin] = medianFee
+                }
+            }
+        }
+        setFinalWithdrawalFees(newWithdrawalFees)
+    }, [withdrawalFees, includeWithdrawalFees])
 
     // Fetch withdrawal fees from API
-    const fetchWithdrawalFees = useCallback(async (exchange: string) => {
+    const fetchWithdrawalFees = useCallback(async (exchange: string, currency: string) => {
         try {
-            const response = await fetch(`/api/exchange/withdrawal-fee?exchange=${exchange}`)
+            const response = await fetch(`/api/exchange/withdrawal-fee?exchange=${exchange}&currency=${currency}`)
             if (response.ok) {
-                const fees = await response.json()
+                const { fees, feeType } = await response.json()
                 setWithdrawalFees((prev) => ({
                     ...prev,
-                    [exchange.toLowerCase()]: fees,
+                    [exchange]: { fees, feeType },
                 }))
             }
         } catch (error) {
@@ -250,24 +156,43 @@ const PriceLookup = () => {
         LocalStorageKeys.EnabledExchanges,
         defaultEnabledExchanges
     )
-    const isDesktop = useMediaQuery('(min-width: 768px)')
     const [day1xBannerState, setDay1xBannerState] = useLocalStorage<Day1xBannerState>(DAY1X_BANNER_KEY, {
         dismissed: false,
         firstView: null,
     })
 
-    const handleKeyPress = (e: KeyboardEvent) => {
-        if (e.key === 'Enter' && !submitDisabled) {
-            getPrices({ side, amount, coin })
-        }
-    }
+    const handleKeyPress = useCallback(
+        (e: KeyboardEvent) => {
+            if (e.key === 'Enter' && localAmountRef.current && localCoin && !isLoading) {
+                setAmount(localAmountRef.current)
+                setSide(localSide)
+                setCoin(localCoin)
+                getPrices({ side: localSide, amount: localAmountRef.current, coin: localCoin })
+            }
+        },
+        [localSide, localCoin, isLoading, setAmount, setSide, setCoin]
+    )
 
     useEffect(() => {
         window.addEventListener('keypress', handleKeyPress)
         return () => {
             window.removeEventListener('keypress', handleKeyPress)
         }
-    }, [coin, amount, side])
+    }, [handleKeyPress])
+
+    useEffect(() => {
+        setLocalAmount(amount)
+        localAmountRef.current = amount
+    }, [amount])
+
+    // Sync local state with query state when they change externally (e.g., from history)
+    useEffect(() => {
+        setLocalSide(side)
+    }, [side])
+
+    useEffect(() => {
+        setLocalCoin(coin)
+    }, [coin])
 
     useEffect(() => {
         if (coin && amount) {
@@ -303,35 +228,84 @@ const PriceLookup = () => {
                 priceQueryResult.best.map((best) => best.grossAveragePrice)
             )
 
-            priceQueryResult.best.sort((a, b) => {
+            // Calculate total including withdrawal fees for each result
+            const resultsWithWithdrawalFees = priceQueryResult.best.map((best) => {
+                let totalIncFees = best.netCost
+
+                if (includeWithdrawalFees && coin) {
+                    const exchangeFees = finalWithdrawalFees[best.exchange]
+                    if (exchangeFees) {
+                        const withdrawalFee = exchangeFees.fees[coin] ?? exchangeFees.fees.override
+                        if (withdrawalFee !== undefined) {
+                            const withdrawalFeeAUD = withdrawalFee * best.netPrice
+                            // For buy orders, withdrawal fee is added as a cost
+                            // For sell orders, withdrawal fee is subtracted from the total
+                            if (side === 'buy') {
+                                totalIncFees += withdrawalFeeAUD
+                            } else {
+                                totalIncFees -= withdrawalFeeAUD
+                            }
+                        }
+                    }
+                }
+
+                return {
+                    ...best,
+                    totalIncFees,
+                }
+            })
+
+            // Sort by totalIncFees when includeWithdrawalFees is true, otherwise by netCost
+            const sortField = includeWithdrawalFees ? 'totalIncFees' : 'netCost'
+            resultsWithWithdrawalFees.sort((a, b) => {
                 const aInOutliers = removedOutliers.includes(a.grossAveragePrice)
                 const bInOutliers = removedOutliers.includes(b.grossAveragePrice)
                 if (aInOutliers && !bInOutliers) return -1
                 if (!aInOutliers && bInOutliers) return 1
-                return 0
+
+                // Sort by the appropriate field based on side
+                const sortMultiplier = side === 'buy' ? 1 : -1
+                return a[sortField] < b[sortField] ? -sortMultiplier : b[sortField] < a[sortField] ? sortMultiplier : 0
             })
 
-            const data = priceQueryResult.best.map((best, i) => ({
+            const data = resultsWithWithdrawalFees.map((best, i) => ({
                 ...best,
-                dif: getDif(priceQueryResult.best, i),
-                pctDif: getDifPct(priceQueryResult.best, i) as string,
+                dif: getDif(resultsWithWithdrawalFees, i),
+                pctDif: getDifPct(resultsWithWithdrawalFees, i) as string,
                 filteredReason: !removedOutliers.includes(best.grossAveragePrice)
-                    ? 'Price outlier: ' + getDifPct(priceQueryResult.best, i)
+                    ? 'Price outlier: ' + getDifPct(resultsWithWithdrawalFees, i)
                     : undefined,
             }))
             setTableData(data)
         }
-    }, [priceQueryResult.best])
+    }, [priceQueryResult.best, includeWithdrawalFees, withdrawalFees, coin, side])
 
-    // Fetch withdrawal fees when table data changes
+    // Fetch withdrawal fees when price results change
     useEffect(() => {
-        if (tableData.length > 0) {
-            const exchanges = [...new Set(tableData.map((row) => row.exchange))]
-            exchanges.forEach((exchange) => {
-                fetchWithdrawalFees(exchange)
+        if (priceQueryResult.best.length > 0 && coin) {
+            const exchanges = [...new Set(priceQueryResult.best.map((row) => row.exchange))]
+
+            // Only set loading and fetch for exchanges we haven't fetched yet
+            const exchangesToFetch = exchanges.filter((exchange) => {
+                const key = `${exchange}-${coin}`
+                return !fetchedWithdrawalFeesRef.current.has(key)
             })
+
+            if (exchangesToFetch.length > 0) {
+                setLoadingWithdrawalFees((prev) => ({
+                    ...prev,
+                    ...Object.fromEntries(exchangesToFetch.map((e) => [e, true])),
+                }))
+
+                exchangesToFetch.forEach(async (exchange) => {
+                    const key = `${exchange}-${coin}`
+                    fetchedWithdrawalFeesRef.current.add(key)
+                    await fetchWithdrawalFees(exchange, coin)
+                    setLoadingWithdrawalFees((prev) => ({ ...prev, [exchange]: false }))
+                })
+            }
         }
-    }, [tableData, fetchWithdrawalFees])
+    }, [priceQueryResult.best, coin, fetchWithdrawalFees])
 
     function filterPriceOutliers(prices: number[]) {
         if (prices.length === 0) return []
@@ -420,26 +394,34 @@ const PriceLookup = () => {
         setIsLoading(false)
     }
 
-    function getDif(bests: PriceQueryResult[], i: number): string {
+    function getDif(bests: (PriceQueryResult & { totalIncFees?: number })[], i: number): string {
         if (i !== 0) {
             const best = bests[0]
             const current = bests[i]
             let dif = 0
             if (current && best) {
-                dif = current.netCost - best.netCost
+                const bestCost = includeWithdrawalFees ? (best.totalIncFees ?? best.netCost) : best.netCost
+                const currentCost = includeWithdrawalFees ? (current.totalIncFees ?? current.netCost) : current.netCost
+                dif = currentCost - bestCost
             }
             return (resultInput?.side === 'buy' ? '+' : '') + currencyFormat(dif)
         }
         return '-'
     }
 
-    function getDifPct(bests: PriceQueryResult[], i: number, format: boolean = true): string | number {
+    function getDifPct(
+        bests: (PriceQueryResult & { totalIncFees?: number })[],
+        i: number,
+        format: boolean = true
+    ): string | number {
         if (i !== 0) {
             const best = bests[0]
             const current = bests[i]
             let pct = 0
             if (current && best) {
-                pct = current.netCost / best.netCost - 1
+                const bestCost = includeWithdrawalFees ? (best.totalIncFees ?? best.netCost) : best.netCost
+                const currentCost = includeWithdrawalFees ? (current.totalIncFees ?? current.netCost) : current.netCost
+                pct = currentCost / bestCost - 1
             }
             return format ? (resultInput?.side === 'buy' ? '+' : '-') + round(Math.abs(pct * 100), 2) + '%' : pct
         }
@@ -451,12 +433,15 @@ const PriceLookup = () => {
             setSide(data.side)
             setAmount(data.amount.toString())
             setCoin(data.coin)
+            setLocalSide(data.side)
+            setLocalAmount(data.amount.toString())
+            setLocalCoin(data.coin)
             void getPrices(data)
         }
     }
 
     const resultsReady = priceQueryResult.best.length > 0 && resultInput
-    const submitDisabled = useMemo(() => !amount || !coin || isLoading, [amount, coin, isLoading])
+    const submitDisabled = useMemo(() => !localAmount || !localCoin || isLoading, [localAmount, localCoin, isLoading])
 
     // Check if banner should be shown
     const showDay1xBanner = useMemo(() => {
@@ -534,20 +519,24 @@ const PriceLookup = () => {
                         <FeeParams />
                     </div>
                     <div className="mt-8 sm:mt-0 w-full max-w-[16rem]">
-                        <TextSwitch side={side} setSide={setSide} />
+                        <TextSwitch side={localSide} setSide={setLocalSide} />
                     </div>
                     <div className={'flex gap-2'}>
                         <Input
-                            value={amount}
-                            onChange={(e) => setAmount(e.target.value)}
+                            value={localAmount}
+                            onChange={(e) => {
+                                setLocalAmount(e.target.value)
+                                localAmountRef.current = e.target.value
+                            }}
+                            onBlur={() => setAmount(localAmount)}
                             type={'number'}
                             className={'w-40 text-right text-lg ring-0 focus-visible:ring-0'}
                         />
                         <Combobox
                             className={'bg-card w-[160px]'}
                             optionType={'Coin'}
-                            value={coin}
-                            setValue={setCoin}
+                            value={localCoin}
+                            setValue={setLocalCoin}
                             options={markets.map((market) => ({
                                 value: market,
                                 label: (
@@ -564,7 +553,7 @@ const PriceLookup = () => {
                             <Badge
                                 key={coin}
                                 variant={'outline'}
-                                onClick={() => setCoin(coin)}
+                                onClick={() => setLocalCoin(coin)}
                                 className={'group h-8 cursor-pointer gap-2 border hover:border-slate-400'}
                             >
                                 <Coin symbol={coin} className={cn('size-4 group-hover:text-slate-300')} />
@@ -578,7 +567,12 @@ const PriceLookup = () => {
                             className={
                                 'mx-4 flex w-full items-center gap-2 rounded-lg text-base font-bold text-black sm:w-44'
                             }
-                            onClick={() => getPrices({ side, amount, coin })}
+                            onClick={() => {
+                                setAmount(localAmountRef.current)
+                                setSide(localSide)
+                                setCoin(localCoin)
+                                getPrices({ side: localSide, amount: localAmountRef.current, coin: localCoin })
+                            }}
                             disabled={submitDisabled}
                             isLoading={isLoading}
                             aria-label="Search for prices"
@@ -601,7 +595,13 @@ const PriceLookup = () => {
                         )}
                     >
                         {resultsReady && (
-                            <SummaryTab ref={summaryTabRef} side={side} amount={amount} coin={coin} quote={quote} />
+                            <SummaryTab
+                                ref={summaryTabRef}
+                                side={resultInput.side}
+                                amount={resultInput.amount || ''}
+                                coin={resultInput.coin || ''}
+                                quote={resultInput.quote || ''}
+                            />
                         )}
                     </div>
                     <div className="absolute right-0 bottom-0 flex flex-col items-end">
@@ -619,276 +619,26 @@ const PriceLookup = () => {
                                     <HelpCircle className={'size-4'} />
                                 </HybridTooltipTrigger>
                                 <HybridTooltipContent className={'dark:border-slate-600'}>
-                                    <p>{`Add the exchanges ${coin ? ` ${coin}` : ''} withdrawal fee to total price.`}</p>
+                                    <p>{`Add the exchanges ${resultInput?.coin ? ` ${resultInput.coin}` : ''} withdrawal fee to total price.`}</p>
                                 </HybridTooltipContent>
                             </HybridTooltip>
                         </div>
                     </div>
                 </div>
-                <Card className={'relative mb-0! w-full max-w-4xl'}>
-                    {isLoading && priceQueryResult.best.length > 0 && (
-                        <div className="absolute inset-0 z-50">
-                            <div className="flex size-full items-center justify-center">
-                                <div className={'border-accent rounded-md border bg-slate-50 p-5 dark:bg-slate-950'}>
-                                    <Spinner className={'size-10 opacity-100'} />
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    <Table>
-                        {priceQueryResult.best.length === 0 && (
-                            <TableCaption className={'mb-4'}>
-                                <div>
-                                    {isLoading ? (
-                                        <TextShimmer className="text-sm" duration={1}>
-                                            Getting prices...
-                                        </TextShimmer>
-                                    ) : (
-                                        'No Data'
-                                    )}
-                                </div>
-                            </TableCaption>
-                        )}
-                        <TableHeader>
-                            <TableRow className={'hover:bg-muted/0'}>
-                                {headers.map((header) => (
-                                    <TableHead key={header.id} className={cn(header.className)}>
-                                        {header.title}
-                                        {header.title === 'Fees' && resultInput?.quote && ` (${resultInput.quote})`}
-                                    </TableHead>
-                                ))}
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody className={cn('font-semibold', isLoading && 'opacity-30')}>
-                            {tableData.map((row, i) => (
-                                <TableRow
-                                    key={row.exchange + '_row_' + i}
-                                    className={cn('border-2', {
-                                        'border-green-500/30 dark:bg-green-950/30 bg-green-50/30': i === 0 && isLoading,
-                                        'border-green-400 dark:border-green-900 dark:bg-linear-to-t dark:from-background dark:to-green-900/40 bg-linear-to-t from-white to-green-100/30':
-                                            i === 0 && !isLoading,
-                                        'opacity-50': row.filteredReason,
-                                        hidden: hideFiltered && row.filteredReason,
-                                    })}
-                                >
-                                    <TableCell
-                                        className={cn(
-                                            'ml-1 sm:ml-2 mr-2 p-0 text-center sm:p-0 flex items-center justify-start max-w-20',
-                                            i === 0 && firstRowCellStyle
-                                        )}
-                                    >
-                                        <a
-                                            href={getExchangeUrl(row.exchange, coin, quote)}
-                                            target={'_blank'}
-                                            className={
-                                                'group flex size-full items-center justify-start gap-1 p-2 hover:text-amber-500 hover:underline sm:gap-2 sm:p-4 dark:hover:text-amber-400'
-                                            }
-                                            onClick={() =>
-                                                posthog.capture('exchange-link', {
-                                                    exchange: row.exchange,
-                                                    url: getAfiliateOrTradeUrl(row.exchange, coin, quote),
-                                                })
-                                            }
-                                        >
-                                            <div className={cn('flex items-center justify-start gap-1 sm:gap-2')}>
-                                                <ExchangeIcon
-                                                    exchange={row.exchange}
-                                                    withLabel
-                                                    labelClassName={
-                                                        'py-0 max-w-[110px] truncate sm:max-w-none sm:truncate-none'
-                                                    }
-                                                    className={'size-full justify-start'}
-                                                />
-                                                <ExternalLink
-                                                    className={cn(
-                                                        'size-4 min-h-[1rem] min-w-[1rem] opacity-0 transition-opacity group-hover:opacity-100',
-                                                        row.exchange.length > 15 && !isDesktop && '-ml-1.5'
-                                                    )}
-                                                />
-                                            </div>
-                                        </a>
-                                        {row.filteredReason && (
-                                            <div className={'-mt-2 text-xs text-red-600 dark:text-red-400'}>
-                                                {row.filteredReason}
-                                            </div>
-                                        )}
-                                    </TableCell>
-                                    <TableCell
-                                        className={cn('text-right px-0', i === 0 ? cn(firstRowCellStyle, '') : '')}
-                                    >
-                                        <ExchangeType type={exchangeTypes[row.exchange]} />
-                                    </TableCell>
-                                    <TableCell className={cn('text-right', i === 0 ? cn(firstRowCellStyle, '') : '')}>
-                                        <div className="flex justify-end gap-2 font-mono font-bold antialiased">
-                                            {i === 0 && (
-                                                <div
-                                                    className={
-                                                        'ml-auto font-sans hidden w-fit rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-600 sm:block dark:bg-green-900 dark:text-green-400'
-                                                    }
-                                                >
-                                                    Best
-                                                </div>
-                                            )}
-                                            {i === 0 ? (
-                                                <TextShimmer
-                                                    duration={1.2}
-                                                    spread={3}
-                                                    className="[--base-color:var(--color-green-700)] [--base-gradient-color:var(--color-green-400)] dark:[--base-color:var(--color-green-500)] dark:[--base-gradient-color:var(--color-green-300)]"
-                                                >
-                                                    {currencyFormat(row.netCost)}
-                                                </TextShimmer>
-                                            ) : (
-                                                currencyFormat(row.netCost)
-                                            )}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell
-                                        className={cn(
-                                            'text-right font-mono font-bold antialiased',
-                                            bestAvgPrice === row.grossAveragePrice ? 'text-green-500' : ''
-                                        )}
-                                    >
-                                        {currencyFormat(
-                                            row.grossAveragePrice,
-                                            'AUD',
-                                            row.grossAveragePrice < 5 ? 4 : 2
-                                        )}
-                                    </TableCell>
-                                    <TableCell className={cn('text-right font-mono font-bold antialiased')}>
-                                        <HybridTooltip>
-                                            <HybridTooltipTrigger
-                                                className={'cursor-help underline decoration-dashed underline-offset-2'}
-                                            >
-                                                {currencyFormat(row.fees)}
-                                            </HybridTooltipTrigger>
-                                            <HybridTooltipContent className={'w-fit p-1.5 dark:border-slate-600'}>
-                                                <p>
-                                                    {formatExchangeName(row.exchange)} fee:{' '}
-                                                    {round(row.feeRate * 100, 3) + '%'}
-                                                </p>
-                                            </HybridTooltipContent>
-                                        </HybridTooltip>
-                                    </TableCell>
-                                    <TableCell className={cn('text-right font-mono font-bold antialiased')}>
-                                        <HybridTooltip>
-                                            <HybridTooltipTrigger className={'cursor-help'}>
-                                                {resultInput && (
-                                                    <div>
-                                                        <div className=" underline decoration-dashed underline-offset-2">
-                                                            {getWithdrawalFeeAUD(
-                                                                withdrawalFees,
-                                                                row.exchange,
-                                                                resultInput.coin,
-                                                                row.netPrice
-                                                            )}
-                                                        </div>
-                                                        <div className="text-xs text-muted-foreground flex items-center gap-1 whitespace-nowrap">
-                                                            {getWithdrawalFeeDisplay(
-                                                                withdrawalFees,
-                                                                row.exchange,
-                                                                resultInput.coin
-                                                            )}
-                                                            <Coin symbol={resultInput.coin} className={'size-4'} />
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </HybridTooltipTrigger>
-                                            <HybridTooltipContent className={'w-fit p-1.5 dark:border-slate-600'}>
-                                                <p>
-                                                    {formatExchangeName(row.exchange)} withdrawal fee for{' '}
-                                                    {resultInput?.coin}
-                                                </p>
-                                            </HybridTooltipContent>
-                                        </HybridTooltip>
-                                    </TableCell>
-                                    <TableCell className={cn('text-right', i === 0 ? 'text-white' : 'text-red-500')}>
-                                        {row.dif}
-                                    </TableCell>
-                                    <TableCell className={cn('text-right', i === 0 ? 'text-white' : 'text-red-500')}>
-                                        {row.pctDif}
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                            {!hideFiltered &&
-                                priceQueryResult.errors.map(({ name, error }) => (
-                                    <TableRow key={name + '_error_row'} className={'bg-red-700/20 hover:bg-red-700/25'}>
-                                        <TableCell
-                                            className={
-                                                'ml-1 sm:ml-2 mr-2 flex size-full items-center justify-start gap-2 whitespace-nowrap p-0 text-left sm:p-0'
-                                            }
-                                        >
-                                            <ExchangeType type={exchangeTypes[name]} />
-                                            <a
-                                                href={getExchangeUrl(name, coin, quote)}
-                                                target={'_blank'}
-                                                className={
-                                                    'group flex size-full items-center justify-start gap-1 p-2 hover:text-amber-500 hover:underline sm:gap-2 sm:p-4 dark:hover:text-amber-400'
-                                                }
-                                                onClick={() =>
-                                                    posthog.capture('exchange-link', {
-                                                        exchange: name,
-                                                        url: getAfiliateOrTradeUrl(name, coin, quote),
-                                                    })
-                                                }
-                                            >
-                                                <div
-                                                    className={cn(
-                                                        'flex items-center justify-start gap-1 sm:gap-2 opacity-50'
-                                                    )}
-                                                >
-                                                    <ExchangeIcon
-                                                        exchange={name}
-                                                        withLabel
-                                                        labelClassName={
-                                                            'py-0 max-w-[110px] truncate sm:max-w-none sm:truncate-none'
-                                                        }
-                                                        className={'size-full justify-start'}
-                                                    />
-                                                    <ExternalLink
-                                                        className={cn(
-                                                            'size-4 min-h-4 min-w-4 opacity-0 transition-opacity group-hover:opacity-100',
-                                                            name.length > 15 && !isDesktop && '-ml-1.5'
-                                                        )}
-                                                    />
-                                                </div>
-                                            </a>
-                                        </TableCell>
-                                        <TableCell className={'text-red-600 dark:text-red-400 opacity-50'} colspan={5}>
-                                            {error.name ?? error.toString()}
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            {(priceQueryResult.errors.length > 0 || tableData.some((row) => row.filteredReason)) && (
-                                <TableRow className="hover:bg-transparent opacity-80">
-                                    <TableCell colSpan={6} className={'p-4'}>
-                                        <Button
-                                            variant={'outline'}
-                                            onClick={() => setHideFiltered((prev) => !prev)}
-                                            aria-label={`${hideFiltered ? 'Show' : 'Hide'} filtered results`}
-                                        >
-                                            {hideFiltered ? (
-                                                <>
-                                                    {`Show ${
-                                                        tableData.filter((row) => row.filteredReason).length +
-                                                        priceQueryResult.errors.length
-                                                    } filtered results`}
-                                                </>
-                                            ) : (
-                                                <>
-                                                    {`Hide ${
-                                                        tableData.filter((row) => row.filteredReason).length +
-                                                        priceQueryResult.errors.length
-                                                    } filtered results`}
-                                                </>
-                                            )}
-                                        </Button>
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
-                </Card>
+                <PriceLookupTable
+                    priceQueryResult={priceQueryResult}
+                    isLoading={isLoading}
+                    tableData={deferredTableData}
+                    hideFiltered={hideFiltered}
+                    setHideFiltered={setHideFiltered}
+                    withdrawalFees={finalWithdrawalFees}
+                    resultInput={resultInput}
+                    coin={resultInput?.coin || ''}
+                    quote={resultInput?.quote || quote}
+                    bestAvgPrice={bestAvgPrice}
+                    loadingWithdrawalFees={loadingWithdrawalFees}
+                    includeWithdrawalFees={includeWithdrawalFees}
+                />
                 {priceQueryResult.best.length > 0 && (
                     <div
                         className={
