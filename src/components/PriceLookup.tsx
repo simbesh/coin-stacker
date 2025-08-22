@@ -70,7 +70,7 @@ const PriceLookup = () => {
     const [hideFiltered, setHideFiltered] = useState(true)
     const [includeWithdrawalFees, setIncludeWithdrawalFees] = useLocalStorage(
         LocalStorageKeys.IncludeWithdrawalFees,
-        true
+        false
     )
     const [amount, setAmount] = useQueryState('amount', { defaultValue: '' })
     const [localAmount, setLocalAmount] = useState('')

@@ -2,7 +2,7 @@ export enum LocalStorageKeys {
     PriceQueryHistory = 'cs-price-query-history',
     ExchangeFees = 'cs-user-exchange-fees',
     EnabledExchanges = 'cs-user-enabled-exchanges-v2',
-    IncludeWithdrawalFees = 'cs-include-withdrawal-fees',
+    IncludeWithdrawalFees = 'cs-include-withdrawal-fees-v2',
     WithdrawalFeeDialogDismissed = 'cs-withdrawal-fee-dialog-dismissed',
 }
 
