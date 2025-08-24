@@ -8,9 +8,9 @@ import { getAfiliateOrTradeUrl } from '@/lib/constants'
 import { cn, currencyFormat, exchangeTypes, formatExchangeName, getExchangeUrl } from '@/lib/utils'
 import { useMediaQuery } from '@uidotdev/usehooks'
 import { round } from 'lodash'
-import { AlertTriangle, ExternalLink, TriangleAlert } from 'lucide-react'
+import { AlertTriangle, ExternalLink, Pin, TriangleAlert } from 'lucide-react'
 import posthog from 'posthog-js'
-import React, { memo, useMemo } from 'react'
+import React, { memo, useMemo, useState } from 'react'
 import Coin from './CoinIcon'
 import ExchangeIcon from './ExchangeIcon'
 import FeeType, { FeeTypeProps } from './FeeType'
@@ -196,6 +196,7 @@ const PriceLookupTable: React.FC<PriceLookupTableProps> = memo(
         includeWithdrawalFees,
     }) => {
         const isDesktop = useMediaQuery('(min-width: 768px)')
+        const [isStickyEnabled, setIsStickyEnabled] = useState(true)
 
         // Memoize color calculations to prevent unnecessary recalculations
         const memoizedColors = useMemo(() => {
@@ -203,7 +204,7 @@ const PriceLookupTable: React.FC<PriceLookupTableProps> = memo(
         }, [tableData])
 
         return (
-            <Card className={'relative mb-0! w-full max-w-4xl'}>
+            <Card className={'relative mb-0! w-full max-w-4xl rounded-tl-none sm:rounded-tl-lg'}>
                 {isLoading && priceQueryResult.best.length > 0 && (
                     <div className="absolute inset-0 z-50">
                         <div className="flex size-full items-center justify-center">
@@ -230,9 +231,35 @@ const PriceLookupTable: React.FC<PriceLookupTableProps> = memo(
                     )}
                     <TableHeader>
                         <TableRow className={'hover:bg-muted/0'}>
-                            {headers.map((header) => (
-                                <TableHead key={header.id} className={cn(header.className)}>
-                                    {header.title}
+                            {headers.map((header, index) => (
+                                <TableHead
+                                    key={header.id}
+                                    className={cn(
+                                        header.className,
+                                        index === 0 && isStickyEnabled && 'sticky left-0 z-10 bg-background'
+                                    )}
+                                >
+                                    <div className="flex items-center gap-2 justify-between">
+                                        <span>{header.title}</span>
+                                        {index === 0 && (
+                                            <Button
+                                                variant="ghost"
+                                                size="sm-icon"
+                                                className="h-6 w-6 p-0 hover:bg-muted"
+                                                onClick={() => setIsStickyEnabled(!isStickyEnabled)}
+                                                title={
+                                                    isStickyEnabled ? 'Disable sticky column' : 'Enable sticky column'
+                                                }
+                                            >
+                                                <Pin
+                                                    className={cn(
+                                                        'h-3 w-3 transition-colors',
+                                                        isStickyEnabled ? 'text-blue-500' : 'text-muted-foreground'
+                                                    )}
+                                                />
+                                            </Button>
+                                        )}
+                                    </div>
                                     {header.title === 'Fees' && resultInput?.quote && ` (${resultInput.quote})`}
                                 </TableHead>
                             ))}
@@ -252,15 +279,25 @@ const PriceLookupTable: React.FC<PriceLookupTableProps> = memo(
                             >
                                 <TableCell
                                     className={cn(
-                                        'ml-1 sm:ml-2 mr-0 p-0 text-center sm:p-0 flex items-center justify-start',
+                                        'ml-0 mr-0 p-0 text-center sm:p-0 flex items-center justify-start py-1',
+                                        isStickyEnabled && 'sticky left-0 z-10',
                                         i === 0 && firstRowCellStyle
                                     )}
                                 >
+                                    <div className="absolute inset-0 bg-slate-950 -z-10" />
+                                    <div
+                                        className={cn('absolute inset-0 -z-0', {
+                                            'border-green-500/30 dark:bg-green-950/30 bg-green-50/30':
+                                                i === 0 && isLoading,
+                                            'border-green-400 dark:border-green-900 dark:bg-linear-to-t dark:from-background dark:to-green-900/40 bg-linear-to-t from-white to-green-100/30':
+                                                i === 0 && !isLoading,
+                                        })}
+                                    />
                                     <a
                                         href={getExchangeUrl(row.exchange, coin, quote)}
                                         target={'_blank'}
                                         className={
-                                            'group flex size-full items-center justify-start gap-1 p-2 hover:text-amber-500 underline sm:gap-2 sm:p-4 dark:hover:text-amber-400'
+                                            'z-20 group flex size-full items-center justify-start gap-1 p-2 hover:text-amber-500 underline sm:gap-2 sm:p-4 dark:hover:text-amber-400'
                                         }
                                         onClick={() =>
                                             posthog.capture('exchange-link', {
@@ -410,7 +447,19 @@ const PriceLookupTable: React.FC<PriceLookupTableProps> = memo(
                                                         <div className="border-t pt-1 flex justify-between gap-4 font-semibold">
                                                             <span>Total:</span>
                                                             <span className="font-mono">
-                                                                {currencyFormat(row.totalIncFees || row.netCost)}
+                                                                {i === 0 ? (
+                                                                    <TextShimmer
+                                                                        duration={1.2}
+                                                                        spread={3}
+                                                                        className="[--base-color:var(--color-green-700)] [--base-gradient-color:var(--color-green-400)] dark:[--base-color:var(--color-green-500)] dark:[--base-gradient-color:var(--color-green-300)]"
+                                                                    >
+                                                                        {currencyFormat(
+                                                                            row.totalIncFees || row.netCost
+                                                                        )}
+                                                                    </TextShimmer>
+                                                                ) : (
+                                                                    currencyFormat(row.totalIncFees || row.netCost)
+                                                                )}
                                                             </span>
                                                         </div>
                                                     </div>
@@ -494,9 +543,10 @@ const PriceLookupTable: React.FC<PriceLookupTableProps> = memo(
                             priceQueryResult.errors.map(({ name, error }) => (
                                 <TableRow key={name + '_error_row'} className={'bg-red-700/20 hover:bg-red-700/25'}>
                                     <TableCell
-                                        className={
-                                            'ml-1 sm:ml-2 mr-2 flex size-full items-center justify-start gap-2 whitespace-nowrap p-0 text-left sm:p-0 max-w-20 sm:max-w-none'
-                                        }
+                                        className={cn(
+                                            'ml-1 sm:ml-2 mr-2 flex size-full items-center justify-start gap-2 whitespace-nowrap p-0 text-left sm:p-0 max-w-20 sm:max-w-none',
+                                            isStickyEnabled && 'sticky left-0 z-10 bg-background'
+                                        )}
                                     >
                                         <ExchangeType type={exchangeTypes[name]} />
                                         <a
