@@ -10,10 +10,15 @@ export interface CsOrderBookResponseError {
     message: string
 }
 
-export interface CjOrderBookResponse {
-    asks: [string, string][]
-    bids: [string, string][]
-}
+export type CjOrderBookResponse =
+    | {
+          asks: [string, string][]
+          bids: [string, string][]
+      }
+    | {
+          error_type: string // "NOT_FOUND"
+          error_messages: string[]
+      }
 
 export interface BrOrderBookResponse {
     buy: BrOrderBookLevel[]
