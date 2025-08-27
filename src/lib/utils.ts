@@ -120,6 +120,13 @@ export function parseD1OrderBook(data: D1OrderBookResponse): any {
 }
 
 export function parseCjOrderBook(data: CjOrderBookResponse): any {
+    // Check if this is an error response
+    if ('error_type' in data) {
+        return {
+            error: data.error_messages.join(', '),
+        }
+    }
+
     const timestamp = Date.now()
     return {
         bids: data.bids.map(parseOrderBookStringTuple),
