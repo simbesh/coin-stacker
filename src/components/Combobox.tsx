@@ -108,7 +108,7 @@ export function Combobox({ className, options, value, setValue, optionType = 'op
                                         }}
                                     >
                                         <Plus className="mr-2 size-4 opacity-50" />
-                                        Add "{searchValue}"
+                                        {`Add "${searchValue}"`}
                                     </CommandItem>
                                 )}
                         </CommandGroup>
