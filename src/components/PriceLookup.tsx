@@ -529,7 +529,7 @@ const PriceLookup = () => {
                             }}
                             onBlur={() => setAmount(localAmount)}
                             type={'number'}
-                            className={'w-40 text-right text-lg ring-0 focus-visible:ring-0'}
+                            className={'w-24 sm:w-40 text-right text-lg ring-0 focus-visible:ring-0'}
                         />
                         <Combobox
                             className={'bg-card w-[160px]'}
