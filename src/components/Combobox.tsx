@@ -51,8 +51,6 @@ export function Combobox({ className, options, value, setValue, optionType = 'op
         filteredOptions.length === 0 &&
         !joinedOptions.some((option) => option.value.toLowerCase() === searchValue.toLowerCase())
 
-    console.log('filteredOptions', filteredOptions)
-
     return (
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
