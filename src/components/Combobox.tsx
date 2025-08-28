@@ -8,7 +8,6 @@ import { useLocalStorage, useMediaQuery } from '@uidotdev/usehooks'
 import { Check, ChevronsUpDown, Plus } from 'lucide-react'
 import { ReactNode, useMemo, useState } from 'react'
 import Coin from './CoinIcon'
-import { options } from 'prettier-plugin-tailwindcss'
 
 type Props = {
     className?: string
