@@ -20,7 +20,7 @@
     "@radix-ui/react-slot": "^1.0.2",
     "@radix-ui/react-switch": "^1.1.1",
     "@radix-ui/react-tooltip": "^1.0.7",
-    "@sentry/nextjs": "10.5.0",
+    "@sentry/nextjs": "10.8.0",
     "@t3-oss/env-nextjs": "^0.7.1",
     "@uidotdev/usehooks": "^2.4.1",
     "@vercel/analytics": "^1.1.1",
