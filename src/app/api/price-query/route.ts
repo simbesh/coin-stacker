@@ -100,6 +100,12 @@ const getOkxOrderBook = async (base: string, quote: string) => {
 const getCoinSpotOrderBook = async (base: string, quote: string) => {
     const res = await fetch(`https://www.coinspot.com.au/pubapi/v2/orders/open/${base}/${quote}`)
     const json: CsOrderBookResponse = await res.json()
+    if (!res.ok) {
+        if (res.status === 400) {
+            throw new MarketNotFoundError(`${base}/${quote}`, 'coinspot')
+        }
+        throw new Error(res.statusText)
+    }
     if ('buyorders' in json && 'sellorders' in json) {
         return parseCsOrderBook(json)
     } else if ('message' in json) {
@@ -120,7 +126,7 @@ const getCoinJarOrderBook = async (base: string, quote: string) => {
 
 const getBitarooOrderBook = async (base: string, quote: string) => {
     if (base !== 'BTC' || quote !== 'AUD') {
-        return
+        throw new MarketNotFoundError(`${base}/${quote}`, 'bitaroo')
     }
 
     const res = await fetch(`https://api.bitaroo.com.au/v1/market/order-book`)
@@ -134,6 +140,14 @@ const getBitarooOrderBook = async (base: string, quote: string) => {
 
 const getDay1xOrderBook = async (base: string, quote: string) => {
     const res = await fetch(`https://exchange-api.day1x.io/api/coinmarketcap/orderbook/${base}-${quote}`)
+
+    if (!res.ok) {
+        if (res.status === 404) {
+            throw new MarketNotFoundError(`${base}/${quote}`, 'day1x')
+        }
+        throw new Error(res.statusText)
+    }
+
     const json: D1OrderBookResponse = await res.json()
     return parseD1OrderBook(json)
 }
@@ -227,16 +241,21 @@ const getHardblockMockOrderBook = async (base: string, quote: string, side?: str
             },
         })
 
-        const { status, buy, sell }: HardblockTicker = await res.json()
-        if (status) {
-            return side === 'buy'
-                ? {
-                      asks: [[buy, parseFloat(amount)]],
-                  }
-                : {
-                      bids: [[sell, parseFloat(amount)]],
-                  }
+        const text = await res.text()
+        if (text.includes('Down For Maintenance')) {
+            return { error: 'Down for maintenance' }
         }
+
+        try {
+            const { status, buy, sell }: HardblockTicker = JSON.parse(text)
+            if (status) {
+                return side === 'buy' ? { asks: [[buy, parseFloat(amount)]] } : { bids: [[sell, parseFloat(amount)]] }
+            }
+        } catch (e) {
+            throw e
+        }
+    } else if (base !== 'BTC' || quote !== 'AUD') {
+        throw new MarketNotFoundError(`${base}/${quote}`, 'hardblock')
     }
 }
 
@@ -346,8 +365,16 @@ export async function POST(request: Request): Promise<NextResponse<any>> {
             const exchange = exchanges[i]
             if (exchange !== undefined) {
                 if (result.status === 'fulfilled') {
-                    orderbooks[exchange] = {
-                        value: result.value,
+                    if (result.value && typeof result.value === 'object' && 'error' in result.value) {
+                        // Handle maintenance or other error responses that don't throw
+                        errors.push({ name: exchange, error: result.value.error })
+                        orderbooks[exchange] = {
+                            error: result.value.error,
+                        }
+                    } else {
+                        orderbooks[exchange] = {
+                            value: result.value,
+                        }
                     }
                 } else {
                     console.error(`Error from ${exchange}:`, result.reason.toString())

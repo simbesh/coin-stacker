@@ -8,7 +8,7 @@ import { getAfiliateOrTradeUrl } from '@/lib/constants'
 import { cn, currencyFormat, exchangeTypes, formatExchangeName, getExchangeUrl } from '@/lib/utils'
 import { useMediaQuery } from '@uidotdev/usehooks'
 import { round } from 'lodash'
-import { AlertTriangle, ExternalLink, Pin, TriangleAlert } from 'lucide-react'
+import { AlertTriangle, ChevronDown, ChevronUp, ExternalLink, Pin, TriangleAlert } from 'lucide-react'
 import posthog from 'posthog-js'
 import React, { memo, useMemo, useState } from 'react'
 import Coin from './CoinIcon'
@@ -541,19 +541,23 @@ const PriceLookupTable: React.FC<PriceLookupTableProps> = memo(
                         ))}
                         {!hideFiltered &&
                             priceQueryResult.errors.map(({ name, error }) => (
-                                <TableRow key={name + '_error_row'} className={'bg-red-700/20 hover:bg-red-700/25'}>
+                                <TableRow
+                                    key={name + '_error_row'}
+                                    className={'bg-red-700/20 hover:bg-red-700/25 opacity-50'}
+                                >
                                     <TableCell
                                         className={cn(
-                                            'ml-1 sm:ml-2 mr-2 flex size-full items-center justify-start gap-2 whitespace-nowrap p-0 text-left sm:p-0 max-w-20 sm:max-w-none',
-                                            isStickyEnabled && 'sticky left-0 z-10 bg-background'
+                                            'ml-0 mr-0 p-0 text-center sm:p-0 flex items-center justify-start py-1',
+                                            isStickyEnabled && 'sticky left-0 z-10'
                                         )}
                                     >
-                                        <ExchangeType type={exchangeTypes[name]} />
+                                        <div className="absolute inset-0 bg-slate-950 -z-10" />
+                                        <div className="absolute inset-0 bg-red-700/20 -z-0" />
                                         <a
                                             href={getExchangeUrl(name, coin, quote)}
                                             target={'_blank'}
                                             className={
-                                                'group flex size-full items-center justify-start gap-1 p-2 hover:text-amber-500 hover:underline sm:gap-2 sm:p-4 dark:hover:text-amber-400'
+                                                'z-20 group flex size-full items-center justify-start gap-1 p-2 hover:text-amber-500 underline sm:gap-2 sm:p-4 dark:hover:text-amber-400'
                                             }
                                             onClick={() =>
                                                 posthog.capture('exchange-link', {
@@ -562,29 +566,31 @@ const PriceLookupTable: React.FC<PriceLookupTableProps> = memo(
                                                 })
                                             }
                                         >
-                                            <div
-                                                className={cn(
-                                                    'flex items-center justify-start gap-1 sm:gap-2 opacity-50'
-                                                )}
-                                            >
+                                            <div className={cn('flex items-center justify-start gap-1 sm:gap-2')}>
                                                 <ExchangeIcon
                                                     exchange={name}
                                                     withLabel
                                                     labelClassName={
-                                                        'py-0 max-w-[110px] truncate sm:max-w-none sm:truncate-none'
+                                                        'py-0 max-w-[100px] truncate sm:max-w-none sm:truncate-none'
                                                     }
                                                     className={'size-full justify-start'}
                                                 />
                                                 <ExternalLink
                                                     className={cn(
-                                                        'size-4 min-h-4 min-w-4 opacity-0 transition-opacity group-hover:opacity-100',
+                                                        'size-4 min-h-[1rem] min-w-[1rem] opacity-0 transition-opacity group-hover:opacity-0 sm:group-hover:opacity-100',
                                                         name.length > 15 && !isDesktop && '-ml-1.5'
                                                     )}
                                                 />
                                             </div>
                                         </a>
                                     </TableCell>
-                                    <TableCell className={'text-red-600 dark:text-red-400 opacity-50'} colspan={4}>
+                                    <TableCell className={'text-right px-0'}>
+                                        <ExchangeType type={exchangeTypes[name]} />
+                                    </TableCell>
+                                    <TableCell
+                                        className={'text-left text-red-600 dark:text-red-400 lg:pl-16 md:pl-8 pl-4'}
+                                        colSpan={4}
+                                    >
                                         {error.name ?? error.toString()}
                                     </TableCell>
                                 </TableRow>
@@ -596,6 +602,7 @@ const PriceLookupTable: React.FC<PriceLookupTableProps> = memo(
                                         variant={'outline'}
                                         onClick={() => setHideFiltered(!hideFiltered)}
                                         aria-label={`${hideFiltered ? 'Show' : 'Hide'} filtered results`}
+                                        className="flex items-center gap-2"
                                     >
                                         {hideFiltered ? (
                                             <>
@@ -611,6 +618,11 @@ const PriceLookupTable: React.FC<PriceLookupTableProps> = memo(
                                                     priceQueryResult.errors.length
                                                 } filtered results`}
                                             </>
+                                        )}
+                                        {hideFiltered ? (
+                                            <ChevronDown className="size-4" />
+                                        ) : (
+                                            <ChevronUp className="size-4" />
                                         )}
                                     </Button>
                                 </TableCell>
