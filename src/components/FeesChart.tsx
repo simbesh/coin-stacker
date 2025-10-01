@@ -136,6 +136,13 @@ const okx = [
     [1_500_000_001, 0.02],
 ]
 
+// TODO: Update with actual WayEx fee tiers when available
+const wayex = [
+    [0, 0.2],
+    [100_000, 0.15],
+    [500_000, 0.1],
+]
+
 function fillDataPoints(dataMap: Record<string, Record<string, number>>, data: number[][], key: string) {
     for (const i of data) {
         if (i[0] !== undefined && i[1] !== undefined) {
@@ -159,6 +166,7 @@ fillDataPoints(dataMap, sx, 'Swyftx')
 fillDataPoints(dataMap, cstash, 'Coinstash')
 fillDataPoints(dataMap, ctree, 'Cointree')
 fillDataPoints(dataMap, okx, 'OKX')
+fillDataPoints(dataMap, wayex, 'WayEx')
 
 const data: any[] = []
 let prev: any
@@ -222,6 +230,13 @@ const allLabels = [
         key: 'OKX',
         colour: '#fff',
         gradientKey: 'okx-gradient',
+        gradientStop: '35%',
+    },
+    {
+        exchange: 'wayex',
+        key: 'WayEx',
+        colour: '#00d4aa',
+        gradientKey: 'wayex-gradient',
         gradientStop: '35%',
     },
 ]

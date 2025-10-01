@@ -37,6 +37,7 @@ const supportedExchanges = [
     'okx',
     'hardblock',
     'day1x',
+    'wayex',
     // 'elbaite',
 ]
 
@@ -149,6 +150,24 @@ const getDay1xOrderBook = async (base: string, quote: string) => {
     }
 
     const json: D1OrderBookResponse = await res.json()
+    return parseD1OrderBook(json)
+}
+
+const getWayexOrderBook = async (base: string, quote: string) => {
+    // TODO: Replace with actual WayEx API endpoint when available
+    // Mock URL structure based on common exchange API patterns
+    const res = await fetch(`https://api.wayex.com/v1/orderbook/${base}-${quote}`)
+
+    if (!res.ok) {
+        if (res.status === 404) {
+            throw new MarketNotFoundError(`${base}/${quote}`, 'wayex')
+        }
+        throw new Error(res.statusText)
+    }
+
+    // TODO: Update response type based on actual API documentation
+    const json: D1OrderBookResponse = await res.json()
+    // TODO: Create custom parser if WayEx API response format differs from D1
     return parseD1OrderBook(json)
 }
 
@@ -345,6 +364,7 @@ const orderbookMethods: Record<
     okx: getOkxOrderBook,
     hardblock: getHardblockMockOrderBook,
     day1x: getDay1xOrderBook,
+    wayex: getWayexOrderBook,
     // elbaite: getElbaiteMockOrderBook,
 }
 

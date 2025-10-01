@@ -668,6 +668,8 @@ export async function GET(request: NextRequest) {
             fees = getCoinstashFee(currency)
         } else if (exchange === 'swyftx' && currency) {
             fees = getSwyftxFee(currency)
+        } else if (exchange === 'wayex') {
+            fees = await getWayexFee()
         } else {
             // Get withdrawal fees for other exchanges, fallback to default if not found
             const exchangeFees = withdrawalFees[exchange as keyof typeof withdrawalFees] ?? {}
@@ -793,6 +795,36 @@ async function getOKXFee(): Promise<Record<string, number>> {
     return fees
 }
 
+async function getWayexFee(): Promise<Record<string, number>> {
+    // TODO: Replace with actual WayEx API endpoint when available
+    // Mock implementation - replace with real API call
+    try {
+        const response = await fetch('https://api.wayex.com/v1/withdrawal-fees', {
+            next: { revalidate }, // Cache for 24 hours
+        })
+
+        if (!response.ok) {
+            throw new Error(`WayEx API error: ${response.status}`)
+        }
+
+        const data = await response.json()
+
+        // TODO: Transform the response based on actual API format
+        // This is a placeholder structure
+        const fees: Record<string, number> = {}
+        
+        // Example transformation (adjust based on actual API response):
+        // data.forEach((item: { currency: string; fee: number }) => {
+        //     fees[item.currency] = item.fee
+        // })
+
+        return fees
+    } catch (error) {
+        console.error('Error fetching WayEx fees:', error)
+        return {}
+    }
+}
+
 // use binance as proxy for coinspot
 // async function getCoinspotFee(): Promise<Record<string, number>> {
 //     const exchange = new binance({
@@ -881,4 +913,6 @@ const exchangeFeeType = {
     day1x: 'free',
     bitaroo: 'static',
     hardblock: 'static',
+    // TODO: Update wayex fee type once API is integrated ('dynamic', 'static', or 'free')
+    wayex: 'dynamic',
 }
