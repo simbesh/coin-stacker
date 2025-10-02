@@ -15,6 +15,7 @@ import {
     D1OrderBookResponse,
     HardblockTicker,
     SwOrdersResponse,
+    WayexOrderBookResponse,
 } from '@/types/types'
 import * as Sentry from '@sentry/nextjs'
 import { sql } from '@vercel/postgres'
@@ -154,21 +155,98 @@ const getDay1xOrderBook = async (base: string, quote: string) => {
 }
 
 const getWayexOrderBook = async (base: string, quote: string) => {
-    // TODO: Replace with actual WayEx API endpoint when available
-    // Mock URL structure based on common exchange API patterns
-    const res = await fetch(`https://api.wayex.com/v1/orderbook/${base}-${quote}`)
+    const symbol = `${base}${quote}`
+    
+    // First, fetch instruments to get InstrumentId
+    const instrumentsRes = await fetch('https://cexapi.wayex.com/ap/GetInstruments', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            OMSId: 1,
+        }),
+    })
 
-    if (!res.ok) {
-        if (res.status === 404) {
-            throw new MarketNotFoundError(`${base}/${quote}`, 'wayex')
-        }
-        throw new Error(res.statusText)
+    if (!instrumentsRes.ok) {
+        throw new Error(`WayEx GetInstruments API error: ${instrumentsRes.status}`)
     }
 
-    // TODO: Update response type based on actual API documentation
-    const json: D1OrderBookResponse = await res.json()
-    // TODO: Create custom parser if WayEx API response format differs from D1
-    return parseD1OrderBook(json)
+    const instruments = await instrumentsRes.json()
+    const instrument = instruments.find((inst: any) => inst.Symbol === symbol)
+
+    if (!instrument) {
+        throw new MarketNotFoundError(`${base}/${quote}`, 'wayex')
+    }
+
+    // Now fetch the order book using the InstrumentId
+    const orderbookRes = await fetch('https://cexapi.wayex.com/ap/GetL2Snapshot', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            OMSId: 1,
+            InstrumentId: instrument.InstrumentId,
+            Depth: 100,
+        }),
+    })
+
+    if (!orderbookRes.ok) {
+        throw new Error(`WayEx GetL2Snapshot API error: ${orderbookRes.status}`)
+    }
+
+    const orderbookData = await orderbookRes.json()
+    return parseWayexOrderBook(orderbookData)
+}
+
+const parseWayexOrderBook = (data: any): any => {
+    // TODO: Verify the exact format of AlphaPoint's GetL2Snapshot response through testing
+    // Expected format: flat array where each element is [price, quantity, ...]
+    // May alternate bid/ask or be grouped as bids then asks
+    const bids: [number, number][] = []
+    const asks: [number, number][] = []
+
+    if (!Array.isArray(data) || data.length === 0) {
+        // Return empty orderbook if data is invalid
+        const timestamp = Date.now()
+        return {
+            bids: [],
+            asks: [],
+            timestamp,
+            datetime: new Date(timestamp).toISOString(),
+            nonce: timestamp,
+        }
+    }
+    
+    // Parse the array response
+    // Assuming AlphaPoint format: each level is [price, quantity, ...]
+    // This implementation assumes alternating pattern: bid, ask, bid, ask...
+    // May need adjustment based on actual API behavior
+    for (let i = 0; i < data.length; i++) {
+        const level = data[i]
+        if (Array.isArray(level) && level.length >= 2) {
+            const price = level[0]
+            const quantity = level[1]
+            
+            // Even indices are bids, odd indices are asks
+            // TODO: Verify this pattern with actual API responses
+            if (i % 2 === 0) {
+                bids.push([price, quantity])
+            } else {
+                asks.push([price, quantity])
+            }
+        }
+    }
+
+    const timestamp = Date.now()
+    return {
+        bids,
+        asks,
+        timestamp,
+        datetime: new Date(timestamp).toISOString(),
+        nonce: timestamp,
+    }
 }
 
 const getSwyftxMockOrderBook = async (base: string, quote: string, side?: string, amount?: string, fee?: number) => {

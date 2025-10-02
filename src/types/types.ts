@@ -31,6 +31,14 @@ export interface D1OrderBookResponse {
     bids: [string, string][]
 }
 
+export interface WayexOrderBookResponse {
+    // AlphaPoint L2 Snapshot returns an array where:
+    // Even indices (0, 2, 4...) are bids
+    // Odd indices (1, 3, 5...) are asks
+    // Each entry is an array of [price, quantity, ...]
+    [index: number]: number[][]
+}
+
 export interface SwOrdersResponse {
     price: string
     total: string
