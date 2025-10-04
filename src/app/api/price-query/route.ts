@@ -15,7 +15,6 @@ import {
     D1OrderBookResponse,
     HardblockTicker,
     SwOrdersResponse,
-    WayexOrderBookResponse,
 } from '@/types/types'
 import * as Sentry from '@sentry/nextjs'
 import { sql } from '@vercel/postgres'
@@ -156,7 +155,7 @@ const getDay1xOrderBook = async (base: string, quote: string) => {
 
 const getWayexOrderBook = async (base: string, quote: string) => {
     const symbol = `${base}${quote}`
-    
+
     // First, fetch instruments to get InstrumentId
     const instrumentsRes = await fetch('https://cexapi.wayex.com/ap/GetInstruments', {
         method: 'POST',
@@ -169,7 +168,7 @@ const getWayexOrderBook = async (base: string, quote: string) => {
     })
 
     if (!instrumentsRes.ok) {
-        throw new Error(`WayEx GetInstruments API error: ${instrumentsRes.status}`)
+        throw new Error(`Wayex GetInstruments API error: ${instrumentsRes.status}`)
     }
 
     const instruments = await instrumentsRes.json()
@@ -193,7 +192,7 @@ const getWayexOrderBook = async (base: string, quote: string) => {
     })
 
     if (!orderbookRes.ok) {
-        throw new Error(`WayEx GetL2Snapshot API error: ${orderbookRes.status}`)
+        throw new Error(`Wayex GetL2Snapshot API error: ${orderbookRes.status}`)
     }
 
     const orderbookData = await orderbookRes.json()
@@ -201,9 +200,6 @@ const getWayexOrderBook = async (base: string, quote: string) => {
 }
 
 const parseWayexOrderBook = (data: any): any => {
-    // TODO: Verify the exact format of AlphaPoint's GetL2Snapshot response through testing
-    // Expected format: flat array where each element is [price, quantity, ...]
-    // May alternate bid/ask or be grouped as bids then asks
     const bids: [number, number][] = []
     const asks: [number, number][] = []
 
@@ -218,23 +214,22 @@ const parseWayexOrderBook = (data: any): any => {
             nonce: timestamp,
         }
     }
-    
+
     // Parse the array response
-    // Assuming AlphaPoint format: each level is [price, quantity, ...]
-    // This implementation assumes alternating pattern: bid, ask, bid, ask...
-    // May need adjustment based on actual API behavior
+    // Format: [MDUpdateId, NumAccounts, ActionDateTime, ActionType, LastTradePrice,
+    //          NumOrders, Price, ProductPairCode, Quantity, Side]
     for (let i = 0; i < data.length; i++) {
         const level = data[i]
-        if (Array.isArray(level) && level.length >= 2) {
-            const price = level[0]
-            const quantity = level[1]
-            
-            // Even indices are bids, odd indices are asks
-            // TODO: Verify this pattern with actual API responses
-            if (i % 2 === 0) {
-                bids.push([price, quantity])
-            } else {
-                asks.push([price, quantity])
+        if (Array.isArray(level)) {
+            const [, , , actionType, , , price, , quantity, side] = level
+
+            if (actionType !== 2) {
+                // Skip if action is Delete
+                if (side === 0) {
+                    bids.push([price, quantity])
+                } else {
+                    asks.push([price, quantity])
+                }
             }
         }
     }

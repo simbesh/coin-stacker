@@ -53,10 +53,10 @@ type PriceQueryResult = {
 
 const quickSelectCoins = ['BTC', 'ETH', 'SOL', 'USDC', 'USDT']
 
-const DAY1X_BANNER_KEY = 'day1x-banner-state'
+const WAYEX_BANNER_KEY = 'wayex-banner-state'
 const BANNER_EXPIRY_DAYS = 7
 
-type Day1xBannerState = {
+type WayexBannerState = {
     dismissed: boolean
     firstView: string | null
 }
@@ -155,7 +155,7 @@ const PriceLookup = () => {
         LocalStorageKeys.EnabledExchanges,
         defaultEnabledExchanges
     )
-    const [day1xBannerState, setDay1xBannerState] = useLocalStorage<Day1xBannerState>(DAY1X_BANNER_KEY, {
+    const [wayexBannerState, setWayexBannerState] = useLocalStorage<WayexBannerState>(WAYEX_BANNER_KEY, {
         dismissed: false,
         firstView: null,
     })
@@ -443,26 +443,26 @@ const PriceLookup = () => {
     const submitDisabled = useMemo(() => !localAmount || !localCoin || isLoading, [localAmount, localCoin, isLoading])
 
     // Check if banner should be shown
-    const showDay1xBanner = useMemo(() => {
-        if (day1xBannerState.dismissed) return false
+    const showWayexBanner = useMemo(() => {
+        if (wayexBannerState.dismissed) return false
 
-        if (!day1xBannerState.firstView) {
+        if (!wayexBannerState.firstView) {
             // First time viewing - set the timestamp
-            setDay1xBannerState((prev) => ({
+            setWayexBannerState((prev) => ({
                 ...prev,
                 firstView: new Date().toISOString(),
             }))
             return true
         }
 
-        // Check if a week has passed since first view and if date is before June 1 2025
-        const daysSinceFirstView = differenceInDays(new Date(), new Date(day1xBannerState.firstView))
-        const isBeforeJune2025 = new Date() < new Date('2025-06-01')
-        return daysSinceFirstView < BANNER_EXPIRY_DAYS && isBeforeJune2025
-    }, [day1xBannerState])
+        // Check if a week has passed since first view and if date is before November 1 2025
+        const daysSinceFirstView = differenceInDays(new Date(), new Date(wayexBannerState.firstView))
+        const isBeforeNovember2025 = new Date() < new Date('2025-11-01')
+        return daysSinceFirstView < BANNER_EXPIRY_DAYS && isBeforeNovember2025
+    }, [wayexBannerState])
 
     const handleDismissBanner = () => {
-        setDay1xBannerState((prev) => ({
+        setWayexBannerState((prev) => ({
             ...prev,
             dismissed: true,
         }))
@@ -470,15 +470,15 @@ const PriceLookup = () => {
 
     return (
         <>
-            {showDay1xBanner && (
+            {showWayexBanner && (
                 <div className="relative z-20 w-full space-x-2 bg-linear-to-r from-blue-500 via-blue-300 to-blue-500 px-4 py-2 text-center text-sm sm:text-base dark:from-blue-800 dark:via-blue-500 dark:to-blue-800">
                     <a
-                        href={getExchangeUrl('day1x')}
+                        href={getExchangeUrl('wayex')}
                         target="_blank"
                         className="inline-flex cursor-pointer items-center hover:underline"
                     >
                         🎉 New Exchange{' '}
-                        <ExchangeIcon exchange="day1x" withLabel className="mx-1 px-1" labelClassName="font-bold" /> has
+                        <ExchangeIcon exchange="wayex" withLabel className="mx-1 px-1" labelClassName="font-bold" /> has
                         been added!{' '}
                     </a>
                     <button

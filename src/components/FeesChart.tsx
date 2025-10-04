@@ -136,7 +136,7 @@ const okx = [
     [1_500_000_001, 0.02],
 ]
 
-// TODO: Update with actual WayEx fee tiers when available
+// TODO: Update with actual Wayex fee tiers when available
 const wayex = [
     [0, 0.2],
     [100_000, 0.15],
@@ -166,7 +166,7 @@ fillDataPoints(dataMap, sx, 'Swyftx')
 fillDataPoints(dataMap, cstash, 'Coinstash')
 fillDataPoints(dataMap, ctree, 'Cointree')
 fillDataPoints(dataMap, okx, 'OKX')
-fillDataPoints(dataMap, wayex, 'WayEx')
+fillDataPoints(dataMap, wayex, 'Wayex')
 
 const data: any[] = []
 let prev: any
@@ -234,7 +234,7 @@ const allLabels = [
     },
     {
         exchange: 'wayex',
-        key: 'WayEx',
+        key: 'Wayex',
         colour: '#00d4aa',
         gradientKey: 'wayex-gradient',
         gradientStop: '35%',

@@ -79,8 +79,7 @@ const affiliateUrl = (exchange: string, base: string, quote: string) => {
         case 'day1x':
             return `https://day1x.io/?refcode=83277`
         case 'wayex':
-            // TODO: Add affiliate URL when available
-            return undefined
+            return 'https://my.wayex.com/sign-up?aff=SIMONB'
         default:
             return undefined
     }
