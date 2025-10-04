@@ -17,6 +17,7 @@ const EXCHANGE_URLS: Record<string, string> = {
     okx: 'https://www.okx.com',
     hardblock: 'https://www.hardblock.com.au',
     day1x: 'https://www.day1x.io',
+    wayex: 'https://www.wayex.com',
     // elbaite: 'https://www.elbaite.com',
 }
 const ALT_EXCHANGE_URLS: Record<string, string> = {
@@ -43,4 +44,5 @@ export const EXCHANGE_COLOUR: Record<string, string> = {
     liquid: '#0055ff',
     luno: '#0091ff',
     day1x: '#1943c3',
+    wayex: '#00d4aa',
 }

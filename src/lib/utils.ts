@@ -33,6 +33,7 @@ const formattedExchangeNames: Record<string, string> = {
     okx: 'OKX',
     hardblock: 'HardBlock',
     day1x: 'Day1x',
+    wayex: 'Wayex',
     // elbaite: 'Elbaite',
 }
 
@@ -51,6 +52,7 @@ export const exchangeTypes: Record<string, 'orderbook' | 'broker'> = {
     okx: 'orderbook',
     hardblock: 'broker',
     day1x: 'orderbook',
+    wayex: 'orderbook',
 }
 
 export const defaultExchangeFees: Record<string, number> = {
@@ -68,6 +70,7 @@ export const defaultExchangeFees: Record<string, number> = {
     okx: 0.005,
     hardblock: 0,
     day1x: 0.001,
+    wayex: 0.004,
     // elbaite: 0.011,
 }
 export const defaultEnabledExchanges: Record<string, boolean> = {
@@ -85,6 +88,7 @@ export const defaultEnabledExchanges: Record<string, boolean> = {
     okx: true,
     hardblock: true,
     day1x: true,
+    wayex: true,
     // elbaite: true,
 }
 

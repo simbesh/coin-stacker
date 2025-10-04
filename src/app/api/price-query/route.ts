@@ -37,6 +37,7 @@ const supportedExchanges = [
     'okx',
     'hardblock',
     'day1x',
+    'wayex',
     // 'elbaite',
 ]
 
@@ -150,6 +151,97 @@ const getDay1xOrderBook = async (base: string, quote: string) => {
 
     const json: D1OrderBookResponse = await res.json()
     return parseD1OrderBook(json)
+}
+
+const getWayexOrderBook = async (base: string, quote: string) => {
+    const symbol = `${base}${quote}`
+
+    // First, fetch instruments to get InstrumentId
+    const instrumentsRes = await fetch('https://cexapi.wayex.com/ap/GetInstruments', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            OMSId: 1,
+        }),
+    })
+
+    if (!instrumentsRes.ok) {
+        throw new Error(`Wayex GetInstruments API error: ${instrumentsRes.status}`)
+    }
+
+    const instruments = await instrumentsRes.json()
+    const instrument = instruments.find((inst: any) => inst.Symbol === symbol)
+
+    if (!instrument) {
+        throw new MarketNotFoundError(`${base}/${quote}`, 'wayex')
+    }
+
+    // Now fetch the order book using the InstrumentId
+    const orderbookRes = await fetch('https://cexapi.wayex.com/ap/GetL2Snapshot', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            OMSId: 1,
+            InstrumentId: instrument.InstrumentId,
+            Depth: 100,
+        }),
+    })
+
+    if (!orderbookRes.ok) {
+        throw new Error(`Wayex GetL2Snapshot API error: ${orderbookRes.status}`)
+    }
+
+    const orderbookData = await orderbookRes.json()
+    return parseWayexOrderBook(orderbookData)
+}
+
+const parseWayexOrderBook = (data: any): any => {
+    const bids: [number, number][] = []
+    const asks: [number, number][] = []
+
+    if (!Array.isArray(data) || data.length === 0) {
+        // Return empty orderbook if data is invalid
+        const timestamp = Date.now()
+        return {
+            bids: [],
+            asks: [],
+            timestamp,
+            datetime: new Date(timestamp).toISOString(),
+            nonce: timestamp,
+        }
+    }
+
+    // Parse the array response
+    // Format: [MDUpdateId, NumAccounts, ActionDateTime, ActionType, LastTradePrice,
+    //          NumOrders, Price, ProductPairCode, Quantity, Side]
+    for (let i = 0; i < data.length; i++) {
+        const level = data[i]
+        if (Array.isArray(level)) {
+            const [, , , actionType, , , price, , quantity, side] = level
+
+            if (actionType !== 2) {
+                // Skip if action is Delete
+                if (side === 0) {
+                    bids.push([price, quantity])
+                } else {
+                    asks.push([price, quantity])
+                }
+            }
+        }
+    }
+
+    const timestamp = Date.now()
+    return {
+        bids,
+        asks,
+        timestamp,
+        datetime: new Date(timestamp).toISOString(),
+        nonce: timestamp,
+    }
 }
 
 const getSwyftxMockOrderBook = async (base: string, quote: string, side?: string, amount?: string, fee?: number) => {
@@ -345,6 +437,7 @@ const orderbookMethods: Record<
     okx: getOkxOrderBook,
     hardblock: getHardblockMockOrderBook,
     day1x: getDay1xOrderBook,
+    wayex: getWayexOrderBook,
     // elbaite: getElbaiteMockOrderBook,
 }
 

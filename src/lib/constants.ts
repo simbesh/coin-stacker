@@ -36,6 +36,8 @@ const tradeUrl = (exchange: string, base: string, quote: string) => {
             return `https://coinstash.com.au/trade`
         case 'day1x':
             return `https://exchange.day1x.io/exchange`
+        case 'wayex':
+            return `https://www.wayex.com/trade`
         // case 'elbaite':
         //     return 'https://www.elbaite.com/'
         default:
@@ -76,6 +78,8 @@ const affiliateUrl = (exchange: string, base: string, quote: string) => {
             return `https://www.hardblock.com.au/join/2da97d02`
         case 'day1x':
             return `https://day1x.io/?refcode=83277`
+        case 'wayex':
+            return 'https://my.wayex.com/sign-up?aff=SIMONB'
         default:
             return undefined
     }

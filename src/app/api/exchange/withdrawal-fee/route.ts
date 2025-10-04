@@ -668,6 +668,8 @@ export async function GET(request: NextRequest) {
             fees = getCoinstashFee(currency)
         } else if (exchange === 'swyftx' && currency) {
             fees = getSwyftxFee(currency)
+            // } else if (exchange === 'wayex') {
+            // fees = await getWayexFee()
         } else {
             // Get withdrawal fees for other exchanges, fallback to default if not found
             const exchangeFees = withdrawalFees[exchange as keyof typeof withdrawalFees] ?? {}
@@ -842,7 +844,7 @@ async function getLunoFee({ currency }: { currency: string }) {
     )
     const data = await response.json()
 
-    return { [currency]: data.fee }
+    return { [currency]: Number(data.fee) }
 }
 
 async function getDigitalSurgeFee(): Promise<Record<string, number>> {
@@ -881,4 +883,6 @@ const exchangeFeeType = {
     day1x: 'free',
     bitaroo: 'static',
     hardblock: 'static',
+    // TODO: Update wayex fee type once API is integrated ('dynamic', 'static', or 'free')
+    // wayex: 'dynamic',
 }
