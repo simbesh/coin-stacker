@@ -17,6 +17,7 @@ import {
     getExchangeUrl,
     median,
     OLD_KRAKEN_TAKER_FEE,
+    overrideDefaultExchangeFees,
 } from '@/lib/utils'
 import { PriceQueryParams } from '@/types/types'
 import { useLocalStorage } from '@uidotdev/usehooks'
@@ -142,10 +143,16 @@ const PriceLookup = () => {
     useEffect(() => {
         if (!tryUpdateFees) {
             setTryUpdateFees(true)
-            if (fees.day1x === 0.0025) {
+            const updates: Record<string, number> = {}
+            for (const [exchange, { old, new: newFee }] of Object.entries(overrideDefaultExchangeFees)) {
+                if (fees[exchange] === old) {
+                    updates[exchange] = newFee
+                }
+            }
+            if (Object.keys(updates).length > 0) {
                 setFees((prev) => ({
                     ...prev,
-                    day1x: defaultExchangeFees.day1x as number,
+                    ...updates,
                 }))
             }
         }

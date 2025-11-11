@@ -133,7 +133,7 @@ export const mockData: any = {
             netPrice: 177139.0,
             grossAveragePrice: 177051.0,
             fees: 88.0,
-            feeRate: 0.0043,
+            feeRate: 0.007,
         },
     ],
     errors: [],

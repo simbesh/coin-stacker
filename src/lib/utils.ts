@@ -67,12 +67,24 @@ export const defaultExchangeFees: Record<string, number> = {
     coinstash: 0.0085,
     cointree: 0.0075,
     digitalsurge: 0.005,
-    okx: 0.005,
+    okx: 0.007,
     hardblock: 0,
     day1x: 0.001,
     wayex: 0.004,
     // elbaite: 0.011,
 }
+
+export const overrideDefaultExchangeFees: Record<string, { old: number; new: number }> = {
+    okx: {
+        old: 0.005,
+        new: defaultExchangeFees['okx']!,
+    },
+    day1x: {
+        old: 0.0025,
+        new: defaultExchangeFees['day1x']!,
+    },
+}
+
 export const defaultEnabledExchanges: Record<string, boolean> = {
     btcmarkets: true,
     independentreserve: true,

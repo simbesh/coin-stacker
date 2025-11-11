@@ -42,19 +42,18 @@ export const getSwyftxMockOrderBook: ExchangeHandler = async (
                 })
 
                 const json: SwOrdersResponse = await res.json()
-                if (side === 'buy') {
-                    return {
-                        asks: [[parseFloat(json.price), parseFloat(json.amount)]],
-                        bids: [],
-                    }
-                } else {
-                    return {
-                        bids: [
-                            [(parseFloat(json.amount) / parseFloat(json.total)) * (1 + fee), parseFloat(json.total)],
-                        ],
-                        asks: [],
-                    }
+                const orderbook = {
+                    asks: [] as [number, number][],
+                    bids: [] as [number, number][],
                 }
+                if (side === 'buy') {
+                    orderbook.asks = [[parseFloat(json.price), parseFloat(json.amount)]]
+                } else {
+                    orderbook.bids = [
+                        [(parseFloat(json.amount) / parseFloat(json.total)) * (1 + fee), parseFloat(json.total)],
+                    ]
+                }
+                return orderbook
             } catch (e) {
                 console.error('e', e)
             }
