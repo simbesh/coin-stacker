@@ -18,8 +18,6 @@ const withdrawalFees: Record<string, Record<string, number>> = {
     coinspot: coinspotFees,
 }
 
-console.log(coinspotFees)
-
 export async function GET(request: NextRequest) {
     try {
         const searchParams = request.nextUrl.searchParams
