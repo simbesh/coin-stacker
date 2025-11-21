@@ -64,7 +64,7 @@ export const defaultExchangeFees: Record<string, number> = {
     coinjar: 0.001,
     bitaroo: 0.0019,
     swyftx: 0.006,
-    coinstash: 0.0085,
+    coinstash: 0.006,
     cointree: 0.0075,
     digitalsurge: 0.005,
     okx: 0.007,
@@ -82,6 +82,10 @@ export const overrideDefaultExchangeFees: Record<string, { old: number; new: num
     day1x: {
         old: 0.0025,
         new: defaultExchangeFees['day1x']!,
+    },
+    coinstash: {
+        old: 0.0085,
+        new: defaultExchangeFees['coinstash']!,
     },
 }
 
