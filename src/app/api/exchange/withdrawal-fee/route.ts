@@ -1,7 +1,7 @@
 import { coinstashWithdrawFees } from '@/lib/constants/coinstash-withdraw-fees'
 import { swyftxWithdrawFees } from '@/lib/constants/swyftx-withdraw-fees'
 import coinspotFees from 'data/coinspot-fees.json'
-import { luno, okx } from 'ccxt'
+import { binance, luno, okx } from 'ccxt'
 import { NextRequest, NextResponse } from 'next/server'
 
 // Cache for 24 hours (86400 seconds)
@@ -37,6 +37,8 @@ export async function GET(request: NextRequest) {
             fees = await getIndependentReserveFee()
         } else if (exchange === 'okx') {
             fees = await getOKXFee()
+        } else if (exchange === 'binance') {
+            fees = await getBinanceFee()
         } else if (exchange === 'day1x') {
             fees = {
                 override: 0,
@@ -181,6 +183,32 @@ async function getOKXFee(): Promise<Record<string, number>> {
     return fees
 }
 
+async function getBinanceFee(): Promise<Record<string, number>> {
+    const exchange = new binance({
+        apiKey: process.env.BINANCE_KEY,
+        secret: process.env.BINANCE_SECRET,
+        timeout: 10000,
+    })
+    await exchange.loadMarkets()
+
+    const currencies = await exchange.fetchCurrencies()
+
+    const fees: Record<string, number> = {}
+
+    for (const coin of Object.keys(currencies)) {
+        const currency = currencies[coin] as any
+        if (currency?.networks) {
+            const networks = currency.networks as Record<string, any>
+            const network = networks[coin] || networks['ERC20'] || networks['BSC']
+            if (network?.fee) {
+                fees[coin] = network.fee
+            }
+        }
+    }
+
+    return fees
+}
+
 // use binance as proxy for coinspot
 // async function getCoinspotFee(): Promise<Record<string, number>> {
 //     const exchange = new binance({
@@ -258,6 +286,7 @@ function getSwyftxFee(currency: string): Record<string, number> {
 }
 
 const exchangeFeeType = {
+    binance: 'dynamic',
     btcmarkets: 'dynamic',
     independentreserve: 'dynamic',
     okx: 'dynamic',

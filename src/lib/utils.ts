@@ -19,6 +19,7 @@ const stableQuoteFeeOverride: Record<string, number> = {
 }
 
 const formattedExchangeNames: Record<string, string> = {
+    binance: 'Binance',
     btcmarkets: 'BTCMarkets',
     independentreserve: 'Independent Reserve',
     kraken: 'Kraken',
@@ -38,6 +39,7 @@ const formattedExchangeNames: Record<string, string> = {
 }
 
 export const exchangeTypes: Record<string, 'orderbook' | 'broker'> = {
+    binance: 'orderbook',
     btcmarkets: 'orderbook',
     independentreserve: 'orderbook',
     kraken: 'orderbook',
@@ -56,6 +58,7 @@ export const exchangeTypes: Record<string, 'orderbook' | 'broker'> = {
 }
 
 export const defaultExchangeFees: Record<string, number> = {
+    binance: 0.001,
     btcmarkets: 0.0085,
     independentreserve: 0.005,
     kraken: 0.004,
@@ -90,6 +93,7 @@ export const overrideDefaultExchangeFees: Record<string, { old: number; new: num
 }
 
 export const defaultEnabledExchanges: Record<string, boolean> = {
+    binance: true,
     btcmarkets: true,
     independentreserve: true,
     kraken: true,

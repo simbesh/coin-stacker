@@ -1,4 +1,5 @@
 import { ExchangeHandler } from '../types'
+import { getBinanceOrderBook } from './binance'
 import { getBitarooOrderBook } from './bitaroo'
 import { getBTCMarketsOrderBook } from './btcmarkets'
 import { getCoinJarOrderBook } from './coinjar'
@@ -16,6 +17,7 @@ import { getSwyftxMockOrderBook } from './swyftx'
 import { getWayexOrderBook } from './wayex'
 
 export const orderbookMethods: Record<string, ExchangeHandler> = {
+    binance: getBinanceOrderBook,
     btcmarkets: getBTCMarketsOrderBook,
     independentreserve: getIndependentReserveOrderBook,
     kraken: getKrakenOrderBook,
@@ -34,6 +36,7 @@ export const orderbookMethods: Record<string, ExchangeHandler> = {
 }
 
 export const supportedExchanges = [
+    'binance',
     'btcmarkets',
     'independentreserve',
     'kraken',

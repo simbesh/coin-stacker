@@ -47,6 +47,8 @@ const tradeUrl = (exchange: string, base: string, quote: string) => {
 
 const affiliateUrl = (exchange: string, base: string, quote: string) => {
     switch (exchange) {
+        case 'binance':
+            return `https://www.binance.com/en/trade/${base}_${quote}?ref=123456`
         case 'coinjar':
             return `https://cjr.io/ASfU`
         case 'btcmarkets':
