@@ -38,7 +38,7 @@ const NavBar = () => {
     const activeSegment = useSelectedLayoutSegment()
     const [{ y }] = useWindowScroll()
     const [barBg, setBarBg] = useState(defaultNavBackground)
-    const [withdrawalFeeDialogDismissed] = useLocalStorage(LocalStorageKeys.WithdrawalFeeDialogDismissed, false)
+    const [binanceAnnouncementDismissed] = useLocalStorage(LocalStorageKeys.BinanceAnnouncementDismissed, false)
 
     useEffect(() => {
         if (y && y > 1) {
@@ -111,7 +111,7 @@ const NavBar = () => {
                 </div>
             </div>
             <div className={'ml-auto flex items-center gap-1 sm:gap-2 sm:ml-0'}>
-                <WithdrawalFeeDialog defaultOpen={!withdrawalFeeDialogDismissed} />
+                <WithdrawalFeeDialog defaultOpen={!binanceAnnouncementDismissed} />
                 <div className={'hidden sm:block'}>
                     <Feedback />
                 </div>

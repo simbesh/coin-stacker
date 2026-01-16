@@ -4,6 +4,7 @@ export enum LocalStorageKeys {
     EnabledExchanges = 'cs-user-enabled-exchanges-v2',
     IncludeWithdrawalFees = 'cs-include-withdrawal-fees-v2',
     WithdrawalFeeDialogDismissed = 'cs-withdrawal-fee-dialog-dismissed',
+    BinanceAnnouncementDismissed = 'cs-binance-announcement-dismissed',
 }
 
 export const getAfiliateOrTradeUrl = (exchange: string, base: string, quote: string) => {
@@ -48,15 +49,13 @@ const tradeUrl = (exchange: string, base: string, quote: string) => {
 const affiliateUrl = (exchange: string, base: string, quote: string) => {
     switch (exchange) {
         case 'binance':
-            return `https://www.binance.com/en/trade/${base}_${quote}?ref=123456`
+            return `https://accounts.binance.com/register?ref=169715195`
         case 'coinjar':
             return `https://cjr.io/ASfU`
         case 'btcmarkets':
             return `https://app.btcmarkets.net/buy-sell?market=${base}-${quote}`
         case 'independentreserve':
             return `https://portal.independentreserve.com/invite/BTMGWY`
-        // case "Binance":
-        //     return `https://www.binance.com/en/trade/${base}_${quote}`
         case 'coinspot':
             return `https://www.coinspot.com.au?affiliate=8XXR9B`
         // return `https://www.coinspot.com.au/join/REFJTP345`
