@@ -162,6 +162,7 @@ async function getOKXFee(): Promise<Record<string, number>> {
         secret: process.env.OKX_SECRET,
         password: process.env.OKX_PASSWORD,
         timeout: 10000,
+        hostname: 'us.okx.com',
     })
     await exchange.loadMarkets()
 
