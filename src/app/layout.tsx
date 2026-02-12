@@ -5,6 +5,7 @@ import NavBar from '@/components/NavBar'
 import { ThemeProvider } from '@/components/theme-provider'
 import FlickeringGrid from '@/components/ui/flickering-grid'
 import { Analytics } from '@vercel/analytics/react'
+import Link from 'next/link'
 import { Inter } from 'next/font/google'
 import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import { Suspense } from 'react'
@@ -75,10 +76,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                                     <main
                                         id="main"
                                         className={
-                                            'min-h-dvh bg-linear-to-b from-slate-50 to-slate-100 p-2 dark:from-slate-900 dark:to-slate-950'
+                                            'flex min-h-dvh flex-col bg-linear-to-b from-slate-50 to-slate-100 p-2 dark:from-slate-900 dark:to-slate-950'
                                         }
                                     >
                                         {children}
+                                        <footer className="z-20 mt-auto py-4 text-center text-xs text-slate-500">
+                                            <Link href="/privacy" className="hover:text-slate-700 dark:hover:text-slate-300">
+                                                Privacy
+                                            </Link>
+                                        </footer>
                                     </main>
                                 </NuqsAdapter>
                             </PHProvider>

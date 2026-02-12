@@ -83,7 +83,7 @@ const firstRowCellStyle = 'text-green-600 dark:text-green-500'
 
 // Function to get color gradient based on dollar difference
 const getChangeColor = (dif: string | undefined, tableData: TableRowData[]): string => {
-    if (!dif || dif === '-') return 'text-white' // Best price row
+    if (!dif || dif === '-') return 'text-foreground' // Best price row
 
     // Parse current dollar value
     const match = dif.match(/([+-]?)\$?([\d,]+\.?\d*)/)
@@ -284,7 +284,7 @@ const PriceLookupTable: React.FC<PriceLookupTableProps> = memo(
                                         i === 0 && firstRowCellStyle
                                     )}
                                 >
-                                    <div className="absolute inset-0 bg-slate-950 -z-10" />
+                                    <div className="absolute inset-0 bg-background -z-10" />
                                     <div
                                         className={cn('absolute inset-0 -z-0', {
                                             'border-green-500/30 dark:bg-green-950/30 bg-green-50/30':
@@ -531,7 +531,7 @@ const PriceLookupTable: React.FC<PriceLookupTableProps> = memo(
                                         )
                                     )}
                                 </TableCell>
-                                <TableCell className={cn('text-right', i === 0 ? 'text-white' : memoizedColors[i])}>
+                                <TableCell className={cn('text-right', i === 0 ? 'text-foreground' : memoizedColors[i])}>
                                     <div className="flex flex-col items-end">
                                         <div>{row.dif}</div>
                                         <div className="text-xs opacity-75">{row.pctDif}</div>
@@ -551,7 +551,7 @@ const PriceLookupTable: React.FC<PriceLookupTableProps> = memo(
                                             isStickyEnabled && 'sticky left-0 z-10'
                                         )}
                                     >
-                                        <div className="absolute inset-0 bg-slate-950 -z-10" />
+                                        <div className="absolute inset-0 bg-background -z-10" />
                                         <div className="absolute inset-0 bg-red-700/20 -z-0" />
                                         <a
                                             href={getExchangeUrl(name, coin, quote)}
