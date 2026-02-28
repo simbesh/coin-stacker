@@ -25,6 +25,8 @@ const tradeUrl = (exchange: string, base: string, quote: string) => {
             return `https://www.coinspot.com.au/trade/${base}`
         case 'kraken':
             return `https://pro.kraken.com/app/trade/${base}-${quote}`
+        case 'kucoin':
+            return `https://www.kucoin.com/trade/${base}-${quote}`
         case 'luno':
             return `https://www.luno.com/trade/markets/${base}${quote}`
         case 'bitaroo':
@@ -35,10 +37,10 @@ const tradeUrl = (exchange: string, base: string, quote: string) => {
             return 'https://coinstash.com.au/trade'
         case 'day1x':
             return 'https://exchange.day1x.io/exchange'
-        case 'pepperstonecrypto':
-            return 'https://pepperstonecrypto.com/trade/'
         case 'wayex':
             return 'https://www.wayex.com/trade'
+        case 'pepperstonecrypto':
+            return 'https://pepperstonecrypto.com/trade/'
         // case 'elbaite':
         //     return 'https://www.elbaite.com/'
         default:

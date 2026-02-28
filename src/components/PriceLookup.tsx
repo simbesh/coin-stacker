@@ -503,12 +503,16 @@ const PriceLookup = () => {
                         quote,
                         side,
                         amount: floatAmount,
-                        omitExchanges: Object.entries(enabledExchanges).reduce((acc: string[], [key, value]) => {
-                            if (!value) {
-                                acc.push(key)
-                            }
-                            return acc
-                        }, []),
+                        omitExchanges: Object.entries(defaultEnabledExchanges).reduce(
+                            (acc: string[], [key, defaultEnabled]) => {
+                                const isEnabled = enabledExchanges[key] ?? defaultEnabled
+                                if (!isEnabled) {
+                                    acc.push(key)
+                                }
+                                return acc
+                            },
+                            []
+                        ),
                     }),
                 })
                 const priceResult = await prices.json()
