@@ -8,7 +8,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { LocalStorageKeys } from '@/lib/constants'
 import { cn } from '@/lib/utils'
 import { useLocalStorage, useWindowScroll } from '@uidotdev/usehooks'
-import { Home, Menu } from 'lucide-react'
+import { Home, LayoutGrid, Menu } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useSelectedLayoutSegment } from 'next/navigation'
@@ -24,13 +24,13 @@ const items = [
         activeSegment: null,
         icon: <Home />,
     },
-    // {
-    //     id: 'nav-link-exchange-fees',
-    //     title: 'Exchange Fees',
-    //     href: '/exchange-fees',
-    //     activeSegment: 'exchange-fees',
-    //     icon: <LineChart />,
-    // },
+    {
+        id: 'nav-link-exchanges',
+        title: 'Exchanges',
+        href: '/exchanges',
+        activeSegment: 'exchanges',
+        icon: <LayoutGrid />,
+    },
 ]
 const defaultNavBackground = 'bg-slate-50/40 dark:bg-slate-900/40 backdrop-blur dark:border dark:border-transparent'
 const NavBar = () => {
