@@ -2,10 +2,11 @@ import { OctagonAlert, PartyPopper, Pin, TrendingUpDown } from 'lucide-react'
 import { InformationIcon } from './ui/information-icon'
 
 export interface FeeTypeProps {
+    className?: string
     type?: 'dynamic' | 'static' | 'unavailable' | 'free'
 }
 
-const FeeType = ({ type }: FeeTypeProps) => {
+const FeeType = ({ type, className }: FeeTypeProps) => {
     if (!type) {
         return null
     }
@@ -40,7 +41,9 @@ const FeeType = ({ type }: FeeTypeProps) => {
 
     const { icon, variant, title, description } = config[type]
 
-    return <InformationIcon description={description} icon={icon} title={title} variant={variant} />
+    return (
+        <InformationIcon className={className} description={description} icon={icon} title={title} variant={variant} />
+    )
 }
 
 export default FeeType

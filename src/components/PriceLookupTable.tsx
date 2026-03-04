@@ -554,8 +554,11 @@ const PriceLookupTable: React.FC<PriceLookupTableProps> = memo(
                                                             row.netPrice,
                                                         )}
                                                     </span>
-                                                    <div className={cn(!includeWithdrawalFees && 'opacity-50')}>
-                                                        <FeeType type={getFeeType(withdrawalFees, row.exchange)} />
+                                                    <div>
+                                                        <FeeType
+                                                            className={cn(!includeWithdrawalFees && 'opacity-50')}
+                                                            type={getFeeType(withdrawalFees, row.exchange)}
+                                                        />
                                                     </div>
                                                 </div>
                                                 <div
