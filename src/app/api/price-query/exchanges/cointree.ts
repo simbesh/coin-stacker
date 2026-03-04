@@ -32,12 +32,14 @@ export const getCointreeMockOrderBook: ExchangeHandler = async (
         } else {
             price = side === 'sell' ? 1 / json.ask : 1 / json.bid
         }
-        const key = side === 'buy' ? 'asks' : 'bids'
         if (amount && price * Number(amount) < liquidityLimit) {
             const orderLevel: OrderBookLevel = [price, Number(amount)]
+            const asks = side === 'buy' ? [orderLevel] : []
+            const bids = side === 'buy' ? [] : [orderLevel]
+
             return {
-                [key]: [orderLevel],
-                [key === 'asks' ? 'bids' : 'asks']: [],
+                asks,
+                bids,
             }
         }
     }

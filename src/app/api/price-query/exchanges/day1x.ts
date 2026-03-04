@@ -41,11 +41,11 @@ export const getDay1xOrderBook: ExchangeHandler = async (base: string, quote: st
     }
 }
 
-export const getDay1xOrderBookSocket: ExchangeHandler = (base: string, quote: string) => {
+export const getDay1xOrderBookSocket = (base: string, quote: string): Promise<OrderBook> => {
     return requestDay1xSocketOrderbook(`${base}/${quote}`)
 }
 
-const getDay1xOrderBookRest: ExchangeHandler = async (base: string, quote: string) => {
+const getDay1xOrderBookRest = async (base: string, quote: string): Promise<OrderBook> => {
     const market = `${base}/${quote}`
     const url = `${DAY1X_REST_ORDERBOOK_URL}/${base}-${quote}`
     logDay1xRest('requesting REST orderbook', { market, url })

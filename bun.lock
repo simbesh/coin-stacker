@@ -48,7 +48,6 @@
         "@biomejs/biome": "2.4.0",
         "@tailwindcss/postcss": "^4.1.12",
         "@types/echarts": "^4.9.22",
-        "@types/eslint": "^8.56.2",
         "@types/lodash": "^4.14.202",
         "@types/node": "^18.16.0",
         "@types/react": "19.1.10",

@@ -46,7 +46,6 @@ const CredenzaContext = React.createContext<{ isMobile: boolean }>({
 
 const useCredenzaContext = () => {
     const context = React.useContext(CredenzaContext)
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (context === undefined) {
         throw new Error('Credenza components cannot be rendered outside the Credenza Context')
     }

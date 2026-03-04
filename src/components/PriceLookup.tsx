@@ -149,9 +149,9 @@ const PriceLookup = () => {
         }
         const medianFee = median(allFees)
         if (medianFee !== undefined) {
-            for (const [exchange, data] of Object.entries(newWithdrawalFees)) {
+            for (const data of Object.values(newWithdrawalFees)) {
                 if (data.feeType === undefined) {
-                    newWithdrawalFees[exchange]?.fees[coin] = medianFee
+                    data.fees[coin] = medianFee
                 }
             }
         }

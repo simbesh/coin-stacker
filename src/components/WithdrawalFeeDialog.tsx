@@ -61,7 +61,7 @@ const WithdrawalFeeCredenza = ({ defaultOpen }: WithdrawalFeeCredenzaProps) => {
             >
                 <CredenzaHeader className="space-y-4 px-0 sm:px-4">
                     <div className="flex items-center gap-2">
-                        <ExchangeIcon exchange="binance" size={24} />
+                        <ExchangeIcon exchange="binance" imageClassName="size-6" />
                         <CredenzaTitle className="mx-auto block text-lg sm:hidden">New: Binance</CredenzaTitle>
                         <CredenzaTitle className="hidden text-xl sm:block">Binance Added!</CredenzaTitle>
                         <Badge

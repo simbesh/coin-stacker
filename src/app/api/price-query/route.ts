@@ -28,8 +28,9 @@ export async function POST(request: Request): Promise<NextResponse<PriceQueryRes
     const data: PriceQueryRequestBody = await request.json()
     const { fees = {}, base, quote, side, amount, omitExchanges = [] } = data
     const errors: PriceQueryError[] = []
-    let best: ReturnType<typeof getBestOrders>['sortedBests']
+    let best: ReturnType<typeof getBestOrders>['sortedBests'] | undefined
     if (base && quote && amount !== undefined && (side === 'buy' || side === 'sell')) {
+        const amountValue = typeof amount === 'number' ? amount.toString() : amount
         const userOmittedExchanges = new Set(Array.isArray(omitExchanges) ? omitExchanges : [])
         const remoteDisabledExchanges = await getRemoteDisabledExchanges(supportedExchanges)
         const remoteDisabledExchangeIds = new Set(remoteDisabledExchanges.map(({ id }) => id))
@@ -37,7 +38,7 @@ export async function POST(request: Request): Promise<NextResponse<PriceQueryRes
             (exchange) => !(userOmittedExchanges.has(exchange) || remoteDisabledExchangeIds.has(exchange)),
         )
         const promises = exchanges.map((exchange) =>
-            orderbookMethods[exchange]?.(base, quote, side, amount, fees[exchange]),
+            orderbookMethods[exchange]?.(base, quote, side, amountValue, fees[exchange]),
         )
 
         const orderbooks: Record<string, { value?: ExchangeResult; error?: unknown }> = {}
@@ -72,7 +73,7 @@ export async function POST(request: Request): Promise<NextResponse<PriceQueryRes
 
         const { sortedBests, orderbookErrors } = getBestOrders(
             orderbooks,
-            Number.parseFloat(amount),
+            Number.parseFloat(amountValue),
             fees,
             base,
             quote,

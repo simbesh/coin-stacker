@@ -257,9 +257,16 @@ export function getBestOrders(
             'error' in orderbook.value ||
             orderbook.value[side === 'buy' ? 'asks' : 'bids']?.flat().includes(Number.NaN)
         ) {
+            let errorName = 'could not get price'
+            if (orderbook.error instanceof Error) {
+                errorName = orderbook.error.message
+            } else if (typeof orderbook.error === 'string') {
+                errorName = orderbook.error
+            }
+
             errors.push({
                 name: exchange,
-                error: { name: orderbook.error ?? 'could not get price' },
+                error: { name: errorName },
             })
             continue
         }

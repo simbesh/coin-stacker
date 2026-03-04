@@ -1,7 +1,7 @@
 'use client'
 
 import { useLocalStorage } from '@uidotdev/usehooks'
-import { useState } from 'react'
+import { type ComponentProps, useState } from 'react'
 import { Area, AreaChart, Brush, Legend, ResponsiveContainer, Tooltip, type TooltipProps, XAxis, YAxis } from 'recharts'
 import { LocalStorageKeys } from '@/lib/constants'
 import { cn, currencyFormat, defaultEnabledExchanges } from '@/lib/utils'
@@ -11,9 +11,7 @@ interface FeeSeriesPoint {
     [key: string]: number
 }
 
-interface LegendEvent {
-    dataKey?: string
-}
+type LegendEvent = Parameters<NonNullable<ComponentProps<typeof Legend>['onClick']>>[0]
 const ir = [
     [0, 0.5],
     [50_000, 0.48],
@@ -318,13 +316,25 @@ const FeesChart = () => {
         ),
     )
 
+    const getLegendDataKey = (event: LegendEvent): string | undefined => {
+        if (typeof event.dataKey === 'string') {
+            return event.dataKey
+        }
+
+        return undefined
+    }
+
     const handleLegendMouseEnter = (event: LegendEvent) => {
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        const dataKey = getLegendDataKey(event)
+        if (!dataKey) {
+            return
+        }
+
         if (navigator.vibrate) {
             navigator.vibrate(75)
         }
-        if (event.dataKey && !seriesProps[event.dataKey]) {
-            setSeriesProps({ ...seriesProps, hover: event.dataKey })
+        if (!seriesProps[dataKey]) {
+            setSeriesProps({ ...seriesProps, hover: dataKey })
         }
     }
 
@@ -333,13 +343,14 @@ const FeesChart = () => {
     }
 
     const selectSeries = (event: LegendEvent) => {
-        if (!event.dataKey) {
+        const dataKey = getLegendDataKey(event)
+        if (!dataKey) {
             return
         }
 
         setSeriesProps({
             ...seriesProps,
-            [event.dataKey]: !seriesProps[event.dataKey],
+            [dataKey]: !seriesProps[dataKey],
             hover: undefined,
         })
     }
