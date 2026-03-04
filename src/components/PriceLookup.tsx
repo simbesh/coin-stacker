@@ -87,6 +87,94 @@ function calculateTotalWithWithdrawalFees(
     return totalIncFees
 }
 
+function filterPriceOutliers(prices: number[]): number[] {
+    if (prices.length === 0) {
+        return []
+    }
+
+    // Calculate median
+    const sortedPrices = [...prices].sort((a, b) => a - b)
+    const mid = Math.floor(sortedPrices.length / 2)
+    const lowerMid = sortedPrices[mid - 1]
+    const upperMid = sortedPrices[mid]
+    const medianPrice =
+        sortedPrices.length % 2 === 0 && lowerMid !== undefined && upperMid !== undefined
+            ? (lowerMid + upperMid) / 2
+            : upperMid
+
+    if (typeof medianPrice !== 'number') {
+        return prices
+    }
+
+    // Filter prices within threshold bounds (plus/minus 10% from median)
+    const lowerBound = medianPrice * 0.9
+    const upperBound = medianPrice * 1.1
+    return prices.filter((price) => price >= lowerBound && price <= upperBound)
+}
+
+function getComparableCost(
+    result: PriceQueryResult & { totalIncFees?: number },
+    includeWithdrawalFees: boolean,
+): number {
+    if (includeWithdrawalFees) {
+        return result.totalIncFees ?? result.netCost
+    }
+
+    return result.netCost
+}
+
+function getDifPct(
+    bests: (PriceQueryResult & { totalIncFees?: number })[],
+    i: number,
+    options: {
+        includeWithdrawalFees: boolean
+        side: 'buy' | 'sell'
+    },
+): string {
+    if (i === 0) {
+        return '-'
+    }
+
+    const best = bests[0]
+    const current = bests[i]
+    if (!(best && current)) {
+        return '-'
+    }
+
+    const bestCost = getComparableCost(best, options.includeWithdrawalFees)
+    const currentCost = getComparableCost(current, options.includeWithdrawalFees)
+    const pct = currentCost / bestCost - 1
+    const prefix = options.side === 'buy' ? '+' : '-'
+
+    return `${prefix}${round(Math.abs(pct * 100), 2)}%`
+}
+
+function getDif(
+    bests: (PriceQueryResult & { totalIncFees?: number })[],
+    i: number,
+    options: {
+        includeWithdrawalFees: boolean
+        side: 'buy' | 'sell'
+    },
+): string {
+    if (i === 0) {
+        return '-'
+    }
+
+    const best = bests[0]
+    const current = bests[i]
+    if (!(best && current)) {
+        return '-'
+    }
+
+    const bestCost = getComparableCost(best, options.includeWithdrawalFees)
+    const currentCost = getComparableCost(current, options.includeWithdrawalFees)
+    const dif = currentCost - bestCost
+    const prefix = options.side === 'buy' ? '+' : ''
+
+    return `${prefix}${currencyFormat(dif)}`
+}
+
 const quickSelectCoins = ['BTC', 'ETH', 'SOL', 'USDC', 'USDT']
 
 const WAYEX_BANNER_KEY = 'wayex-banner-state'
@@ -122,7 +210,7 @@ const PriceLookup = () => {
         errors: { name: string; error: { name?: string } }[]
     }>({ best: [], errors: [] })
     const [resultInput, setResultInput] = useState<PriceQueryParams | undefined>(DEBUG ? mockQuery : undefined)
-    const [history, setHistory] = useLocalStorage<PriceQueryParams[]>(LocalStorageKeys.PriceQueryHistory, [])
+    const [, setHistory] = useLocalStorage<PriceQueryParams[]>(LocalStorageKeys.PriceQueryHistory, [])
     const [fees, setFees] = useLocalStorage<Record<string, number>>(LocalStorageKeys.ExchangeFees, defaultExchangeFees)
     const [bestAvgPrice, setBestAvgPrice] = useState<number>()
     const [tableData, setTableData] = useState<
@@ -135,6 +223,7 @@ const PriceLookup = () => {
     const [tryUpdateFees, setTryUpdateFees] = useState(false)
     const [withdrawalFees, setWithdrawalFees] = useState<Record<string, WithdrawalFees>>({})
     const summaryTabRef = useRef<HTMLDivElement>(null)
+    const lastAutoFetchKeyRef = useRef<string | null>(null)
     const [loadingWithdrawalFees, setLoadingWithdrawalFees] = useState<Record<string, boolean>>({})
     const fetchedWithdrawalFeesRef = useRef<Set<string>>(new Set())
     const [finalWithdrawalFees, setFinalWithdrawalFees] = useState<Record<string, WithdrawalFees>>({})
@@ -202,6 +291,8 @@ const PriceLookup = () => {
         firstView: null,
     })
 
+    const getPrices = useCallback(getPricesImpl, [enabledExchanges, fees, quote, setHistory])
+
     const handleKeyPress = useCallback(
         (e: KeyboardEvent) => {
             if (e.key === 'Enter' && localAmountRef.current && localCoin && !isLoading) {
@@ -236,10 +327,20 @@ const PriceLookup = () => {
     }, [coin])
 
     useEffect(() => {
-        if (coin && amount) {
-            getPrices({ side, amount, coin })
+        if (!(coin && amount)) {
+            lastAutoFetchKeyRef.current = null
+            return
         }
-    }, [amount, coin, getPrices, side])
+
+        const autoFetchKey = `${side}|${amount}|${coin}|${quote}`
+        if (lastAutoFetchKeyRef.current === autoFetchKey) {
+            return
+        }
+
+        lastAutoFetchKeyRef.current = autoFetchKey
+
+        getPrices({ side, amount, coin })
+    }, [amount, coin, getPrices, quote, side])
 
     useEffect(() => {
         const newFees = { ...fees }
@@ -252,6 +353,7 @@ const PriceLookup = () => {
 
     useEffect(() => {
         if (priceQueryResult.best.length > 0) {
+            const resultSide = resultInput?.side ?? side
             if (side === 'buy') {
                 const lowestAvgPrice = priceQueryResult.best.reduce(
                     (min, obj) => Math.min(min, obj.grossAveragePrice),
@@ -305,24 +407,24 @@ const PriceLookup = () => {
 
             const data = resultsWithWithdrawalFees.map((best, i) => ({
                 ...best,
-                dif: getDif(resultsWithWithdrawalFees, i),
-                pctDif: getDifPct(resultsWithWithdrawalFees, i) as string,
+                dif: getDif(resultsWithWithdrawalFees, i, {
+                    includeWithdrawalFees,
+                    side: resultSide,
+                }),
+                pctDif: getDifPct(resultsWithWithdrawalFees, i, {
+                    includeWithdrawalFees,
+                    side: resultSide,
+                }),
                 filteredReason: removedOutliers.includes(best.grossAveragePrice)
                     ? undefined
-                    : `Price outlier: ${getDifPct(resultsWithWithdrawalFees, i)}`,
+                    : `Price outlier: ${getDifPct(resultsWithWithdrawalFees, i, {
+                          includeWithdrawalFees,
+                          side: resultSide,
+                      })}`,
             }))
             setTableData(data)
         }
-    }, [
-        priceQueryResult.best,
-        includeWithdrawalFees,
-        coin,
-        side,
-        filterPriceOutliers,
-        finalWithdrawalFees,
-        getDif,
-        getDifPct,
-    ])
+    }, [priceQueryResult.best, includeWithdrawalFees, coin, side, finalWithdrawalFees, resultInput])
 
     // Fetch withdrawal fees when price results change
     useEffect(() => {
@@ -355,34 +457,7 @@ const PriceLookup = () => {
         }
     }, [priceQueryResult.best, coin, fetchWithdrawalFees])
 
-    function filterPriceOutliers(prices: number[]) {
-        if (prices.length === 0) {
-            return []
-        }
-
-        // Calculate median
-        const sortedPrices = [...prices].sort((a, b) => a - b)
-        const mid = Math.floor(sortedPrices.length / 2)
-        const lowerMid = sortedPrices[mid - 1]
-        const upperMid = sortedPrices[mid]
-        const median =
-            sortedPrices.length % 2 === 0 && lowerMid !== undefined && upperMid !== undefined
-                ? (lowerMid + upperMid) / 2
-                : upperMid
-
-        if (typeof median !== 'number') {
-            return prices
-        }
-
-        // Calculate threshold bounds (±10% from median)
-        const lowerBound = median * 0.9
-        const upperBound = median * 1.1
-
-        // Filter prices within bounds
-        return prices.filter((price) => price >= lowerBound && price <= upperBound)
-    }
-
-    async function getPrices({ side, amount, coin }: PriceQueryParams) {
+    async function getPricesImpl({ side, amount, coin }: PriceQueryParams) {
         if (!amount) {
             return
         }
@@ -397,21 +472,22 @@ const PriceLookup = () => {
         }
         posthog.capture('price-lookup', data)
 
-        function addToHistory(data: PriceQueryParams) {
-            const exists = history.find((h) => h.coin === data.coin && h.side === data.side && h.amount && data.amount)
-            let tempHistory: PriceQueryParams[]
-            if (exists) {
-                tempHistory = [
-                    data,
-                    ...history.filter((h) => h.coin !== data.coin || h.side !== data.side || h.amount !== data.amount),
-                ]
-            } else {
-                tempHistory = [data, ...history]
+        setHistory((prev) => {
+            const latest = prev[0]
+            if (latest?.coin === coin && latest.side === side && latest.amount === amount && latest.quote === quote) {
+                return prev
             }
-            setHistory(tempHistory.slice(0, 6))
-        }
 
-        addToHistory({ quote, side, amount, coin })
+            const exists = prev.find((h) => h.coin === coin && h.side === side && h.amount === amount)
+            const nextHistory = exists
+                ? [
+                      { quote, side, amount, coin },
+                      ...prev.filter((h) => h.coin !== coin || h.side !== side || h.amount !== amount),
+                  ]
+                : [{ quote, side, amount, coin }, ...prev]
+
+            return nextHistory.slice(0, 6)
+        })
         setIsLoading(true)
         try {
             if (DEBUG) {
@@ -452,45 +528,6 @@ const PriceLookup = () => {
         setIsLoading(false)
     }
 
-    function getDif(bests: (PriceQueryResult & { totalIncFees?: number })[], i: number): string {
-        if (i !== 0) {
-            const best = bests[0]
-            const current = bests[i]
-            let dif = 0
-            if (current && best) {
-                const bestCost = includeWithdrawalFees ? (best.totalIncFees ?? best.netCost) : best.netCost
-                const currentCost = includeWithdrawalFees ? (current.totalIncFees ?? current.netCost) : current.netCost
-                dif = currentCost - bestCost
-            }
-            return (resultInput?.side === 'buy' ? '+' : '') + currencyFormat(dif)
-        }
-        return '-'
-    }
-
-    function getDifPct(
-        bests: (PriceQueryResult & { totalIncFees?: number })[],
-        i: number,
-        format = true,
-    ): string | number {
-        if (i !== 0) {
-            const best = bests[0]
-            const current = bests[i]
-            let pct = 0
-            if (current && best) {
-                const bestCost = includeWithdrawalFees ? (best.totalIncFees ?? best.netCost) : best.netCost
-                const currentCost = includeWithdrawalFees ? (current.totalIncFees ?? current.netCost) : current.netCost
-                pct = currentCost / bestCost - 1
-            }
-            if (!format) {
-                return pct
-            }
-
-            const prefix = resultInput?.side === 'buy' ? '+' : '-'
-            return `${prefix}${round(Math.abs(pct * 100), 2)}%`
-        }
-        return '-'
-    }
-
     function handleHistoryClick(data: PriceQueryParams) {
         if (!isLoading) {
             setSide(data.side)
@@ -509,17 +546,27 @@ const PriceLookup = () => {
     const submitDisabled = useMemo(() => !(localAmount && localCoin) || isLoading, [localAmount, localCoin, isLoading])
 
     // Check if banner should be shown
+    useEffect(() => {
+        if (!(wayexBannerState.dismissed || wayexBannerState.firstView)) {
+            setWayexBannerState((prev) => {
+                if (prev.firstView) {
+                    return prev
+                }
+
+                return {
+                    ...prev,
+                    firstView: new Date().toISOString(),
+                }
+            })
+        }
+    }, [wayexBannerState.dismissed, wayexBannerState.firstView, setWayexBannerState])
+
     const showWayexBanner = useMemo(() => {
         if (wayexBannerState.dismissed) {
             return false
         }
 
         if (!wayexBannerState.firstView) {
-            // First time viewing - set the timestamp
-            setWayexBannerState((prev) => ({
-                ...prev,
-                firstView: new Date().toISOString(),
-            }))
             return true
         }
 
@@ -527,10 +574,7 @@ const PriceLookup = () => {
         const daysSinceFirstView = differenceInDays(new Date(), new Date(wayexBannerState.firstView))
         const isBeforeNovember2025 = new Date() < new Date('2025-11-01')
         return daysSinceFirstView < BANNER_EXPIRY_DAYS && isBeforeNovember2025
-    }, [
-        wayexBannerState, // First time viewing - set the timestamp
-        setWayexBannerState,
-    ])
+    }, [wayexBannerState.dismissed, wayexBannerState.firstView])
 
     const handleDismissBanner = () => {
         setWayexBannerState((prev) => ({
