@@ -4,7 +4,7 @@
   "repo": "https://github.com/simbesh/coin-stacker",
   "scripts": {
     "build": "next build",
-    "dev": "next dev --turbopack",
+    "dev": "next dev --turbopack --port 3050",
     "scan": "next dev & npx react-scan@latest localhost:3000",
     "start": "next start",
     "check": "next lint --quiet --fix && tsc --noEmit"

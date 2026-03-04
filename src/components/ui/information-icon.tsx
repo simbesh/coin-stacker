@@ -93,8 +93,8 @@ const InformationIcon = React.forwardRef<HTMLDivElement, InformationIconProps>(
         return (
             <div className="group flex items-center">
                 <HybridTooltip>
-                    <HybridTooltipTrigger>{content}</HybridTooltipTrigger>
-                    <HybridTooltipContent>
+                    <HybridTooltipTrigger className="opacity-100">{content}</HybridTooltipTrigger>
+                    <HybridTooltipContent className="opacity-100">
                         {title && (
                             <div className="flex items-center gap-2 justify-center">
                                 <Icon className={cn(iconColorVariants({ variant, size }))} />

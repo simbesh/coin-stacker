@@ -21,8 +21,6 @@ const tradeUrl = (exchange: string, base: string, quote: string) => {
             return `https://portal.independentreserve.com/buy/${base}`
         // case "Binance":
         //     return `https://www.binance.com/en/trade/${base}_${quote}`
-        case 'coinjar':
-            return 'https://exchange.coinjar.com/trade'
         case 'coinspot':
             return `https://www.coinspot.com.au/trade/${base}`
         case 'kraken':

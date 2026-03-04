@@ -166,7 +166,8 @@ export function parseCsOrderBook(data: CsOrderBookResponseOk): any {
     const asks: [number, number][] = data.sellorders.map(({ rate, amount }) => [rate, amount])
     const timestamp = Date.now()
 
-    let bidLevel, askLevel
+    let bidLevel: [number, number] | undefined
+    let askLevel: [number, number] | undefined
     // remove orders assumed to be matched ie: bid[0] > ask[0]
     if (bids[0] && asks[0] && bids[0][0] >= asks[0][0]) {
         for (let i = 0; i < bids.length; i++) {

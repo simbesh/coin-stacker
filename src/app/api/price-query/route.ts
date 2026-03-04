@@ -8,7 +8,7 @@ export async function POST(request: Request): Promise<NextResponse<any>> {
     const data = await request.json()
     const { fees = {}, base, quote, side, amount, omitExchanges = [] } = data
     const errors: Record<string, any>[] = []
-    let best
+    let best: unknown
     if (base && quote && amount && side) {
         const userOmittedExchanges = new Set(Array.isArray(omitExchanges) ? omitExchanges : [])
         const remoteDisabledExchanges = await getRemoteDisabledExchanges(supportedExchanges)

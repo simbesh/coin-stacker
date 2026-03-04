@@ -236,6 +236,7 @@ const PriceLookupTable: React.FC<PriceLookupTableProps> = memo(
                                     key={header.id}
                                     className={cn(
                                         header.className,
+                                        header.id === 'withdrawalFee' && !includeWithdrawalFees && 'opacity-50',
                                         index === 0 && isStickyEnabled && 'sticky left-0 z-10 bg-background'
                                     )}
                                 >
@@ -268,7 +269,7 @@ const PriceLookupTable: React.FC<PriceLookupTableProps> = memo(
                     <TableBody className={cn('font-semibold', isLoading && 'opacity-30')}>
                         {tableData.map((row, i) => (
                             <TableRow
-                                key={row.exchange + '_row_' + i}
+                                key={`${row.exchange}_${row.netPrice}_${row.grossAveragePrice}`}
                                 className={cn('border-2 h-full', {
                                     'border-green-500/30 dark:bg-green-950/30 bg-green-50/30': i === 0 && isLoading,
                                     'border-green-400 dark:border-green-900 dark:bg-linear-to-t dark:from-background dark:to-green-900/40 bg-linear-to-t from-white to-green-100/30':
@@ -495,7 +496,7 @@ const PriceLookupTable: React.FC<PriceLookupTableProps> = memo(
                                     {/* <HybridTooltip>
                                     <HybridTooltipTrigger className={'cursor-help'}> */}
                                     {loadingWithdrawalFees[row.exchange] ? (
-                                        <Spinner className="mx-auto" />
+                                        <Spinner className={cn('mx-auto', !includeWithdrawalFees && 'opacity-50')} />
                                     ) : (
                                         resultInput && (
                                             <div
@@ -511,15 +512,24 @@ const PriceLookupTable: React.FC<PriceLookupTableProps> = memo(
                                                             'text-red-500'
                                                     )}
                                                 >
-                                                    {getWithdrawalFeeAUD(
-                                                        withdrawalFees,
-                                                        row.exchange,
-                                                        resultInput.coin,
-                                                        row.netPrice
-                                                    )}
-                                                    <FeeType type={getFeeType(withdrawalFees, row.exchange)} />
+                                                    <span className={cn(!includeWithdrawalFees && 'opacity-50')}>
+                                                        {getWithdrawalFeeAUD(
+                                                            withdrawalFees,
+                                                            row.exchange,
+                                                            resultInput.coin,
+                                                            row.netPrice
+                                                        )}
+                                                    </span>
+                                                    <div className={cn(!includeWithdrawalFees && 'opacity-50')}>
+                                                        <FeeType type={getFeeType(withdrawalFees, row.exchange)} />
+                                                    </div>
                                                 </div>
-                                                <div className="text-xs text-muted-foreground flex items-center gap-1 whitespace-nowrap justify-end font-light">
+                                                <div
+                                                    className={cn(
+                                                        'text-xs text-muted-foreground flex items-center gap-1 whitespace-nowrap justify-end font-light',
+                                                        !includeWithdrawalFees && 'opacity-50'
+                                                    )}
+                                                >
                                                     {getWithdrawalFeeDisplay(
                                                         withdrawalFees,
                                                         row.exchange,
@@ -531,7 +541,9 @@ const PriceLookupTable: React.FC<PriceLookupTableProps> = memo(
                                         )
                                     )}
                                 </TableCell>
-                                <TableCell className={cn('text-right', i === 0 ? 'text-foreground' : memoizedColors[i])}>
+                                <TableCell
+                                    className={cn('text-right', i === 0 ? 'text-foreground' : memoizedColors[i])}
+                                >
                                     <div className="flex flex-col items-end">
                                         <div>{row.dif}</div>
                                         <div className="text-xs opacity-75">{row.pctDif}</div>
@@ -589,7 +601,7 @@ const PriceLookupTable: React.FC<PriceLookupTableProps> = memo(
                                     </TableCell>
                                     <TableCell
                                         className={'text-left text-red-600 dark:text-red-400 lg:pl-16 md:pl-8 pl-4'}
-                                        colSpan={4}
+                                        colSpan={5}
                                     >
                                         {error.name ?? error.toString()}
                                     </TableCell>
