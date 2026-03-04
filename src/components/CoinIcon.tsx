@@ -30,22 +30,19 @@ const getCoin = (market: string) => {
 const Coin = ({ symbol, className }: { symbol: string; className?: string }) => {
     const currency = getCoin(symbol)
     const exists = assetsManifest.find((asset: Asset) => asset.symbol === currency)
+    const overrideIcon = symbolOverride[currency]
+
+    let icon: StaticImport | string = generic
+    if (overrideIcon !== undefined) {
+        icon = overrideIcon
+    } else if (exists) {
+        icon = require(`cryptocurrency-icons/svg/color/${currency.toLowerCase()}.svg`) as StaticImport
+    }
+
     return (
         <div className={cn('size-5', className)}>
             <div className={cn('size-5', className)}>
-                {currency in symbolOverride ? (
-                    <Image alt={currency} height={24} src={symbolOverride[currency] as StaticImport} width={24} />
-                ) : exists ? (
-                    <Image
-                        alt={currency}
-                        height={24}
-                        src={require(`cryptocurrency-icons/svg/color/${currency.toLowerCase()}.svg`)}
-                        title={currency}
-                        width={24}
-                    />
-                ) : (
-                    <Image alt={currency} height={24} src={generic} width={24} />
-                )}
+                <Image alt={currency} height={24} src={icon} title={currency} width={24} />
             </div>
         </div>
     )

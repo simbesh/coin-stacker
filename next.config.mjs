@@ -6,7 +6,7 @@ import { withSentryConfig } from '@sentry/nextjs'
  */
 await import('./src/env.mjs')
 
-import child_process from 'child_process'
+import child_process from 'node:child_process'
 import pkg from './package.json' with { type: 'json' }
 
 // starts a command line process to get the git hash

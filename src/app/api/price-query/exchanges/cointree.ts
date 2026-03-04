@@ -1,5 +1,5 @@
 import type { CointreeQuotes } from '@/types/types'
-import type { ExchangeHandler } from '../types'
+import type { ExchangeHandler, OrderBookLevel } from '../types'
 
 const cointreeOrderLimit: Record<string, number> = {
     AUD: 52_500,
@@ -26,7 +26,7 @@ export const getCointreeMockOrderBook: ExchangeHandler = async (
         })
 
         const json: CointreeQuotes = await res.json()
-        let price
+        let price: number
         if (quote === 'AUD') {
             price = side === 'buy' ? json.ask : json.bid
         } else {
@@ -34,10 +34,11 @@ export const getCointreeMockOrderBook: ExchangeHandler = async (
         }
         const key = side === 'buy' ? 'asks' : 'bids'
         if (amount && price * Number(amount) < liquidityLimit) {
+            const orderLevel: OrderBookLevel = [price, Number(amount)]
             return {
-                [key]: [[price, Number(amount)]],
+                [key]: [orderLevel],
                 [key === 'asks' ? 'bids' : 'asks']: [],
-            } as any
+            }
         }
     }
 }

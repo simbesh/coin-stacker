@@ -2,9 +2,9 @@
 // The config you add here will be used whenever the server handles a request.
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
-import * as Sentry from '@sentry/nextjs'
+import { init } from '@sentry/nextjs'
 
-Sentry.init({
+init({
     dsn: 'https://2985db5e61626a93fbfd3a168ba67fb0@o254984.ingest.us.sentry.io/4507813445435392',
     enabled: process.env.NODE_ENV === 'production',
 

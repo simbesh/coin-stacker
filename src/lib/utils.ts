@@ -1,7 +1,12 @@
-import { BrOrderBookResponse, CjOrderBookResponse, CsOrderBookResponseOk, D1OrderBookResponse } from '@/types/types'
 import { type ClassValue, clsx } from 'clsx'
 import { round } from 'lodash'
 import { twMerge } from 'tailwind-merge'
+import type {
+    BrOrderBookResponse,
+    CjOrderBookResponse,
+    CsOrderBookResponseOk,
+    D1OrderBookResponse,
+} from '@/types/types'
 
 export const OLD_KRAKEN_TAKER_FEE = 0.0026
 
@@ -11,7 +16,7 @@ export function cn(...inputs: ClassValue[]) {
 
 const stableCoins = ['USDT', 'USDC']
 const stableBaseFeeOverride: Record<string, number> = {
-    coinjar: 0.00001,
+    coinjar: 0.000_01,
     kraken: 0.002,
 }
 const stableQuoteFeeOverride: Record<string, number> = {
@@ -34,6 +39,7 @@ const formattedExchangeNames: Record<string, string> = {
     okx: 'OKX',
     hardblock: 'HardBlock',
     day1x: 'Day1x',
+    pepperstonecrypto: 'Pepperstone Crypto',
     wayex: 'Wayex',
     // elbaite: 'Elbaite',
 }
@@ -54,6 +60,7 @@ export const exchangeTypes: Record<string, 'orderbook' | 'broker'> = {
     okx: 'orderbook',
     hardblock: 'broker',
     day1x: 'orderbook',
+    pepperstonecrypto: 'orderbook',
     wayex: 'orderbook',
 }
 
@@ -73,6 +80,7 @@ export const defaultExchangeFees: Record<string, number> = {
     okx: 0.007,
     hardblock: 0,
     day1x: 0.001,
+    pepperstonecrypto: 0.001,
     wayex: 0.004,
     // elbaite: 0.011,
 }
@@ -80,15 +88,15 @@ export const defaultExchangeFees: Record<string, number> = {
 export const overrideDefaultExchangeFees: Record<string, { old: number; new: number }> = {
     okx: {
         old: 0.005,
-        new: defaultExchangeFees['okx']!,
+        new: defaultExchangeFees.okx ?? 0.007,
     },
     day1x: {
         old: 0.0025,
-        new: defaultExchangeFees['day1x']!,
+        new: defaultExchangeFees.day1x ?? 0.001,
     },
     coinstash: {
         old: 0.0085,
-        new: defaultExchangeFees['coinstash']!,
+        new: defaultExchangeFees.coinstash ?? 0.006,
     },
 }
 
@@ -108,6 +116,7 @@ export const defaultEnabledExchanges: Record<string, boolean> = {
     okx: true,
     hardblock: true,
     day1x: true,
+    pepperstonecrypto: true,
     wayex: true,
     // elbaite: true,
 }
@@ -129,21 +138,35 @@ function parseOrderBookStringTuple(tuple: [string, string]): [number, number] {
     return [Number.parseFloat(tuple[0]), Number.parseFloat(tuple[1])]
 }
 
-export function parseBrOrderBook(data: BrOrderBookResponse): any {
+interface ParsedOrderBook {
+    asks: [number, number][]
+    bids: [number, number][]
+    datetime?: string
+    nonce?: number
+    timestamp?: number
+}
+
+interface ParsedOrderBookError {
+    error: string
+}
+
+type OrderBookEntry = ParsedOrderBook | ParsedOrderBookError
+
+export function parseBrOrderBook(data: BrOrderBookResponse): ParsedOrderBook {
     return {
         bids: data.buy.map(({ price, amount }) => parseOrderBookStringTuple([price, amount])) as [number, number][],
         asks: data.sell.map(({ price, amount }) => parseOrderBookStringTuple([price, amount])) as [number, number][],
     }
 }
 
-export function parseD1OrderBook(data: D1OrderBookResponse): any {
+export function parseD1OrderBook(data: D1OrderBookResponse): ParsedOrderBook {
     return {
         bids: data.bids.map(parseOrderBookStringTuple),
         asks: data.asks.map(parseOrderBookStringTuple),
     }
 }
 
-export function parseCjOrderBook(data: CjOrderBookResponse): any {
+export function parseCjOrderBook(data: CjOrderBookResponse): OrderBookEntry {
     // Check if this is an error response
     if ('error_type' in data) {
         return {
@@ -161,7 +184,7 @@ export function parseCjOrderBook(data: CjOrderBookResponse): any {
     }
 }
 
-export function parseCsOrderBook(data: CsOrderBookResponseOk): any {
+export function parseCsOrderBook(data: CsOrderBookResponseOk): ParsedOrderBook {
     const bids: [number, number][] = data.buyorders.map(({ rate, amount }) => [rate, amount])
     const asks: [number, number][] = data.sellorders.map(({ rate, amount }) => [rate, amount])
     const timestamp = Date.now()
@@ -204,18 +227,18 @@ export function parseCsOrderBook(data: CsOrderBookResponseOk): any {
     }
 }
 
-type Best = {
+interface Best {
     exchange: string
-    netCost: number
-    grossPrice: number
-    netPrice: number
-    grossAveragePrice: number
-    fees: number
     feeRate: number
+    fees: number
+    grossAveragePrice: number
+    grossPrice: number
+    netCost: number
+    netPrice: number
 }
 
 export function getBestOrders(
-    orderbooks: Record<string, any>,
+    orderbooks: Record<string, { error?: unknown; value?: OrderBookEntry }>,
     amount: number,
     exchangeFees: Record<string, number>,
     base: string,
@@ -224,13 +247,14 @@ export function getBestOrders(
     currency: string,
 ): { sortedBests: Best[]; orderbookErrors: { name: string; error: { name: string } }[] } {
     let sortedBests: Best[] = []
-    const errors = []
+    const errors: { error: { name: string }; name: string }[] = []
     for (const [exchange, orderbook] of Object.entries(orderbooks)) {
         if (orderbook.error) {
             continue
         }
         if (
             orderbook.value === undefined ||
+            'error' in orderbook.value ||
             orderbook.value[side === 'buy' ? 'asks' : 'bids']?.flat().includes(Number.NaN)
         ) {
             errors.push({
@@ -293,7 +317,13 @@ export function getBestOrders(
 
     sortedBests = sortedBests.sort((a, b) => {
         const sortMultiplier = side === 'buy' ? 1 : -1
-        return a.netCost < b.netCost ? -sortMultiplier : b.netCost < a.netCost ? sortMultiplier : 0
+        if (a.netCost < b.netCost) {
+            return -sortMultiplier
+        }
+        if (b.netCost < a.netCost) {
+            return sortMultiplier
+        }
+        return 0
     })
     return { sortedBests, orderbookErrors: errors }
 }
@@ -344,7 +374,14 @@ export const median = (array: number[]): number | undefined => {
     array.sort((a: number, b: number) => b - a)
     const length = array.length
     if (length % 2 === 0) {
-        return (array[length / 2]! + array[length / 2 - 1]!) / 2
+        const upper = array[length / 2]
+        const lower = array[length / 2 - 1]
+        if (upper === undefined || lower === undefined) {
+            return undefined
+        }
+        return (upper + lower) / 2
     }
-    return array[Math.floor(length / 2)]!
+
+    const middle = array[Math.floor(length / 2)]
+    return middle
 }

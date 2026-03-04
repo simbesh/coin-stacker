@@ -24,8 +24,8 @@ async function tst() {
     console.log(fees)
 
     // Save fees to JSON file
-    const fs = await import('fs/promises')
-    const path = await import('path')
+    const fs = await import('node:fs/promises')
+    const path = await import('node:path')
 
     const outputPath = path.join(process.cwd(), 'data\\coinspot-fees.json')
     console.log(outputPath)
@@ -36,7 +36,7 @@ async function tst() {
 
 tst()
 
-const dummyAddresses = {
+const _dummyAddresses = {
     ETH: '0x0000000000000000000000000000000000000000',
     BTC: '3NqxbRaZyU9hv6wP7Wr5GPHyS5bhNZzFpw',
     XRP: 'r47bGjPxUWEdGmh9XhES4f2FUuDWEhxfbJ|||124',

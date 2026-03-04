@@ -1,4 +1,4 @@
-export type RemoteDisabledExchange = {
+export interface RemoteDisabledExchange {
     id: string
     reason?: string
 }

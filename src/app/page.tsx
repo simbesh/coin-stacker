@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import ClientOnly from '@/components/ClientOnly'
 import GradientText from '@/components/GradientText'
 import PriceLookup from '@/components/PriceLookup'
@@ -9,7 +10,13 @@ export default function HomePage() {
                 <h3 className="text-center font-bold text-3xl sm:text-5xl">
                     <div className={'flex flex-wrap items-center justify-center'}>
                         <div className="flex items-center gap-2 whitespace-nowrap">
-                            <img className="size-8" src="au-flag-32.png" />
+                            <Image
+                                alt="Australian flag"
+                                className="size-8"
+                                height={32}
+                                src="/au-flag-32.png"
+                                width={32}
+                            />
                             <span>Crypto Price</span>
                         </div>
                         <span className="ml-2">Aggregator</span>

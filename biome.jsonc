@@ -18,5 +18,21 @@
       "trailingCommas": "all",
       "quoteStyle": "single"
     }
+  },
+  "linter": {
+    "rules": {
+      "complexity": {
+        "noExcessiveCognitiveComplexity": "off"
+      },
+      "correctness": {
+        "useExhaustiveDependencies": "off"
+      },
+      "performance": {
+        "noNamespaceImport": "off"
+      },
+      "style": {
+        "useFilenamingConvention": "off"
+      }
+    }
   }
 }

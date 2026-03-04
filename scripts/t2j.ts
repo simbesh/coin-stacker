@@ -18,9 +18,9 @@
 // )
 
 //
-const regex = /<span class="text-xs">([A-Z]+)<\/span>/
+const _regex = /<span class="text-xs">([A-Z]+)<\/span>/
 
-function parseNetworkFees(network: string, fee: string) {
+function _parseNetworkFees(network: string, fee: string) {
     const networks = network.split('<br>')
     const fees = fee.split('<br>')
     const result: Record<string, string> = {}

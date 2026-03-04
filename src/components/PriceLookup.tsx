@@ -37,19 +37,54 @@ import { HybridTooltip, HybridTooltipContent, HybridTooltipTrigger } from './ui/
 
 const DEBUG = process.env.NEXT_PUBLIC_MOCK_PRICES === 'true'
 
-export type WithdrawalFees = {
+export interface WithdrawalFees {
     fees: Record<string, number>
     feeType?: 'dynamic' | 'static' | 'unavailable'
 }
 
-type PriceQueryResult = {
+interface PriceQueryResult {
     exchange: string
-    netPrice: number
-    netCost: number
-    grossPrice: number
-    grossAveragePrice: number
-    fees: number
     feeRate: number
+    fees: number
+    grossAveragePrice: number
+    grossPrice: number
+    netCost: number
+    netPrice: number
+}
+
+function calculateTotalWithWithdrawalFees(
+    best: PriceQueryResult,
+    options: {
+        coin: string
+        finalWithdrawalFees: Record<string, WithdrawalFees>
+        includeWithdrawalFees: boolean
+        side: 'buy' | 'sell'
+    },
+): number {
+    const { includeWithdrawalFees, coin, finalWithdrawalFees, side } = options
+    let totalIncFees = best.netCost
+    if (!(includeWithdrawalFees && coin)) {
+        return totalIncFees
+    }
+
+    const exchangeFees = finalWithdrawalFees[best.exchange]
+    if (!exchangeFees) {
+        return totalIncFees
+    }
+
+    const withdrawalFee = exchangeFees.fees[coin] ?? exchangeFees.fees.override
+    if (withdrawalFee === undefined) {
+        return totalIncFees
+    }
+
+    const withdrawalFeeAUD = withdrawalFee * best.netPrice
+    if (side === 'buy') {
+        totalIncFees += withdrawalFeeAUD
+    } else {
+        totalIncFees -= withdrawalFeeAUD
+    }
+
+    return totalIncFees
 }
 
 const quickSelectCoins = ['BTC', 'ETH', 'SOL', 'USDC', 'USDT']
@@ -57,7 +92,7 @@ const quickSelectCoins = ['BTC', 'ETH', 'SOL', 'USDC', 'USDT']
 const WAYEX_BANNER_KEY = 'wayex-banner-state'
 const BANNER_EXPIRY_DAYS = 7
 
-type WayexBannerState = {
+interface WayexBannerState {
     dismissed: boolean
     firstView: string | null
 }
@@ -105,7 +140,7 @@ const PriceLookup = () => {
     const [finalWithdrawalFees, setFinalWithdrawalFees] = useState<Record<string, WithdrawalFees>>({})
 
     useEffect(() => {
-        const allFees = []
+        const allFees: number[] = []
         const newWithdrawalFees = cloneDeep(withdrawalFees)
         for (const data of Object.values(newWithdrawalFees)) {
             if (data.feeType !== undefined && data.fees[coin] !== undefined) {
@@ -115,13 +150,13 @@ const PriceLookup = () => {
         const medianFee = median(allFees)
         if (medianFee !== undefined) {
             for (const [exchange, data] of Object.entries(newWithdrawalFees)) {
-                if (data.feeType == undefined) {
-                    newWithdrawalFees[exchange]!.fees[coin] = medianFee
+                if (data.feeType === undefined) {
+                    newWithdrawalFees[exchange]?.fees[coin] = medianFee
                 }
             }
         }
         setFinalWithdrawalFees(newWithdrawalFees)
-    }, [withdrawalFees, includeWithdrawalFees])
+    }, [withdrawalFees, coin])
 
     // Fetch withdrawal fees from API
     const fetchWithdrawalFees = useCallback(async (exchange: string, currency: string) => {
@@ -156,7 +191,7 @@ const PriceLookup = () => {
                 }))
             }
         }
-    }, [fees])
+    }, [fees, setFees, tryUpdateFees])
 
     const [enabledExchanges] = useLocalStorage<Record<string, boolean>>(
         LocalStorageKeys.EnabledExchanges,
@@ -176,7 +211,7 @@ const PriceLookup = () => {
                 getPrices({ side: localSide, amount: localAmountRef.current, coin: localCoin })
             }
         },
-        [localSide, localCoin, isLoading, setAmount, setSide, setCoin],
+        [localSide, localCoin, isLoading, setAmount, setSide, setCoin, getPrices],
     )
 
     useEffect(() => {
@@ -204,7 +239,7 @@ const PriceLookup = () => {
         if (coin && amount) {
             getPrices({ side, amount, coin })
         }
-    }, [])
+    }, [amount, coin, getPrices, side])
 
     useEffect(() => {
         const newFees = { ...fees }
@@ -213,7 +248,7 @@ const PriceLookup = () => {
             newFees.kraken = Number(defaultExchangeFees.kraken)
             setFees(newFees)
         }
-    }, [fees])
+    }, [fees, setFees])
 
     useEffect(() => {
         if (priceQueryResult.best.length > 0) {
@@ -235,31 +270,15 @@ const PriceLookup = () => {
             )
 
             // Calculate total including withdrawal fees for each result
-            const resultsWithWithdrawalFees = priceQueryResult.best.map((best) => {
-                let totalIncFees = best.netCost
-
-                if (includeWithdrawalFees && coin) {
-                    const exchangeFees = finalWithdrawalFees[best.exchange]
-                    if (exchangeFees) {
-                        const withdrawalFee = exchangeFees.fees[coin] ?? exchangeFees.fees.override
-                        if (withdrawalFee !== undefined) {
-                            const withdrawalFeeAUD = withdrawalFee * best.netPrice
-                            // For buy orders, withdrawal fee is added as a cost
-                            // For sell orders, withdrawal fee is subtracted from the total
-                            if (side === 'buy') {
-                                totalIncFees += withdrawalFeeAUD
-                            } else {
-                                totalIncFees -= withdrawalFeeAUD
-                            }
-                        }
-                    }
-                }
-
-                return {
-                    ...best,
-                    totalIncFees,
-                }
-            })
+            const resultsWithWithdrawalFees = priceQueryResult.best.map((best) => ({
+                ...best,
+                totalIncFees: calculateTotalWithWithdrawalFees(best, {
+                    includeWithdrawalFees,
+                    coin,
+                    finalWithdrawalFees,
+                    side,
+                }),
+            }))
 
             // Sort by totalIncFees when includeWithdrawalFees is true, otherwise by netCost
             const sortField = includeWithdrawalFees ? 'totalIncFees' : 'netCost'
@@ -275,7 +294,13 @@ const PriceLookup = () => {
 
                 // Sort by the appropriate field based on side
                 const sortMultiplier = side === 'buy' ? 1 : -1
-                return a[sortField] < b[sortField] ? -sortMultiplier : b[sortField] < a[sortField] ? sortMultiplier : 0
+                if (a[sortField] < b[sortField]) {
+                    return -sortMultiplier
+                }
+                if (b[sortField] < a[sortField]) {
+                    return sortMultiplier
+                }
+                return 0
             })
 
             const data = resultsWithWithdrawalFees.map((best, i) => ({
@@ -284,11 +309,20 @@ const PriceLookup = () => {
                 pctDif: getDifPct(resultsWithWithdrawalFees, i) as string,
                 filteredReason: removedOutliers.includes(best.grossAveragePrice)
                     ? undefined
-                    : 'Price outlier: ' + getDifPct(resultsWithWithdrawalFees, i),
+                    : `Price outlier: ${getDifPct(resultsWithWithdrawalFees, i)}`,
             }))
             setTableData(data)
         }
-    }, [priceQueryResult.best, includeWithdrawalFees, withdrawalFees, coin, side])
+    }, [
+        priceQueryResult.best,
+        includeWithdrawalFees,
+        coin,
+        side,
+        filterPriceOutliers,
+        finalWithdrawalFees,
+        getDif,
+        getDifPct,
+    ])
 
     // Fetch withdrawal fees when price results change
     useEffect(() => {
@@ -307,11 +341,15 @@ const PriceLookup = () => {
                     ...Object.fromEntries(exchangesToFetch.map((e) => [e, true])),
                 }))
 
-                exchangesToFetch.forEach(async (exchange) => {
-                    const key = `${exchange}-${coin}`
-                    fetchedWithdrawalFeesRef.current.add(key)
-                    await fetchWithdrawalFees(exchange, coin)
-                    setLoadingWithdrawalFees((prev) => ({ ...prev, [exchange]: false }))
+                Promise.all(
+                    exchangesToFetch.map(async (exchange) => {
+                        const key = `${exchange}-${coin}`
+                        fetchedWithdrawalFeesRef.current.add(key)
+                        await fetchWithdrawalFees(exchange, coin)
+                        setLoadingWithdrawalFees((prev) => ({ ...prev, [exchange]: false }))
+                    }),
+                ).catch((error: unknown) => {
+                    console.error('Error fetching withdrawal fees:', error)
                 })
             }
         }
@@ -325,8 +363,12 @@ const PriceLookup = () => {
         // Calculate median
         const sortedPrices = [...prices].sort((a, b) => a - b)
         const mid = Math.floor(sortedPrices.length / 2)
+        const lowerMid = sortedPrices[mid - 1]
+        const upperMid = sortedPrices[mid]
         const median =
-            sortedPrices.length % 2 === 0 ? (sortedPrices[mid - 1]! + sortedPrices[mid]!) / 2 : sortedPrices[mid]
+            sortedPrices.length % 2 === 0 && lowerMid !== undefined && upperMid !== undefined
+                ? (lowerMid + upperMid) / 2
+                : upperMid
 
         if (typeof median !== 'number') {
             return prices
@@ -357,7 +399,7 @@ const PriceLookup = () => {
 
         function addToHistory(data: PriceQueryParams) {
             const exists = history.find((h) => h.coin === data.coin && h.side === data.side && h.amount && data.amount)
-            let tempHistory
+            let tempHistory: PriceQueryParams[]
             if (exists) {
                 tempHistory = [
                     data,
@@ -396,7 +438,9 @@ const PriceLookup = () => {
                 setPriceQueryResult(priceResult)
                 setResultInput({ side, amount, coin, quote })
             }
-        } catch (e) {}
+        } catch (_error) {
+            return
+        }
         // Scroll to the SummaryTab
         setTimeout(() => {
             if (summaryTabRef.current) {
@@ -437,7 +481,12 @@ const PriceLookup = () => {
                 const currentCost = includeWithdrawalFees ? (current.totalIncFees ?? current.netCost) : current.netCost
                 pct = currentCost / bestCost - 1
             }
-            return format ? (resultInput?.side === 'buy' ? '+' : '-') + round(Math.abs(pct * 100), 2) + '%' : pct
+            if (!format) {
+                return pct
+            }
+
+            const prefix = resultInput?.side === 'buy' ? '+' : '-'
+            return `${prefix}${round(Math.abs(pct * 100), 2)}%`
         }
         return '-'
     }
@@ -450,7 +499,9 @@ const PriceLookup = () => {
             setLocalSide(data.side)
             setLocalAmount(data.amount.toString())
             setLocalCoin(data.coin)
-            void getPrices(data)
+            getPrices(data).catch(() => {
+                return
+            })
         }
     }
 
@@ -476,7 +527,10 @@ const PriceLookup = () => {
         const daysSinceFirstView = differenceInDays(new Date(), new Date(wayexBannerState.firstView))
         const isBeforeNovember2025 = new Date() < new Date('2025-11-01')
         return daysSinceFirstView < BANNER_EXPIRY_DAYS && isBeforeNovember2025
-    }, [wayexBannerState])
+    }, [
+        wayexBannerState, // First time viewing - set the timestamp
+        setWayexBannerState,
+    ])
 
     const handleDismissBanner = () => {
         setWayexBannerState((prev) => ({
@@ -502,6 +556,7 @@ const PriceLookup = () => {
                         aria-label="Dismiss banner"
                         className="absolute top-1/2 right-2 -translate-y-1/2 rounded-full p-1 hover:bg-blue-600/50"
                         onClick={handleDismissBanner}
+                        type="button"
                     >
                         <X className="size-4" />
                     </button>

@@ -7,6 +7,13 @@ import { LocalStorageKeys } from '@/lib/constants'
 import { cn, currencyFormat, defaultEnabledExchanges } from '@/lib/utils'
 
 const strokeWidth = 1.5
+interface FeeSeriesPoint {
+    [key: string]: number
+}
+
+interface LegendEvent {
+    dataKey?: string
+}
 const ir = [
     [0, 0.5],
     [50_000, 0.48],
@@ -149,12 +156,15 @@ function fillDataPoints(dataMap: Record<string, Record<string, number>>, data: n
             if (!dataMap[i[0]]) {
                 dataMap[i[0]] = { name: i[0] }
             }
-            dataMap[i[0]]![key] = i[1]
+            const entry = dataMap[i[0]]
+            if (entry) {
+                entry[key] = i[1]
+            }
         }
     }
 }
 
-const dataMap: Record<string, Record<string, number>> = {}
+const dataMap: Record<string, FeeSeriesPoint> = {}
 fillDataPoints(dataMap, ir, 'IndepRes')
 fillDataPoints(dataMap, btcm, 'BtcMarkets')
 fillDataPoints(dataMap, cj, 'CoinJar')
@@ -168,8 +178,8 @@ fillDataPoints(dataMap, ctree, 'Cointree')
 fillDataPoints(dataMap, okx, 'OKX')
 fillDataPoints(dataMap, wayex, 'Wayex')
 
-const data: any[] = []
-let prev: any
+const data: Record<string, number | string>[] = []
+let prev: FeeSeriesPoint | undefined
 const allLabels = [
     {
         exchange: 'btcmarkets',
@@ -241,28 +251,57 @@ const allLabels = [
     },
 ]
 
-Object.keys(dataMap)
-    .sort((a, b) => Number.parseFloat(a) - Number.parseFloat(b))
-    .forEach((key) => {
-        const value = dataMap[key]
-        if (value !== undefined && value.name !== undefined) {
-            if (!prev) {
-                prev = value
-            }
-            const missing = Object.keys(prev).filter((v) => !Object.keys(value).includes(v))
-            missing.forEach((v) => (value[v] = prev[v]))
-            const dataPoint: Record<string, string | number> = { ...value }
-            dataPoint.value = value.name
-            dataPoint.name = currencyFormat(value.name, 'AUD', 0)
-            data.push(dataPoint)
-            Object.keys(value).forEach((v) => {
-                prev[v] = value[v]
-            })
+for (const key of Object.keys(dataMap).sort((a, b) => Number.parseFloat(a) - Number.parseFloat(b))) {
+    const value = dataMap[key]
+    if (value !== undefined && value.name !== undefined) {
+        if (!prev) {
+            prev = value
         }
-    })
+
+        const missing = Object.keys(prev).filter((v) => !Object.keys(value).includes(v))
+        for (const missingKey of missing) {
+            const previousValue = prev[missingKey]
+            if (previousValue !== undefined) {
+                value[missingKey] = previousValue
+            }
+        }
+
+        const dataPoint: Record<string, string | number> = { ...value }
+        dataPoint.value = value.name
+        dataPoint.name = currencyFormat(value.name, 'AUD', 0)
+        data.push(dataPoint)
+
+        for (const valueKey of Object.keys(value)) {
+            const currentValue = value[valueKey]
+            if (currentValue !== undefined) {
+                prev[valueKey] = currentValue
+            }
+        }
+    }
+}
 
 const allData = data
 const axisStoke = '#4d5784'
+
+const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>) => {
+    if (active && payload && payload.length) {
+        return (
+            <div className={cn('w-80 rounded-md bg-card p-2 pl-4')}>
+                <p className="label">{`AUD Volume: ${label} `}</p>
+                <div className={'grid grid-cols-2'}>
+                    {payload.map((line) => (
+                        <div className={'font-bold'} key={String(line.name)} style={{ color: line.stroke }}>
+                            {`${line.name}: ${line.value}%`}
+                        </div>
+                    ))}
+                </div>
+            </div>
+        )
+    }
+
+    return null
+}
+
 const FeesChart = () => {
     const labels = allLabels
     const [enabledExchanges] = useLocalStorage<Record<string, boolean>>(
@@ -279,13 +318,13 @@ const FeesChart = () => {
         ),
     )
 
-    const handleLegendMouseEnter = (e: any) => {
+    const handleLegendMouseEnter = (event: LegendEvent) => {
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (navigator.vibrate) {
             navigator.vibrate(75)
         }
-        if (!seriesProps[e.dataKey]) {
-            setSeriesProps({ ...seriesProps, hover: e.dataKey })
+        if (event.dataKey && !seriesProps[event.dataKey]) {
+            setSeriesProps({ ...seriesProps, hover: event.dataKey })
         }
     }
 
@@ -293,33 +332,16 @@ const FeesChart = () => {
         setSeriesProps({ ...seriesProps, hover: undefined })
     }
 
-    const selectSeries = (e: any) => {
-        setSeriesProps({
-            ...seriesProps,
-            [e.dataKey]: !seriesProps[e.dataKey],
-            hover: undefined,
-        })
-    }
-
-    const CustomTooltip = (props: TooltipProps<any, any>) => {
-        const { active, payload, label } = props
-        if (active && payload && payload.length) {
-            return (
-                <div className={cn('w-80 rounded-md bg-card p-2 pl-4')}>
-                    <p className="label">{`AUD Volume: ${label} `}</p>
-                    <div className={'grid grid-cols-2'}>
-                        {payload.map((line) => (
-                            <div
-                                className={'font-bold'}
-                                style={{ color: line.stroke }}
-                            >{`${line.name}: ${line.value}%`}</div>
-                        ))}
-                    </div>
-                </div>
-            )
+    const selectSeries = (event: LegendEvent) => {
+        if (!event.dataKey) {
+            return
         }
 
-        return null
+        setSeriesProps({
+            ...seriesProps,
+            [event.dataKey]: !seriesProps[event.dataKey],
+            hover: undefined,
+        })
     }
 
     return (
@@ -338,7 +360,7 @@ const FeesChart = () => {
                 >
                     <defs>
                         {labels.map(({ colour, gradientKey, gradientStop }) => (
-                            <linearGradient id={gradientKey} x1="0" x2="0" y1="0" y2="1">
+                            <linearGradient id={gradientKey} key={gradientKey} x1="0" x2="0" y1="0" y2="1">
                                 <stop offset="5%" stopColor={colour} stopOpacity={0.35} />
                                 <stop offset={gradientStop} stopColor={colour} stopOpacity={0} />
                             </linearGradient>
@@ -366,29 +388,28 @@ const FeesChart = () => {
                             borderRadius: '10px',
                         }}
                         formatter={(value, name) => {
-                            return [value + '%', name]
+                            return [`${value}%`, name]
                         }}
                         position={{ x: 75, y: 0 }}
                     />
-                    {labels.map(({ colour, gradientKey, key, strokeDasharray, exchange }) => (
-                        <>
-                            {enabledExchanges[exchange] && (
-                                <Area
-                                    connectNulls
-                                    dataKey={key}
-                                    dot={false}
-                                    fill={`url(#${gradientKey})`}
-                                    fillOpacity={Number(seriesProps.hover === key || !seriesProps.hover ? 0.3 : 0.05)}
-                                    hide={seriesProps[key] === true}
-                                    stroke={colour}
-                                    strokeDasharray={strokeDasharray}
-                                    strokeOpacity={Number(seriesProps.hover === key || !seriesProps.hover ? 1 : 0.1)}
-                                    strokeWidth={strokeWidth}
-                                    type="stepAfter"
-                                />
-                            )}
-                        </>
-                    ))}
+                    {labels.map(({ colour, gradientKey, key, strokeDasharray, exchange }) =>
+                        enabledExchanges[exchange] ? (
+                            <Area
+                                connectNulls
+                                dataKey={key}
+                                dot={false}
+                                fill={`url(#${gradientKey})`}
+                                fillOpacity={Number(seriesProps.hover === key || !seriesProps.hover ? 0.3 : 0.05)}
+                                hide={seriesProps[key] === true}
+                                key={exchange}
+                                stroke={colour}
+                                strokeDasharray={strokeDasharray}
+                                strokeOpacity={Number(seriesProps.hover === key || !seriesProps.hover ? 1 : 0.1)}
+                                strokeWidth={strokeWidth}
+                                type="stepAfter"
+                            />
+                        ) : null,
+                    )}
                     <Brush
                         data={allData}
                         dataKey={'name'}

@@ -9,12 +9,12 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils'
 import Coin from './CoinIcon'
 
-type Props = {
+interface Props {
     className?: string
     options: { label: ReactNode | string; value: string }[]
-    value: string
-    setValue: (value: string) => void
     optionType?: string
+    setValue: (value: string) => void
+    value: string
 }
 export function Combobox({ className, options, value, setValue, optionType = 'option' }: Props) {
     const [open, setOpen] = useState(false)

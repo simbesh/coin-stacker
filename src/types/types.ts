@@ -1,8 +1,8 @@
 export type CsOrderBookResponse = CsOrderBookResponseOk | CsOrderBookResponseError
 
 export interface CsOrderBookResponseOk {
-    buyorders: Array<OrderBookLevel>
-    sellorders: Array<OrderBookLevel>
+    buyorders: OrderBookLevel[]
+    sellorders: OrderBookLevel[]
     status: 'ok'
 }
 export interface CsOrderBookResponseError {
@@ -60,11 +60,11 @@ export interface OrderBookLevel {
     total: number
 }
 
-export type PriceQueryParams = {
-    side: 'buy' | 'sell'
+export interface PriceQueryParams {
     amount: string
     coin: string
     quote?: string
+    side: 'buy' | 'sell'
 }
 
 export interface CoinstashQuotes {

@@ -24,18 +24,23 @@ const GeneralSettings = () => {
         const missingExchanges = defaultExchangeKeys.filter((x) => !currentExchangeKeys.includes(x))
 
         if (missingExchanges.length > 0) {
+            const addedExchanges: Record<string, boolean> = {}
+            for (const exchange of missingExchanges) {
+                addedExchanges[exchange] = defaultEnabledExchanges[exchange] ?? false
+            }
+
             setEnabledExchanges((prev) => ({
                 ...prev,
-                ...missingExchanges.reduce((acc, curr) => ({ ...acc, [curr]: defaultEnabledExchanges[curr] }), {}),
+                ...addedExchanges,
             }))
         }
-    }, [enabledExchanges])
+    }, [enabledExchanges, setEnabledExchanges])
 
     function handleExchangeToggle(exchange: string) {
-        setEnabledExchanges((prev) => {
-            prev[exchange] = !prev[exchange]
-            return prev
-        })
+        setEnabledExchanges((prev) => ({
+            ...prev,
+            [exchange]: !prev[exchange],
+        }))
     }
 
     return (
@@ -57,7 +62,7 @@ const GeneralSettings = () => {
                             className={
                                 'w-full justify-between hover:bg-transparent hover:ring-2 hover:ring-slate-200 dark:hover:ring-slate-800'
                             }
-                            key={exchange + '-exchange-toggle'}
+                            key={`${exchange}-exchange-toggle`}
                             onClick={() => handleExchangeToggle(exchange)}
                             variant={'ghost'}
                         >
@@ -90,7 +95,7 @@ const GeneralSettings = () => {
                         variant={'secondary'}
                     >{`Disable All (${Object.keys(defaultEnabledExchanges).length})`}</Button>
                     <Button
-                        aria-lable="Enable All Exchanges"
+                        aria-label="Enable All Exchanges"
                         onClick={() => setEnabledExchanges(defaultEnabledExchanges)}
                         variant={'secondary'}
                     >
@@ -100,7 +105,7 @@ const GeneralSettings = () => {
                 <Separator className={'mt-4'} />
 
                 <div className={'mt-2 flex items-center justify-end gap-2 text-muted-foreground/50 text-sm'}>
-                    <div>{'v' + process.env.APP_VERSION}</div>
+                    <div>{`v${process.env.APP_VERSION}`}</div>
                     <div>{process.env.COMMIT_HASH}</div>
                 </div>
 

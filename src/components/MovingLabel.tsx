@@ -94,6 +94,7 @@ export const MovingBorder = ({
                 width="100%"
                 {...otherProps}
             >
+                <title>Moving border path</title>
                 <rect fill="none" height="100%" ref={pathRef} rx={rx} ry={ry} width="100%" />
             </svg>
             <motion.div

@@ -41,13 +41,13 @@ export const exchangeConfig: Record<string, Record<string, string[]>> = {
 
 export const marketConfig: Record<string, string[]> = {}
 
-Object.keys(exchangeConfig).forEach((exchange) => {
-    exchangeConfig[exchange]?.markets?.forEach((market) => {
+for (const exchange of Object.keys(exchangeConfig)) {
+    for (const market of exchangeConfig[exchange]?.markets ?? []) {
         if (!marketConfig[market]) {
             marketConfig[market] = []
         }
         marketConfig[market].push(exchange)
-    })
-})
+    }
+}
 
 export const markets = ['BTC/AUD', 'ETH/AUD', 'SOL/AUD', 'XRP/AUD', 'LTC/AUD', 'ADA/AUD', 'DOGE/AUD']

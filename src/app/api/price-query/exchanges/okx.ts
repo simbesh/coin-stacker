@@ -2,7 +2,7 @@ import { okx } from 'ccxt'
 import type { ExchangeHandler } from '../types'
 import { getOrderBook } from './ccxt-helper'
 
-export const getOkxOrderBook: ExchangeHandler = async (base: string, quote: string) => {
+export const getOkxOrderBook: ExchangeHandler = (base: string, quote: string) => {
     const exchange = new okx()
     return getOrderBook(exchange, `${base}/${quote}`)
 }

@@ -19,21 +19,21 @@ import type { WithdrawalFees } from './PriceLookup'
 import Spinner from './Spinner'
 import { InformationIcon } from './ui/information-icon'
 
-type PriceQueryResult = {
+interface PriceQueryResult {
     exchange: string
-    netPrice: number
-    netCost: number
-    grossPrice: number
-    grossAveragePrice: number
-    fees: number
     feeRate: number
+    fees: number
+    grossAveragePrice: number
+    grossPrice: number
+    netCost: number
+    netPrice: number
 }
 
-type PriceQueryParams = {
-    side: 'buy' | 'sell'
+interface PriceQueryParams {
     amount: string
     coin: string
     quote?: string
+    side: 'buy' | 'sell'
 }
 
 type TableRowData = PriceQueryResult & {
@@ -81,6 +81,7 @@ const headers = [
 ]
 
 const firstRowCellStyle = 'text-green-600 dark:text-green-500'
+const PRICE_DIFFERENCE_REGEX = /([+-]?)\$?([\d,]+\.?\d*)/
 
 // Function to get color gradient based on dollar difference
 const getChangeColor = (dif: string | undefined, tableData: TableRowData[]): string => {
@@ -89,7 +90,7 @@ const getChangeColor = (dif: string | undefined, tableData: TableRowData[]): str
     }
 
     // Parse current dollar value
-    const match = dif.match(/([+-]?)\$?([\d,]+\.?\d*)/)
+    const match = dif.match(PRICE_DIFFERENCE_REGEX)
     if (!match) {
         return 'text-red-500'
     }
@@ -103,10 +104,10 @@ const getChangeColor = (dif: string | undefined, tableData: TableRowData[]): str
             if (!row.dif || row.dif === '-') {
                 return 0
             }
-            const match = row.dif.match(/([+-]?)\$?([\d,]+\.?\d*)/)
+            const match = row.dif.match(PRICE_DIFFERENCE_REGEX)
             return match ? Number.parseFloat((match[2] || '0').replace(/,/g, '')) : 0
         })
-        .filter((val) => !isNaN(val) && val > 0)
+        .filter((val) => !Number.isNaN(val) && val > 0)
 
     if (allValues.length === 0) {
         return 'text-red-500'
@@ -520,7 +521,7 @@ const PriceLookupTable: React.FC<PriceLookupTableProps> = memo(
                                         <HybridTooltipContent className={'w-fit p-1.5 dark:border-slate-600'}>
                                             <p>
                                                 {formatExchangeName(row.exchange)} fee:{' '}
-                                                {round(row.feeRate * 100, 3) + '%'}
+                                                {`${round(row.feeRate * 100, 3)}%`}
                                             </p>
                                         </HybridTooltipContent>
                                     </HybridTooltip>
@@ -588,7 +589,7 @@ const PriceLookupTable: React.FC<PriceLookupTableProps> = memo(
                             priceQueryResult.errors.map(({ name, error }) => (
                                 <TableRow
                                     className={'bg-red-700/20 opacity-50 hover:bg-red-700/25'}
-                                    key={name + '_error_row'}
+                                    key={`${name}_error_row`}
                                 >
                                     <TableCell
                                         className={cn(
@@ -649,21 +650,15 @@ const PriceLookupTable: React.FC<PriceLookupTableProps> = memo(
                                         onClick={() => setHideFiltered(!hideFiltered)}
                                         variant={'outline'}
                                     >
-                                        {hideFiltered ? (
-                                            <>
-                                                {`Show ${
-                                                    tableData.filter((row) => row.filteredReason).length +
-                                                    priceQueryResult.errors.length
-                                                } filtered results`}
-                                            </>
-                                        ) : (
-                                            <>
-                                                {`Hide ${
-                                                    tableData.filter((row) => row.filteredReason).length +
-                                                    priceQueryResult.errors.length
-                                                } filtered results`}
-                                            </>
-                                        )}
+                                        {hideFiltered
+                                            ? `Show ${
+                                                  tableData.filter((row) => row.filteredReason).length +
+                                                  priceQueryResult.errors.length
+                                              } filtered results`
+                                            : `Hide ${
+                                                  tableData.filter((row) => row.filteredReason).length +
+                                                  priceQueryResult.errors.length
+                                              } filtered results`}
                                         {hideFiltered ? (
                                             <ChevronDown className="size-4" />
                                         ) : (

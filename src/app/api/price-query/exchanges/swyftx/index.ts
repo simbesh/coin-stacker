@@ -11,7 +11,7 @@ export const getSwyftxMockOrderBook: ExchangeHandler = async (
     fee?: number,
 ) => {
     if (fee !== undefined) {
-        let token
+        let token: string | undefined
         const cached = await getCachedSwyftxKey()
         if (cached && differenceInDays(new Date(), cached.updated_at) >= 7) {
             const accessToken = await refreshSwyftxToken()
@@ -29,7 +29,7 @@ export const getSwyftxMockOrderBook: ExchangeHandler = async (
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        Authorization: 'Bearer ' + token,
+                        Authorization: `Bearer ${token}`,
                         'user-agent':
                             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
                     },

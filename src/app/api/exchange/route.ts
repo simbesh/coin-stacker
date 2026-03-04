@@ -1,7 +1,7 @@
 import type { NextRequest } from 'next/server'
 import { getAfiliateOrTradeUrl } from '@/lib/constants'
 
-export async function GET(request: NextRequest) {
+export function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
     const exchange = searchParams.get('exchange')
     const coin = searchParams.get('coin')

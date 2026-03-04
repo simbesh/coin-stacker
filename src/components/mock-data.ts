@@ -1,5 +1,20 @@
 import type { PriceQueryParams } from '@/types/types'
 
+interface MockBestResult {
+    exchange: string
+    feeRate: number
+    fees: number
+    grossAveragePrice: number
+    grossPrice: number
+    netCost: number
+    netPrice: number
+}
+
+interface MockPriceQueryResult {
+    best: MockBestResult[]
+    errors: { error: { name?: string }; name: string }[]
+}
+
 export const mockQuery: PriceQueryParams = {
     side: 'buy',
     amount: '0.1',
@@ -7,7 +22,7 @@ export const mockQuery: PriceQueryParams = {
     quote: 'AUD',
 }
 
-export const mockData: any = {
+export const mockData: MockPriceQueryResult = {
     best: [
         {
             exchange: 'independentreserve',

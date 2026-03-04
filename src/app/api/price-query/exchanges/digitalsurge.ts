@@ -1,4 +1,16 @@
-import type { ExchangeHandler } from '../types'
+import type { ExchangeHandler, OrderBook, OrderBookLevel } from '../types'
+
+interface DigitalSurgeAsset {
+    code: string
+    max_order_size_value?: number | string
+}
+
+interface DigitalSurgeAssetsResponse {
+    results: DigitalSurgeAsset[]
+}
+
+type DigitalSurgeSide = 'buy' | 'sell'
+type DigitalSurgeTickerResponse = Record<string, Partial<Record<DigitalSurgeSide, number>>>
 
 export const getDigitalSurgeMockOrderBook: ExchangeHandler = async (
     base: string,
@@ -7,37 +19,70 @@ export const getDigitalSurgeMockOrderBook: ExchangeHandler = async (
     amount?: string,
     fee?: number,
 ) => {
-    if (fee !== undefined && amount !== undefined && side && quote === 'AUD') {
-        const assetsRes = await fetch('https://digitalsurge.com.au/api/public/broker/assets/', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'user-agent':
-                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
-            },
-        })
-        const assets = await assetsRes.json()
-        const max_order_size_value = assets.results.find((x: any) => x.code === base)?.max_order_size_value
-        if (max_order_size_value) {
-            const res = await fetch('https://digitalsurge.com.au/api/public/broker/ticker/', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'user-agent':
-                        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
-                },
-            })
-            const tickerData: Record<string, any> = await res.json()
-            const price = tickerData[base]?.[side]
-            if (price) {
-                const key = side === 'buy' ? 'asks' : 'bids'
-                if (amount && price * Number(amount) < Number(max_order_size_value)) {
-                    return {
-                        [key]: [[price, Number(amount)]],
-                        [key === 'asks' ? 'bids' : 'asks']: [],
-                    } as any
-                }
-            }
-        }
+    if (fee === undefined || amount === undefined || !isDigitalSurgeSide(side) || quote !== 'AUD') {
+        return
     }
+
+    const maxOrderSize = await getMaxOrderSize(base)
+    if (maxOrderSize === undefined) {
+        return
+    }
+
+    const price = await getTickerPrice(base, side)
+    if (price === undefined) {
+        return
+    }
+
+    const requestedAmount = Number(amount)
+    if (price * requestedAmount >= maxOrderSize) {
+        return
+    }
+
+    const level: OrderBookLevel = [price, requestedAmount]
+    const orderbook: OrderBook =
+        side === 'buy'
+            ? {
+                  asks: [level],
+                  bids: [],
+              }
+            : {
+                  asks: [],
+                  bids: [level],
+              }
+
+    return orderbook
+}
+
+async function getMaxOrderSize(base: string): Promise<number | undefined> {
+    const assetsRes = await fetch('https://digitalsurge.com.au/api/public/broker/assets/', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'user-agent':
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+        },
+    })
+    const assets: DigitalSurgeAssetsResponse = await assetsRes.json()
+    const value = assets.results.find((asset) => asset.code === base)?.max_order_size_value
+    if (value === undefined) {
+        return undefined
+    }
+    return Number(value)
+}
+
+async function getTickerPrice(base: string, side: DigitalSurgeSide): Promise<number | undefined> {
+    const response = await fetch('https://digitalsurge.com.au/api/public/broker/ticker/', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'user-agent':
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+        },
+    })
+    const tickerData: DigitalSurgeTickerResponse = await response.json()
+    return tickerData[base]?.[side]
+}
+
+function isDigitalSurgeSide(side: string | undefined): side is DigitalSurgeSide {
+    return side === 'buy' || side === 'sell'
 }

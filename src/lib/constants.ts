@@ -1,11 +1,11 @@
-export enum LocalStorageKeys {
-    PriceQueryHistory = 'cs-price-query-history',
-    ExchangeFees = 'cs-user-exchange-fees',
-    EnabledExchanges = 'cs-user-enabled-exchanges-v2',
-    IncludeWithdrawalFees = 'cs-include-withdrawal-fees-v2',
-    WithdrawalFeeDialogDismissed = 'cs-withdrawal-fee-dialog-dismissed',
-    BinanceAnnouncementDismissed = 'cs-binance-announcement-dismissed',
-}
+export const LocalStorageKeys = {
+    PriceQueryHistory: 'cs-price-query-history',
+    ExchangeFees: 'cs-user-exchange-fees',
+    EnabledExchanges: 'cs-user-enabled-exchanges-v2',
+    IncludeWithdrawalFees: 'cs-include-withdrawal-fees-v2',
+    WithdrawalFeeDialogDismissed: 'cs-withdrawal-fee-dialog-dismissed',
+    BinanceAnnouncementDismissed: 'cs-binance-announcement-dismissed',
+} as const
 
 export const getAfiliateOrTradeUrl = (exchange: string, base: string, quote: string) => {
     return affiliateUrl(exchange, base, quote) ?? tradeUrl(exchange, base, quote)

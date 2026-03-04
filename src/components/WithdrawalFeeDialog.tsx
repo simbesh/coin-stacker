@@ -1,6 +1,7 @@
 'use client'
 
 import { Settings, Zap } from 'lucide-react'
+import Image from 'next/image'
 import { useTheme } from 'next-themes'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -123,9 +124,11 @@ const WithdrawalFeeCredenza = ({ defaultOpen }: WithdrawalFeeCredenzaProps) => {
                             </p>
                             <div className="flex justify-center overflow-hidden rounded-lg">
                                 <div className="w-1/2 overflow-hidden rounded-xl border">
-                                    <img
+                                    <Image
                                         alt="Edit fee settings"
+                                        height={420}
                                         src={resolvedTheme === 'light' ? '/edit-fee-light.png' : '/edit-fee-dark.png'}
+                                        width={840}
                                     />
                                 </div>
                             </div>

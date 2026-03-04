@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server'
 
-export async function POST(request: Request): Promise<NextResponse<any>> {
+interface ContactResponse {
+    success: boolean
+}
+
+export async function POST(request: Request): Promise<NextResponse<ContactResponse>> {
     const forwarded = request.headers.get('x-forwarded-for')
     const userAgent = request.headers.get('user-agent')
 
@@ -15,13 +19,14 @@ export async function POST(request: Request): Promise<NextResponse<any>> {
     if (forwarded?.includes('.')) {
         try {
             const url = `https://api.ipdata.co/${forwarded}?api-key=${process.env.IPDATA_CO_API_KEY}`
-            const { ip, city, region, country_name, emoji_flag } = await fetch(url).then((res) => res.json())
+            const response = await fetch(url)
+            const { ip, city, region, country_name, emoji_flag } = await response.json()
             text += `
 ${city} - ${region}
 ${emoji_flag} ${country_name}
 <a href="https://tools.keycdn.com/geo?host=${ip}">Geolocation info - ${forwarded}</a>
 UA: ${userAgent}`
-        } catch (e) {
+        } catch (_e) {
             text += `
 <b>IP</b>: ${forwarded}`
         }

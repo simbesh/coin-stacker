@@ -18,6 +18,33 @@ const withdrawalFees: Record<string, Record<string, number>> = {
     coinspot: coinspotFees,
 }
 
+interface BTCMarketsWithdrawalFee {
+    assetName: string
+    fee: string
+}
+
+interface IndependentReserveWithdrawalFee {
+    Currency: string
+    Fee: number
+}
+
+interface CurrencyNetwork {
+    fee?: number | string
+}
+
+interface CurrencyWithNetworks {
+    networks?: Record<string, CurrencyNetwork | undefined>
+}
+
+interface DigitalSurgeAsset {
+    code: string
+    withdrawal_fee: number | string
+}
+
+interface DigitalSurgeAssetResponse {
+    results: DigitalSurgeAsset[]
+}
+
 export async function GET(request: NextRequest) {
     try {
         const searchParams = request.nextUrl.searchParams
@@ -88,14 +115,14 @@ async function getBTCMarketFee(): Promise<Record<string, number>> {
             throw new Error(`BTCMarkets API error: ${response.status}`)
         }
 
-        const data = await response.json()
+        const data: BTCMarketsWithdrawalFee[] = await response.json()
 
         // Transform the array of objects into Record<string, number>
         const fees: Record<string, number> = {}
 
-        data.forEach((item: { assetName: string; fee: string }) => {
+        for (const item of data) {
             fees[item.assetName] = Number.parseFloat(item.fee)
-        })
+        }
 
         return fees
     } catch (error) {
@@ -114,14 +141,14 @@ async function getIndependentReserveFee(): Promise<Record<string, number>> {
             throw new Error(`Independent Reserve API error: ${response.status}`)
         }
 
-        const data = await response.json()
+        const data: IndependentReserveWithdrawalFee[] = await response.json()
 
         // Transform the array of objects into Record<string, number>
         const fees: Record<string, number> = {}
 
-        data.forEach((item: { Currency: string; Fee: number }) => {
+        for (const item of data) {
             fees[normalizeCoinSymbol(item.Currency)] = item.Fee
-        })
+        }
 
         return fees
     } catch (error) {
@@ -166,18 +193,18 @@ async function getOKXFee(): Promise<Record<string, number>> {
     })
     await exchange.loadMarkets()
 
-    const currencies = await exchange.fetchCurrencies()
+    const currencies = (await exchange.fetchCurrencies()) as Record<string, unknown>
 
     const fees: Record<string, number> = {}
 
-    for (const coin of Object.keys(currencies)) {
-        const currency = currencies[coin] as any
-        if (currency?.networks) {
-            const networks = currency.networks as Record<string, any>
-            const network = networks[coin] || networks['ERC20'] || networks['SOL']
-            if (network?.fee) {
-                fees[coin] = network.fee
-            }
+    for (const [coin, currency] of Object.entries(currencies)) {
+        if (!isCurrencyWithNetworks(currency) || currency.networks === undefined) {
+            continue
+        }
+
+        const network = currency.networks[coin] ?? currency.networks.ERC20 ?? currency.networks.SOL
+        if (network?.fee !== undefined) {
+            fees[coin] = Number(network.fee)
         }
     }
 
@@ -192,18 +219,18 @@ async function getBinanceFee(): Promise<Record<string, number>> {
     })
     await exchange.loadMarkets()
 
-    const currencies = await exchange.fetchCurrencies()
+    const currencies = (await exchange.fetchCurrencies()) as Record<string, unknown>
 
     const fees: Record<string, number> = {}
 
-    for (const coin of Object.keys(currencies)) {
-        const currency = currencies[coin] as any
-        if (currency?.networks) {
-            const networks = currency.networks as Record<string, any>
-            const network = networks[coin] || networks['ERC20'] || networks['BSC']
-            if (network?.fee) {
-                fees[coin] = network.fee
-            }
+    for (const [coin, currency] of Object.entries(currencies)) {
+        if (!isCurrencyWithNetworks(currency) || currency.networks === undefined) {
+            continue
+        }
+
+        const network = currency.networks[coin] ?? currency.networks.ERC20 ?? currency.networks.BSC
+        if (network?.fee !== undefined) {
+            fees[coin] = Number(network.fee)
         }
     }
 
@@ -264,7 +291,7 @@ async function getLunoFee({ currency }: { currency: string }) {
 
 async function getDigitalSurgeFee(): Promise<Record<string, number>> {
     const response = await fetch('https://digitalsurge.com.au/api/public/broker/assets/')
-    const data = await response.json()
+    const data: DigitalSurgeAssetResponse = await response.json()
 
     const fees: Record<string, number> = {}
     for (const asset of data.results) {
@@ -272,6 +299,18 @@ async function getDigitalSurgeFee(): Promise<Record<string, number>> {
     }
 
     return fees
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null
+}
+
+function isCurrencyWithNetworks(value: unknown): value is CurrencyWithNetworks {
+    if (!isRecord(value)) {
+        return false
+    }
+
+    return value.networks === undefined || isRecord(value.networks)
 }
 
 function getCoinstashFee(currency: string): Record<string, number> {

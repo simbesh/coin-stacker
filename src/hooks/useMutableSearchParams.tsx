@@ -9,13 +9,13 @@ export default function useMutableSearchParams<T>() {
     const urlSearchParams = new URLSearchParams(searchParams.toString())
 
     function setSearchParams(params: Partial<T>) {
-        Object.entries(params).forEach(([key, value]) => {
+        for (const [key, value] of Object.entries(params)) {
             if (value === undefined || value === null || value === '') {
                 urlSearchParams.delete(key)
             } else {
                 urlSearchParams.set(key, String(value))
             }
-        })
+        }
 
         const search = urlSearchParams.toString()
         const query = search ? `?${search}` : ''

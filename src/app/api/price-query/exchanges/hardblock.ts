@@ -20,18 +20,13 @@ export const getHardblockMockOrderBook: ExchangeHandler = async (
 
         const text = await res.text()
         if (text.includes('Down For Maintenance')) {
-            return { error: 'Down for maintenance', bids: [], asks: [] } as any
+            return { error: 'Down for maintenance' }
         }
-
-        try {
-            const { status, buy, sell }: HardblockTicker = JSON.parse(text)
-            if (status) {
-                return side === 'buy'
-                    ? { asks: [[buy, Number.parseFloat(amount)]], bids: [] }
-                    : { bids: [[sell, Number.parseFloat(amount)]], asks: [] }
-            }
-        } catch (e) {
-            throw e
+        const { status, buy, sell }: HardblockTicker = JSON.parse(text)
+        if (status) {
+            return side === 'buy'
+                ? { asks: [[buy, Number.parseFloat(amount)]], bids: [] }
+                : { bids: [[sell, Number.parseFloat(amount)]], asks: [] }
         }
     } else if (base !== 'BTC' || quote !== 'AUD') {
         throw new MarketNotFoundError(`${base}/${quote}`, 'hardblock')

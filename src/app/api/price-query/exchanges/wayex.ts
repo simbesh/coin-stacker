@@ -1,6 +1,11 @@
 import { type ExchangeHandler, MarketNotFoundError, type OrderBook } from '../types'
 
-const parseWayexOrderBook = (data: any): OrderBook => {
+interface WayexInstrument {
+    InstrumentId: number
+    Symbol: string
+}
+
+const parseWayexOrderBook = (data: unknown): OrderBook => {
     const bids: [number, number][] = []
     const asks: [number, number][] = []
 
@@ -19,12 +24,11 @@ const parseWayexOrderBook = (data: any): OrderBook => {
     // Parse the array response
     // Format: [MDUpdateId, NumAccounts, ActionDateTime, ActionType, LastTradePrice,
     //          NumOrders, Price, ProductPairCode, Quantity, Side]
-    for (let i = 0; i < data.length; i++) {
-        const level = data[i]
+    for (const level of data) {
         if (Array.isArray(level)) {
             const [, , , actionType, , , price, , quantity, side] = level
 
-            if (actionType !== 2) {
+            if (actionType !== 2 && typeof price === 'number' && typeof quantity === 'number') {
                 // Skip if action is Delete
                 if (side === 0) {
                     bids.push([price, quantity])
@@ -63,8 +67,8 @@ export const getWayexOrderBook: ExchangeHandler = async (base: string, quote: st
         throw new Error(`Wayex GetInstruments API error: ${instrumentsRes.status}`)
     }
 
-    const instruments = await instrumentsRes.json()
-    const instrument = instruments.find((inst: any) => inst.Symbol === symbol)
+    const instruments: WayexInstrument[] = await instrumentsRes.json()
+    const instrument = instruments.find((inst) => inst.Symbol === symbol)
 
     if (!instrument) {
         throw new MarketNotFoundError(`${base}/${quote}`, 'wayex')

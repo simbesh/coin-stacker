@@ -24,12 +24,17 @@ export function FeeParams() {
         const missingKeys = defaultExchangeKeys.filter((x) => !currentExchangeKeys.includes(x))
 
         if (missingKeys.length > 0) {
+            const addedFees: Record<string, number> = {}
+            for (const key of missingKeys) {
+                addedFees[key] = defaultExchangeFees[key] ?? 0
+            }
+
             setFees((prev) => ({
                 ...prev,
-                ...missingKeys.reduce((acc, curr) => ({ ...acc, [curr]: defaultExchangeFees[curr] }), {}),
+                ...addedFees,
             }))
         }
-    }, [])
+    }, [fees, setFees])
 
     useEffect(() => {
         if (open) {
@@ -58,11 +63,11 @@ export function FeeParams() {
                                 {Object.entries(fees).map(([exchange, fee]) => (
                                     <div
                                         className="grid grid-cols-9 items-center gap-4"
-                                        key={exchange + '-fee-input-key'}
+                                        key={`${exchange}-fee-input-key`}
                                     >
                                         <Label
                                             className={'col-span-5 flex items-center justify-start gap-2'}
-                                            htmlFor={exchange + '-fee-input'}
+                                            htmlFor={`${exchange}-fee-input`}
                                         >
                                             <ExchangeIcon exchange={exchange} />
                                             {formatExchangeName(exchange)}
@@ -70,7 +75,7 @@ export function FeeParams() {
                                         <div className={'col-span-4 flex items-center'}>
                                             <Input
                                                 className="h-8"
-                                                id={exchange + '-fee-input'}
+                                                id={`${exchange}-fee-input`}
                                                 onChange={(e) =>
                                                     setFees((prev) => ({
                                                         ...prev,

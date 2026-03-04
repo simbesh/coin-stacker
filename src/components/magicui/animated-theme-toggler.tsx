@@ -7,7 +7,7 @@ import { flushSync } from 'react-dom'
 import { cn } from '@/lib/utils'
 import { Button } from '../ui/button'
 
-type props = {
+interface props {
     className?: string
 }
 

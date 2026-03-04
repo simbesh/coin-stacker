@@ -41,7 +41,7 @@ export const getDay1xOrderBook: ExchangeHandler = async (base: string, quote: st
     }
 }
 
-export const getDay1xOrderBookSocket: ExchangeHandler = async (base: string, quote: string) => {
+export const getDay1xOrderBookSocket: ExchangeHandler = (base: string, quote: string) => {
     return requestDay1xSocketOrderbook(`${base}/${quote}`)
 }
 
@@ -70,7 +70,7 @@ const getDay1xOrderBookRest: ExchangeHandler = async (base: string, quote: strin
     return orderbook
 }
 
-type Day1xMessage = {
+interface Day1xMessage {
     data?: unknown
     error?: {
         msg?: unknown
@@ -79,7 +79,7 @@ type Day1xMessage = {
     type?: unknown
 }
 
-async function requestDay1xSocketOrderbook(market: string): Promise<OrderBook> {
+function requestDay1xSocketOrderbook(market: string): Promise<OrderBook> {
     const day1xSymbol = toDay1xSymbol(market)
     logDay1xSocket('starting orderbook request', { market, symbol: day1xSymbol })
 
@@ -417,11 +417,11 @@ function toTimestamp(value: unknown): number | undefined {
     return undefined
 }
 
-function isRecord(value: unknown): value is Record<string, any> {
+function isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null
 }
 
-function toPositiveInteger(value: string | undefined, fallback: number): number {
+function _toPositiveInteger(value: string | undefined, fallback: number): number {
     const parsed = Number(value)
     if (Number.isInteger(parsed) && parsed > 0) {
         return parsed

@@ -20,11 +20,11 @@ export default function GradientText() {
             function moveMouse(evt: MouseEvent) {
                 const pos = getMousePos(evt)
                 if (refText.current) {
-                    refText.current.style.backgroundPosition = pos.x + 'px ' + pos.y + 'px'
+                    refText.current.style.backgroundPosition = `${pos.x}px ${pos.y}px`
                 }
             }
         }
-    }, [])
+    }, [isSmallDevice])
 
     return (
         <h2

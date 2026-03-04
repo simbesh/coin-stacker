@@ -23,12 +23,12 @@ export const getCoinstashMockOrderBook: ExchangeHandler = async (
         if (json.prices?.[baseLowerCase] !== undefined) {
             if (side === 'buy') {
                 return {
-                    asks: [[json.prices[baseLowerCase]!.buyPrice, Number.parseFloat(amount)]],
+                    asks: [[json.prices[baseLowerCase]?.buyPrice, Number.parseFloat(amount)]],
                     bids: [],
                 }
             }
             return {
-                bids: [[json.prices[baseLowerCase]!.sellPrice, Number.parseFloat(amount)]],
+                bids: [[json.prices[baseLowerCase]?.sellPrice, Number.parseFloat(amount)]],
                 asks: [],
             }
         }

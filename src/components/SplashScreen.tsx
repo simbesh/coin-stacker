@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { cn } from '@/lib/utils'
 
 const SplashScreen = ({ isLoading }: { isLoading: boolean }) => {
@@ -9,7 +10,13 @@ const SplashScreen = ({ isLoading }: { isLoading: boolean }) => {
             )}
             id={'splash'}
         >
-            <img alt={'coinstacker-logo'} className={'m-auto animate-breathe'} src={'/coinstacker-logo-256.png'} />
+            <Image
+                alt={'CoinStacker logo'}
+                className={'m-auto animate-breathe'}
+                height={256}
+                src={'/coinstacker-logo-256.png'}
+                width={256}
+            />
         </div>
     )
 }
