@@ -36,7 +36,7 @@ export function LabeledSwitch({ label, checked, onCheckedChange, disabled = fals
             type="button"
         >
             <span className="text-xs">{label}</span>
-            <Switch disabled={disabled} size={size} />
+            <Switch checked={checked} disabled={disabled} size={size} />
         </button>
     )
 }
