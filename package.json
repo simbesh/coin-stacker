@@ -37,13 +37,13 @@
     "lodash": "^4.17.21",
     "lucide-react": "^0.562.0",
     "motion": "^12.23.12",
-    "next": "15.5.9",
+    "next": "16.1.6",
     "next-themes": "^0.2.1",
     "nuqs": "^2.3.1",
     "posthog-js": "1.358.0",
     "protobufjs": "^7.5.4",
-    "react": "19.1.1",
-    "react-dom": "19.1.1",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
     "react-icons": "^5.2.1",
     "recharts": "^2.12.1",
     "socks-proxy-agent": "^8.0.5",
@@ -58,8 +58,8 @@
     "@types/echarts": "^4.9.22",
     "@types/lodash": "^4.14.202",
     "@types/node": "^18.16.0",
-    "@types/react": "19.1.10",
-    "@types/react-dom": "19.1.7",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
     "autoprefixer": "^10.4.17",
     "husky": "^9.1.7",
     "postcss": "^8.4.35",
@@ -75,5 +75,9 @@
       "@types/react": "19.1.10",
       "@types/react-dom": "19.1.7"
     }
+  },
+  "overrides": {
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3"
   }
 }
