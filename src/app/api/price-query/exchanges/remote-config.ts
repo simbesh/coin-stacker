@@ -5,11 +5,29 @@ export type RemoteDisabledExchange = {
 
 export const DEFAULT_REMOTE_DISABLED_REASON = 'Temporary unavailable'
 
-const REMOTE_CONFIG_URL = process.env.DISABLED_EXCHANGES_CONFIG_URL
 const REMOTE_CONFIG_REFRESH_MS = 60_000
+const ERROR_BODY_PREVIEW_LENGTH = 300
 
 let cachedDisabledExchanges: RemoteDisabledExchange[] = []
 let cacheExpiresAt = 0
+
+function getRemoteConfigUrl(): string {
+    return process.env.DISABLED_EXCHANGES_CONFIG_URL?.trim() ?? ''
+}
+
+function describeError(error: unknown): string {
+    if (error instanceof Error) {
+        return `${error.name}: ${error.message}`
+    }
+    return String(error)
+}
+
+function previewBody(text: string): string {
+    if (text.length <= ERROR_BODY_PREVIEW_LENGTH) {
+        return text
+    }
+    return `${text.slice(0, ERROR_BODY_PREVIEW_LENGTH)}...`
+}
 
 function normalizeDisabledExchange(entry: unknown): RemoteDisabledExchange | undefined {
     if (typeof entry === 'string') {
@@ -81,13 +99,14 @@ export async function getRemoteDisabledExchanges(supportedExchanges: string[]): 
 
     cacheExpiresAt = now + REMOTE_CONFIG_REFRESH_MS
 
-    if (!REMOTE_CONFIG_URL) {
+    const remoteConfigUrl = getRemoteConfigUrl()
+    if (!remoteConfigUrl) {
         cachedDisabledExchanges = []
         return cachedDisabledExchanges
     }
 
     try {
-        const response = await fetch(REMOTE_CONFIG_URL, {
+        const response = await fetch(remoteConfigUrl, {
             method: 'GET',
             headers: {
                 Accept: 'application/json',
@@ -95,14 +114,26 @@ export async function getRemoteDisabledExchanges(supportedExchanges: string[]): 
             cache: 'no-store',
         })
 
+        const rawConfig = await response.text()
+
         if (!response.ok) {
-            throw new Error(`Unable to fetch remote exchange config (${response.status})`)
+            throw new Error(
+                `Unable to fetch remote exchange config (${response.status} ${response.statusText}). Body: ${previewBody(rawConfig)}`
+            )
         }
 
-        const config = (await response.json()) as unknown
+        let config: unknown
+        try {
+            config = JSON.parse(rawConfig) as unknown
+        } catch {
+            throw new Error(`Remote exchange config is not valid JSON. Body: ${previewBody(rawConfig)}`)
+        }
+
         cachedDisabledExchanges = parseDisabledExchanges(config, new Set(supportedExchanges))
     } catch (error) {
-        console.error('Failed to refresh remotely disabled exchanges:', error)
+        console.error(
+            `[remote-config] Failed to refresh remotely disabled exchanges (url: ${remoteConfigUrl}): ${describeError(error)}`
+        )
     }
 
     return cachedDisabledExchanges
