@@ -6,7 +6,9 @@ export interface FeeTypeProps {
 }
 
 const FeeType = ({ type }: FeeTypeProps) => {
-    if (!type) return null
+    if (!type) {
+        return null
+    }
 
     const config = {
         free: {
@@ -38,7 +40,7 @@ const FeeType = ({ type }: FeeTypeProps) => {
 
     const { icon, variant, title, description } = config[type]
 
-    return <InformationIcon icon={icon} variant={variant} title={title} description={description} />
+    return <InformationIcon description={description} icon={icon} title={title} variant={variant} />
 }
 
 export default FeeType

@@ -1,5 +1,5 @@
-import { toIsoString } from '@/lib/utils'
 import { sql } from '@vercel/postgres'
+import { toIsoString } from '@/lib/utils'
 
 export async function updateCachedSwyftxKey(key: string) {
     return await sql`UPDATE swyftx
@@ -16,7 +16,7 @@ export async function getCachedSwyftxKey(): Promise<{ refresh_key: string; updat
 }
 
 export async function refreshSwyftxToken() {
-    const res = await fetch(`https://api.swyftx.com.au/auth/refresh/`, {
+    const res = await fetch('https://api.swyftx.com.au/auth/refresh/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

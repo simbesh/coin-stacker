@@ -1,17 +1,18 @@
 'use client'
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import type React from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 interface FlickeringGridProps {
-    squareSize?: number
-    gridGap?: number
-    flickerChance?: number
-    color?: string
-    width?: number
-    height?: number
     className?: string
+    color?: string
+    flickerChance?: number
+    gridGap?: number
+    height?: number
 
     maxOpacity?: number
+    squareSize?: number
+    width?: number
 }
 
 const FlickeringGrid: React.FC<FlickeringGridProps> = ({
@@ -32,12 +33,14 @@ const FlickeringGrid: React.FC<FlickeringGridProps> = ({
     const memoizedColor = useMemo(() => {
         const toRGBA = (color: string) => {
             if (typeof window === 'undefined') {
-                return `rgba(0, 0, 0,`
+                return 'rgba(0, 0, 0,'
             }
             const canvas = document.createElement('canvas')
             canvas.width = canvas.height = 1
             const ctx = canvas.getContext('2d')
-            if (!ctx) return 'rgba(255, 0, 0,'
+            if (!ctx) {
+                return 'rgba(255, 0, 0,'
+            }
             ctx.fillStyle = color
             ctx.fillRect(0, 0, 1, 1)
             const [r, g, b] = Array.from(ctx.getImageData(0, 0, 1, 1).data)
@@ -63,7 +66,7 @@ const FlickeringGrid: React.FC<FlickeringGridProps> = ({
 
             return { cols, rows, squares, dpr }
         },
-        [squareSize, gridGap, maxOpacity]
+        [squareSize, gridGap, maxOpacity],
     )
 
     const updateSquares = useCallback(
@@ -74,7 +77,7 @@ const FlickeringGrid: React.FC<FlickeringGridProps> = ({
                 }
             }
         },
-        [flickerChance, maxOpacity]
+        [flickerChance, maxOpacity],
     )
 
     const drawGrid = useCallback(
@@ -85,7 +88,7 @@ const FlickeringGrid: React.FC<FlickeringGridProps> = ({
             cols: number,
             rows: number,
             squares: Float32Array,
-            dpr: number
+            dpr: number,
         ) => {
             ctx.clearRect(0, 0, width, height)
             ctx.fillStyle = 'transparent'
@@ -99,21 +102,25 @@ const FlickeringGrid: React.FC<FlickeringGridProps> = ({
                         i * (squareSize + gridGap) * dpr,
                         j * (squareSize + gridGap) * dpr,
                         squareSize * dpr,
-                        squareSize * dpr
+                        squareSize * dpr,
                     )
                 }
             }
         },
-        [memoizedColor, squareSize, gridGap]
+        [memoizedColor, squareSize, gridGap],
     )
 
     useEffect(() => {
         const canvas = canvasRef.current
         const container = containerRef.current
-        if (!canvas || !container) return
+        if (!(canvas && container)) {
+            return
+        }
 
         const ctx = canvas.getContext('2d')
-        if (!ctx) return
+        if (!ctx) {
+            return
+        }
 
         let animationFrameId: number
         let gridParams: ReturnType<typeof setupCanvas>
@@ -129,7 +136,9 @@ const FlickeringGrid: React.FC<FlickeringGridProps> = ({
 
         let lastTime = 0
         const animate = (time: number) => {
-            if (!isInView) return
+            if (!isInView) {
+                return
+            }
 
             const deltaTime = (time - lastTime) / 1000
             lastTime = time
@@ -142,7 +151,7 @@ const FlickeringGrid: React.FC<FlickeringGridProps> = ({
                 gridParams.cols,
                 gridParams.rows,
                 gridParams.squares,
-                gridParams.dpr
+                gridParams.dpr,
             )
             animationFrameId = requestAnimationFrame(animate)
         }
@@ -157,7 +166,7 @@ const FlickeringGrid: React.FC<FlickeringGridProps> = ({
             ([entry]) => {
                 setIsInView(entry?.isIntersecting ?? false)
             },
-            { threshold: 0 }
+            { threshold: 0 },
         )
 
         intersectionObserver.observe(canvas)
@@ -174,10 +183,10 @@ const FlickeringGrid: React.FC<FlickeringGridProps> = ({
     }, [setupCanvas, updateSquares, drawGrid, width, height, isInView])
 
     return (
-        <div ref={containerRef} className={`size-full ${className}`}>
+        <div className={`size-full ${className}`} ref={containerRef}>
             <canvas
-                ref={canvasRef}
                 className="pointer-events-none"
+                ref={canvasRef}
                 style={{
                     width: canvasSize.width,
                     height: canvasSize.height,

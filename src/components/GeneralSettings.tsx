@@ -1,5 +1,8 @@
 'use client'
 
+import { useLocalStorage } from '@uidotdev/usehooks'
+import { Settings } from 'lucide-react'
+import { useEffect } from 'react'
 import ExchangeIcon from '@/components/ExchangeIcon'
 import Feedback from '@/components/Feedback'
 import { Button } from '@/components/ui/button'
@@ -8,14 +11,11 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTr
 import { Switch } from '@/components/ui/switch'
 import { LocalStorageKeys } from '@/lib/constants'
 import { cn, defaultEnabledExchanges } from '@/lib/utils'
-import { useLocalStorage } from '@uidotdev/usehooks'
-import { Settings } from 'lucide-react'
-import { useEffect } from 'react'
 
 const GeneralSettings = () => {
     const [enabledExchanges, setEnabledExchanges] = useLocalStorage<Record<string, boolean>>(
         LocalStorageKeys.EnabledExchanges,
-        defaultEnabledExchanges
+        defaultEnabledExchanges,
     )
 
     useEffect(() => {
@@ -53,51 +53,53 @@ const GeneralSettings = () => {
                 <div className={'mx-6 mt-6 space-y-1 sm:mx-10'}>
                     {Object.keys(defaultEnabledExchanges).map((exchange) => (
                         <Button
-                            variant={'ghost'}
+                            aria-label={`Toggle ${exchange} Exchange`}
                             className={
                                 'w-full justify-between hover:bg-transparent hover:ring-2 hover:ring-slate-200 dark:hover:ring-slate-800'
                             }
-                            onClick={() => handleExchangeToggle(exchange)}
                             key={exchange + '-exchange-toggle'}
-                            aria-label={`Toggle ${exchange} Exchange`}
+                            onClick={() => handleExchangeToggle(exchange)}
+                            variant={'ghost'}
                         >
                             <div
                                 className={cn(
                                     'flex items-center gap-2',
-                                    !enabledExchanges[exchange] && 'opacity-50 grayscale'
+                                    !enabledExchanges[exchange] && 'opacity-50 grayscale',
                                 )}
                             >
                                 <ExchangeIcon
                                     exchange={exchange}
-                                    withLabel
                                     labelClassName={'font-semibold sm:text-base text-sm'}
+                                    withLabel
                                 />
                             </div>
-                            <Switch size={'sm'} checked={enabledExchanges[exchange]} />
+                            <Switch checked={enabledExchanges[exchange]} size={'sm'} />
                         </Button>
                     ))}
                 </div>
                 <div className={'my-4 flex w-full justify-end gap-2'}>
                     <Button
-                        variant={'secondary'}
                         aria-label={`Disable All Exchanges (${Object.keys(defaultEnabledExchanges).length})`}
                         onClick={() =>
                             setEnabledExchanges(
-                                Object.fromEntries(Object.entries(defaultEnabledExchanges).map(([key]) => [key, false]))
+                                Object.fromEntries(
+                                    Object.entries(defaultEnabledExchanges).map(([key]) => [key, false]),
+                                ),
                             )
                         }
+                        variant={'secondary'}
                     >{`Disable All (${Object.keys(defaultEnabledExchanges).length})`}</Button>
                     <Button
-                        variant={'secondary'}
                         aria-lable="Enable All Exchanges"
                         onClick={() => setEnabledExchanges(defaultEnabledExchanges)}
+                        variant={'secondary'}
                     >
                         Enable All
                     </Button>
                 </div>
                 <Separator className={'mt-4'} />
 
-                <div className={'text-muted-foreground/50 mt-2 flex items-center justify-end gap-2 text-sm'}>
+                <div className={'mt-2 flex items-center justify-end gap-2 text-muted-foreground/50 text-sm'}>
                     <div>{'v' + process.env.APP_VERSION}</div>
                     <div>{process.env.COMMIT_HASH}</div>
                 </div>

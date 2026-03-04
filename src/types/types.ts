@@ -1,13 +1,13 @@
 export type CsOrderBookResponse = CsOrderBookResponseOk | CsOrderBookResponseError
 
 export interface CsOrderBookResponseOk {
-    status: 'ok'
     buyorders: Array<OrderBookLevel>
     sellorders: Array<OrderBookLevel>
+    status: 'ok'
 }
 export interface CsOrderBookResponseError {
-    status: 'error'
     message: string
+    status: 'error'
 }
 
 export type CjOrderBookResponse =
@@ -26,9 +26,9 @@ export interface BrOrderBookResponse {
 }
 
 export interface D1OrderBookResponse {
-    timestamp: number
     asks: [string, string][]
     bids: [string, string][]
+    timestamp: number
 }
 
 export interface WayexOrderBookResponse {
@@ -40,24 +40,24 @@ export interface WayexOrderBookResponse {
 }
 
 export interface SwOrdersResponse {
-    price: string
-    total: string
     amount: string
     feePerUnit: string
+    price: string
+    total: string
 }
 
 interface BrOrderBookLevel {
-    price: string
     amount: string
+    price: string
 }
 
 export interface OrderBookLevel {
     amount: number
-    rate: number
-    total: number
     coin: string
     created: number
     market: string
+    rate: number
+    total: number
 }
 
 export type PriceQueryParams = {
@@ -68,49 +68,49 @@ export type PriceQueryParams = {
 }
 
 export interface CoinstashQuotes {
-    quoteId: string
     issuedOn: Date
-    targetCurrency: string
     prices?: { [key: string]: Price }
+    quoteId: string
+    targetCurrency: string
 }
 
 //{"status":true,"buy":157884.39,"sell":154140.09,"market":155700.84,"spot":156012.24}
 export interface HardblockTicker {
-    status: boolean
     buy: number
-    sell: number
     market: number
+    sell: number
     spot: number
+    status: boolean
 }
 
 export interface CointreeQuotes {
-    sell: string
-    buy: string
     ask: number
     bid: number
-    rate: number
-    spotRate: number
+    buy: string
     market: string
-    timestamp: string
-    rateType: string
+    rate: number
     rateSteps: string
+    rateType: string
+    sell: string
+    spotRate: number
+    timestamp: string
 }
 
 export interface Price {
-    coinId: string
-    symbol: string
-    coinUrl: null | string
-    tickerPrice: number
     buyPrice: number
-    sellPrice: number
     buyPricePrecise: string
-    sellPricePrecise: string
-    tickerPricePrecise: string
-    percentage_1H: number
-    percentage_24H: number | null
-    percentage_7D: number | null
-    percentage_30D: number | null
-    marketCap: number
     circulatingSupply: number
+    coinId: string
+    coinUrl: null | string
+    marketCap: number
+    percentage_1H: number
+    percentage_7D: number | null
+    percentage_24H: number | null
+    percentage_30D: number | null
+    sellPrice: number
+    sellPricePrecise: string
+    symbol: string
+    tickerPrice: number
+    tickerPricePrecise: string
     tradingVolume_24H: number
 }

@@ -7,7 +7,9 @@
     "dev": "next dev --turbopack --port 3050",
     "scan": "next dev & npx react-scan@latest localhost:3000",
     "start": "next start",
-    "check": "next lint --quiet --fix && tsc --noEmit"
+    "check": "ultracite check",
+    "fix": "ultracite fix",
+    "prepare": "husky"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
@@ -38,8 +40,7 @@
     "next": "15.5.9",
     "next-themes": "^0.2.1",
     "nuqs": "^2.3.1",
-    "posthog-js": "^1.186.1",
-    "prettier": "^3.2.5",
+    "posthog-js": "1.358.0",
     "protobufjs": "^7.5.4",
     "react": "19.1.1",
     "react-dom": "19.1.1",
@@ -52,6 +53,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.4.0",
     "@tailwindcss/postcss": "^4.1.12",
     "@types/echarts": "^4.9.22",
     "@types/eslint": "^8.56.2",
@@ -59,17 +61,12 @@
     "@types/node": "^18.16.0",
     "@types/react": "19.1.10",
     "@types/react-dom": "19.1.7",
-    "@typescript-eslint/eslint-plugin": "^7.1.1",
-    "@typescript-eslint/parser": "^7.1.1",
     "autoprefixer": "^10.4.17",
-    "eslint": "^8.56.0",
-    "eslint-config-next": "15.4.7",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-tailwindcss": "^3.14.3",
+    "husky": "^9.1.7",
     "postcss": "^8.4.35",
-    "prettier-plugin-tailwindcss": "^0.6.14",
     "tailwindcss": "^4.1.12",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "ultracite": "7.2.4"
   },
   "ct3aMetadata": {
     "initVersion": "7.23.2"

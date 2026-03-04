@@ -1,19 +1,19 @@
-import Image from 'next/image'
-import AUD from 'cryptocurrency-icons/svg/color/usd.svg'
-import ADA from '@/assets/icons/coins/ada.svg'
-import SOL from '@/assets/icons/coins/sol.svg'
-import TRUMP from '@/assets/icons/coins/trump.png'
-import SUI from '@/assets/icons/coins/sui.png'
-import HYPE from '@/assets/icons/coins/hype.png'
 import assetsManifest from 'cryptocurrency-icons/manifest.json'
 import generic from 'cryptocurrency-icons/svg/color/generic.svg'
+import AUD from 'cryptocurrency-icons/svg/color/usd.svg'
+import type { StaticImport } from 'next/dist/shared/lib/get-img-props'
+import Image from 'next/image'
+import ADA from '@/assets/icons/coins/ada.svg'
+import HYPE from '@/assets/icons/coins/hype.png'
+import SOL from '@/assets/icons/coins/sol.svg'
+import SUI from '@/assets/icons/coins/sui.png'
+import TRUMP from '@/assets/icons/coins/trump.png'
 import { cn } from '@/lib/utils'
-import { StaticImport } from 'next/dist/shared/lib/get-img-props'
 
 interface Asset {
-    symbol: string
-    name: string
     color: string
+    name: string
+    symbol: string
 }
 
 const symbolOverride: Record<string, StaticImport> = {
@@ -34,17 +34,17 @@ const Coin = ({ symbol, className }: { symbol: string; className?: string }) => 
         <div className={cn('size-5', className)}>
             <div className={cn('size-5', className)}>
                 {currency in symbolOverride ? (
-                    <Image src={symbolOverride[currency] as StaticImport} height={24} width={24} alt={currency} />
+                    <Image alt={currency} height={24} src={symbolOverride[currency] as StaticImport} width={24} />
                 ) : exists ? (
                     <Image
-                        title={currency}
-                        src={require(`cryptocurrency-icons/svg/color/${currency.toLowerCase()}.svg`)}
-                        height={24}
-                        width={24}
                         alt={currency}
+                        height={24}
+                        src={require(`cryptocurrency-icons/svg/color/${currency.toLowerCase()}.svg`)}
+                        title={currency}
+                        width={24}
                     />
                 ) : (
-                    <Image src={generic} height={24} width={24} alt={currency} />
+                    <Image alt={currency} height={24} src={generic} width={24} />
                 )}
             </div>
         </div>

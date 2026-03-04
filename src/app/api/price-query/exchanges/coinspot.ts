@@ -1,6 +1,6 @@
 import { parseCsOrderBook } from '@/lib/utils'
-import { CsOrderBookResponse } from '@/types/types'
-import { ExchangeHandler, MarketNotFoundError } from '../types'
+import type { CsOrderBookResponse } from '@/types/types'
+import { type ExchangeHandler, MarketNotFoundError } from '../types'
 
 export const getCoinSpotOrderBook: ExchangeHandler = async (base: string, quote: string) => {
     const res = await fetch(`https://www.coinspot.com.au/pubapi/v2/orders/open/${base}/${quote}`)
@@ -13,9 +13,9 @@ export const getCoinSpotOrderBook: ExchangeHandler = async (base: string, quote:
     }
     if ('buyorders' in json && 'sellorders' in json) {
         return parseCsOrderBook(json)
-    } else if ('message' in json) {
-        throw new Error(json.message)
-    } else {
-        throw new Error('BUG: Unknown CoinSpot order book response')
     }
+    if ('message' in json) {
+        throw new Error(json.message)
+    }
+    throw new Error('BUG: Unknown CoinSpot order book response')
 }

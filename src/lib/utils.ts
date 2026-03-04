@@ -112,7 +112,7 @@ export const defaultEnabledExchanges: Record<string, boolean> = {
     // elbaite: true,
 }
 
-export function currencyFormat(num: number | undefined, currencyCode: string = 'AUD', digits: number = 2): string {
+export function currencyFormat(num: number | undefined, currencyCode = 'AUD', digits = 2): string {
     if (num === undefined) {
         return ''
     }
@@ -126,7 +126,7 @@ export function currencyFormat(num: number | undefined, currencyCode: string = '
 }
 
 function parseOrderBookStringTuple(tuple: [string, string]): [number, number] {
-    return [parseFloat(tuple[0]), parseFloat(tuple[1])]
+    return [Number.parseFloat(tuple[0]), Number.parseFloat(tuple[1])]
 }
 
 export function parseBrOrderBook(data: BrOrderBookResponse): any {
@@ -221,16 +221,17 @@ export function getBestOrders(
     base: string,
     quote: string,
     side: 'buy' | 'sell',
-    currency: string
+    currency: string,
 ): { sortedBests: Best[]; orderbookErrors: { name: string; error: { name: string } }[] } {
     let sortedBests: Best[] = []
     const errors = []
     for (const [exchange, orderbook] of Object.entries(orderbooks)) {
         if (orderbook.error) {
             continue
-        } else if (
+        }
+        if (
             orderbook.value === undefined ||
-            orderbook.value[side === 'buy' ? 'asks' : 'bids']?.flat().includes(NaN)
+            orderbook.value[side === 'buy' ? 'asks' : 'bids']?.flat().includes(Number.NaN)
         ) {
             errors.push({
                 name: exchange,
@@ -240,7 +241,7 @@ export function getBestOrders(
         }
 
         let grossCost = 0
-        let grossPrice = side === 'buy' ? -Infinity : Infinity
+        let grossPrice = side === 'buy' ? Number.NEGATIVE_INFINITY : Number.POSITIVE_INFINITY
         let volume = 0
         let amountLeft = amount
         let sumVolume = 0
@@ -253,10 +254,9 @@ export function getBestOrders(
             if (volume >= amountLeft) {
                 grossCost += grossPrice * amountLeft
                 break
-            } else {
-                amountLeft -= volume
-                grossCost += grossPrice * volume
             }
+            amountLeft -= volume
+            grossCost += grossPrice * volume
         }
 
         let feeRate = exchangeFees[exchange] ?? 0
@@ -271,7 +271,8 @@ export function getBestOrders(
         const netCost = side === 'buy' ? grossCost + fees : grossCost - fees
         const netPrice = side === 'buy' ? grossPrice * (1 + feeRate) : grossPrice * (1 - feeRate)
 
-        const priceCheck = side === 'buy' ? grossPrice > -Infinity : grossPrice < Infinity
+        const priceCheck =
+            side === 'buy' ? grossPrice > Number.NEGATIVE_INFINITY : grossPrice < Number.POSITIVE_INFINITY
         if (priceCheck && volume >= amountLeft) {
             sortedBests.push({
                 exchange,
@@ -307,9 +308,7 @@ export const formatExchangeName = (exchange: string): string => {
 export function toIsoString(date: Date) {
     const tzo = -date.getTimezoneOffset(),
         dif = tzo >= 0 ? '+' : '-',
-        pad = function (num: number) {
-            return (num < 10 ? '0' : '') + num
-        }
+        pad = (num: number) => (num < 10 ? '0' : '') + num
 
     return (
         date.getFullYear() +
@@ -346,7 +345,6 @@ export const median = (array: number[]): number | undefined => {
     const length = array.length
     if (length % 2 === 0) {
         return (array[length / 2]! + array[length / 2 - 1]!) / 2
-    } else {
-        return array[Math.floor(length / 2)]!
     }
+    return array[Math.floor(length / 2)]!
 }

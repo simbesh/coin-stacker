@@ -1,4 +1,4 @@
-import { ExchangeHandler, MarketNotFoundError, OrderBook } from '../types'
+import { type ExchangeHandler, MarketNotFoundError, type OrderBook } from '../types'
 
 const parseWayexOrderBook = (data: any): OrderBook => {
     const bids: [number, number][] = []

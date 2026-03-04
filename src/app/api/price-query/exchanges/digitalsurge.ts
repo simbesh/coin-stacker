@@ -1,14 +1,14 @@
-import { ExchangeHandler } from '../types'
+import type { ExchangeHandler } from '../types'
 
 export const getDigitalSurgeMockOrderBook: ExchangeHandler = async (
     base: string,
     quote: string,
     side?: string,
     amount?: string,
-    fee?: number
+    fee?: number,
 ) => {
     if (fee !== undefined && amount !== undefined && side && quote === 'AUD') {
-        const assetsRes = await fetch(`https://digitalsurge.com.au/api/public/broker/assets/`, {
+        const assetsRes = await fetch('https://digitalsurge.com.au/api/public/broker/assets/', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -19,7 +19,7 @@ export const getDigitalSurgeMockOrderBook: ExchangeHandler = async (
         const assets = await assetsRes.json()
         const max_order_size_value = assets.results.find((x: any) => x.code === base)?.max_order_size_value
         if (max_order_size_value) {
-            const res = await fetch(`https://digitalsurge.com.au/api/public/broker/ticker/`, {
+            const res = await fetch('https://digitalsurge.com.au/api/public/broker/ticker/', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',

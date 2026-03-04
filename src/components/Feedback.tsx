@@ -1,4 +1,8 @@
-import React, { FormEvent, useEffect, useState } from 'react'
+import { CheckCircle, MessageCircleHeart, Send } from 'lucide-react'
+import posthog from 'posthog-js'
+import { type FormEvent, useEffect, useState } from 'react'
+import { RiGithubLine } from 'react-icons/ri'
+import { Button } from '@/components/ui/button'
 import {
     Dialog,
     DialogContent,
@@ -8,14 +12,10 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
-import { CheckCircle, MessageCircleHeart, Send } from 'lucide-react'
-import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
-import posthog from 'posthog-js'
-import { RiGithubLine } from 'react-icons/ri'
+import { Textarea } from '@/components/ui/textarea'
 
 const Feedback = () => {
     const [isLoading, setIsLoading] = useState(false)
@@ -70,20 +70,20 @@ const Feedback = () => {
     }
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog onOpenChange={setOpen} open={open}>
             <DialogTrigger asChild>
                 <Button
-                    variant={'ghost'}
-                    className={'group gap-2 text-base'}
                     aria-label="Open Feedback Dialog"
+                    className={'group gap-2 text-base'}
                     onClick={() => posthog.capture('open-feedback')}
+                    variant={'ghost'}
                 >
-                    <MessageCircleHeart className={'group-hover:text-primary transition-color duration-200 size-5'} />
+                    <MessageCircleHeart className={'size-5 transition-color duration-200 group-hover:text-primary'} />
                     <span className={''}>Feedback</span>
                 </Button>
             </DialogTrigger>
             <DialogContent
-                className="bg-card h-fit transition-all duration-1000 sm:max-w-[425px]"
+                className="h-fit bg-card transition-all duration-1000 sm:max-w-[425px]"
                 onOpenAutoFocus={(e) => e.preventDefault()}
             >
                 {status ? (
@@ -96,20 +96,21 @@ const Feedback = () => {
                         </DialogHeader>
                         <div className="grid gap-2 py-4">
                             <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="name" className="text-right">
+                                <Label className="text-right" htmlFor="name">
                                     Github
                                 </Label>
                                 <Button
-                                    className={'col-span-3'}
-                                    variant={'link'}
                                     aria-label="Create Github Issue"
                                     asChild
+                                    className={'col-span-3'}
+                                    variant={'link'}
                                 >
                                     <a
-                                        href={'https://github.com/simbesh/coin-stacker/issues/new'}
-                                        target={'_blank'}
                                         className={'flex gap-2'}
+                                        href={'https://github.com/simbesh/coin-stacker/issues/new'}
                                         onClick={() => posthog.capture('feedback-github-issue')}
+                                        rel="noopener"
+                                        target={'_blank'}
                                     >
                                         <RiGithubLine className={'size-5'} />
                                         Create Issue
@@ -118,20 +119,20 @@ const Feedback = () => {
                             </div>
                             <Separator />
                             <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="name" className="text-right">
+                                <Label className="text-right" htmlFor="name">
                                     Telegram
                                 </Label>
                                 <Button
-                                    className={'col-span-3'}
-                                    variant={'link'}
                                     aria-label="Open Telegram Chat"
                                     asChild
+                                    className={'col-span-3'}
+                                    variant={'link'}
                                 >
                                     <a
-                                        href={process.env.NEXT_PUBLIC_TELEGRAM_GROUP_URL}
-                                        target={'_blank'}
                                         className={'flex gap-2'}
+                                        href={process.env.NEXT_PUBLIC_TELEGRAM_GROUP_URL}
                                         onClick={() => posthog.capture('feedback-telegram-group')}
+                                        target={'_blank'}
                                     >
                                         <Send className={'size-5'} />
                                         Open Chat
@@ -148,13 +149,13 @@ const Feedback = () => {
                                         {/*    Title <span className={'text-muted-foreground'}>(optional)</span>*/}
                                         {/*</Label>*/}
                                         <Input
-                                            id="title"
-                                            placeholder="Title (optional)"
                                             className="col-span-4"
-                                            value={contactFormData.title}
+                                            id="title"
                                             onChange={(e) =>
                                                 setContactFormData((prev) => ({ ...prev, title: e.target.value }))
                                             }
+                                            placeholder="Title (optional)"
+                                            value={contactFormData.title}
                                         />
                                     </div>
                                     <div className="grid grid-cols-4 items-center gap-4">
@@ -162,14 +163,14 @@ const Feedback = () => {
                                         {/*    Email <span className={'text-muted-foreground'}>(optional)</span>*/}
                                         {/*</Label>*/}
                                         <Input
-                                            id="email"
-                                            placeholder="Email (optional)"
-                                            type="email"
                                             className="col-span-4"
-                                            value={contactFormData.email}
+                                            id="email"
                                             onChange={(e) =>
                                                 setContactFormData((prev) => ({ ...prev, email: e.target.value }))
                                             }
+                                            placeholder="Email (optional)"
+                                            type="email"
+                                            value={contactFormData.email}
                                         />
                                     </div>
                                     <div className="grid grid-cols-4 items-center gap-4">
@@ -177,21 +178,21 @@ const Feedback = () => {
                                         {/*    Message <span className={'font-bold text-red-500'}>*</span>*/}
                                         {/*</Label>*/}
                                         <Textarea
-                                            placeholder="Type your message here.*"
-                                            className="bg-card col-span-4"
-                                            value={contactFormData.message}
+                                            className="col-span-4 bg-card"
                                             onChange={(e) =>
                                                 setContactFormData((prev) => ({ ...prev, message: e.target.value }))
                                             }
+                                            placeholder="Type your message here.*"
+                                            value={contactFormData.message}
                                         />
                                     </div>
                                 </div>
                                 <Button
-                                    type="submit"
+                                    aria-label="Send Feedback"
                                     className={'mt-6 w-full'}
                                     disabled={contactFormData.message === ''}
                                     isLoading={isLoading}
-                                    aria-label="Send Feedback"
+                                    type="submit"
                                 >
                                     Send
                                 </Button>
@@ -216,10 +217,10 @@ function FeedbackResponse({ closeDialog }: { closeDialog: () => void }) {
             </DialogHeader>
             <DialogFooter>
                 <Button
-                    variant={'outline'}
-                    className={'text-secondary-foreground gap-2 text-base'}
-                    onClick={closeDialog}
                     aria-label="Dismiss Feedback Dialog"
+                    className={'gap-2 text-base text-secondary-foreground'}
+                    onClick={closeDialog}
+                    variant={'outline'}
                 >
                     Dismiss
                 </Button>

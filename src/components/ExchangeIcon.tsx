@@ -1,4 +1,3 @@
-import React from 'react'
 import { getExchangeLogo } from '@/exchange-config'
 import { cn, formatExchangeName } from '@/lib/utils'
 
@@ -22,8 +21,8 @@ const ExchangeIcon = ({
             ) : (
                 <img
                     alt={`exchange logo for ${exchange}`}
-                    src={getExchangeLogo(exchange)}
                     className={cn('my-0.5 size-5 items-center rounded-sm', invertColour, imageClassName)}
+                    src={getExchangeLogo(exchange)}
                 />
             )}
             <span className={cn('w-fit', labelClassName, hideLabelMobile && 'hidden sm:block')}>

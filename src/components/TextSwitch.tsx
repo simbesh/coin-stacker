@@ -25,23 +25,23 @@ const TextSwitch = ({
         (sideKey: 'buy' | 'sell') => {
             setSide(sideKey)
         },
-        [setSide]
+        [setSide],
     )
 
     return (
-        <div className="border-border relative mx-8 flex h-12 items-center rounded-md border p-1 shadow" {...props}>
+        <div className="relative mx-8 flex h-12 items-center rounded-md border border-border p-1 shadow" {...props}>
             {options.map(({ key, label, bgColor }) => {
                 const isActive = side === key
                 return (
                     <button
-                        key={key}
+                        aria-label={`Select ${label} Side`}
                         className={cn(
                             'relative flex h-10 w-1/2 items-center justify-center rounded-sm font-bold capitalize',
-                            isActive ? 'text-white' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                            isActive ? 'text-white' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200',
                         )}
+                        key={key}
                         onClick={() => handleSideClick(key)}
                         type="button"
-                        aria-label={`Select ${label} Side`}
                     >
                         {isActive && (
                             <motion.div

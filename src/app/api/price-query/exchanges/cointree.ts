@@ -1,5 +1,5 @@
-import { CointreeQuotes } from '@/types/types'
-import { ExchangeHandler } from '../types'
+import type { CointreeQuotes } from '@/types/types'
+import type { ExchangeHandler } from '../types'
 
 const cointreeOrderLimit: Record<string, number> = {
     AUD: 52_500,
@@ -12,7 +12,7 @@ export const getCointreeMockOrderBook: ExchangeHandler = async (
     quote: string,
     side?: string,
     amount?: string,
-    fee?: number
+    fee?: number,
 ) => {
     const liquidityLimit = cointreeOrderLimit[quote]
     if (fee !== undefined && amount !== undefined && liquidityLimit !== undefined) {

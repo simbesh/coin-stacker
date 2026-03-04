@@ -6,7 +6,9 @@ interface ExchangeTypeProps {
 }
 
 const ExchangeType = ({ type }: ExchangeTypeProps) => {
-    if (!type) return null
+    if (!type) {
+        return null
+    }
 
     const config = {
         orderbook: {
@@ -25,7 +27,7 @@ const ExchangeType = ({ type }: ExchangeTypeProps) => {
 
     const { icon, variant, title, description } = config[type]
 
-    return <InformationIcon icon={icon} variant={variant} title={title} description={description} />
+    return <InformationIcon description={description} icon={icon} title={title} variant={variant} />
 }
 
 export default ExchangeType

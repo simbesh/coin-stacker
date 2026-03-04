@@ -1,11 +1,11 @@
 // source: https://github.com/shadcn-ui/ui/issues/2402#issuecomment-1930895113
 'use client'
 
-import { PropsWithChildren, createContext, useContext, useEffect, useState } from 'react'
-import { Tooltip, TooltipTrigger, TooltipContent } from './tooltip'
-import { Popover, PopoverTrigger, PopoverContent } from './popover'
-import { TooltipContentProps, TooltipProps, TooltipTriggerProps } from '@radix-ui/react-tooltip'
-import { PopoverContentProps, PopoverProps, PopoverTriggerProps } from '@radix-ui/react-popover'
+import type { PopoverContentProps, PopoverProps, PopoverTriggerProps } from '@radix-ui/react-popover'
+import type { TooltipContentProps, TooltipProps, TooltipTriggerProps } from '@radix-ui/react-tooltip'
+import { createContext, type PropsWithChildren, useContext, useEffect, useState } from 'react'
+import { Popover, PopoverContent, PopoverTrigger } from './popover'
+import { Tooltip, TooltipContent, TooltipTrigger } from './tooltip'
 
 const TouchContext = createContext<boolean | undefined>(undefined)
 const useTouch = () => useContext(TouchContext)

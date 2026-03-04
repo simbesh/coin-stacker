@@ -1,5 +1,6 @@
-import React, { useRef } from 'react'
 import { motion, useAnimationFrame, useMotionTemplate, useMotionValue, useTransform } from 'motion/react'
+import type React from 'react'
+import { useRef } from 'react'
 import { cn } from '@/lib/utils'
 
 export function MovingLabel({
@@ -23,9 +24,9 @@ export function MovingLabel({
 }) {
     return (
         <Component
-            className={cn('bg-transparent relative text-xl h-9 p-[1px] overflow-hidden', containerClassName)}
+            className={cn('relative h-9 overflow-hidden bg-transparent p-[1px] text-xl', containerClassName)}
             style={{
-                borderRadius: borderRadius,
+                borderRadius,
             }}
             {...otherProps}
         >
@@ -33,8 +34,8 @@ export function MovingLabel({
                 <MovingBorder duration={duration} rx="30%" ry="30%">
                     <div
                         className={cn(
-                            'h-12 w-20 opacity-[0.6] bg-[radial-gradient(#febc16_15%,transparent_60%)]',
-                            borderClassName
+                            'h-12 w-20 bg-[radial-gradient(#febc16_15%,transparent_60%)] opacity-[0.6]',
+                            borderClassName,
                         )}
                     />
                 </MovingBorder>
@@ -42,8 +43,8 @@ export function MovingLabel({
 
             <div
                 className={cn(
-                    'relative bg-slate-900/[0.5] border border-slate-800 backdrop-blur-xl text-white flex items-center justify-center w-full h-full text-sm antialiased',
-                    className
+                    'relative flex h-full w-full items-center justify-center border border-slate-800 bg-slate-900/[0.5] text-sm text-white antialiased backdrop-blur-xl',
+                    className,
                 )}
                 style={{
                     borderRadius: `calc(${borderRadius} * 1)`,
@@ -87,13 +88,13 @@ export const MovingBorder = ({
     return (
         <>
             <svg
-                preserveAspectRatio="none"
                 className="absolute h-full w-full"
-                width="100%"
                 height="100%"
+                preserveAspectRatio="none"
+                width="100%"
                 {...otherProps}
             >
-                <rect fill="none" width="100%" height="100%" rx={rx} ry={ry} ref={pathRef} />
+                <rect fill="none" height="100%" ref={pathRef} rx={rx} ry={ry} width="100%" />
             </svg>
             <motion.div
                 style={{

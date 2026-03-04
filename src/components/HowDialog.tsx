@@ -1,23 +1,23 @@
-import { Credenza, CredenzaContent, CredenzaDescription, CredenzaTitle, CredenzaTrigger } from '@/components/Credenza'
 import { useState } from 'react'
+import { Credenza, CredenzaContent, CredenzaDescription, CredenzaTitle, CredenzaTrigger } from '@/components/Credenza'
 import { Button } from './ui/button'
 import { ScrollArea } from './ui/scroll-area'
 
 const HighlightedText = ({ children }: { children: React.ReactNode }) => (
-    <span className="bg-muted rounded-md px-1">{children}</span>
+    <span className="rounded-md bg-muted px-1">{children}</span>
 )
 
 const HowCredenza = () => {
     const [open, setOpen] = useState(false)
     return (
-        <Credenza open={open} onOpenChange={setOpen}>
+        <Credenza onOpenChange={setOpen} open={open}>
             <CredenzaTrigger asChild>
-                <Button variant={'link'} className="text-default" onClick={() => setOpen(true)}>
+                <Button className="text-default" onClick={() => setOpen(true)} variant={'link'}>
                     How are these prices calculated?
                 </Button>
             </CredenzaTrigger>
             <CredenzaContent
-                className="bg-card h-fit p-2 pt-6 transition-all duration-1000 sm:p-6"
+                className="h-fit bg-card p-2 pt-6 transition-all duration-1000 sm:p-6"
                 onOpenAutoFocus={(e) => e.preventDefault()}
             >
                 <ScrollArea className="overflow-y-auto">
@@ -48,7 +48,7 @@ const HowCredenza = () => {
                                 </li>
                             </ul>
                         </div>
-                        <div className="col-span-5 mt-2 grid grid-cols-2 text-right font-mono text-sm text-black dark:text-white">
+                        <div className="col-span-5 mt-2 grid grid-cols-2 text-right font-mono text-black text-sm dark:text-white">
                             <div className="font-medium">Price</div>
                             <div className="font-medium">Amount</div>
                             <div className="bg-red-100 p-2 dark:bg-red-900/50">$115,000</div>
@@ -67,7 +67,7 @@ const HowCredenza = () => {
                         </div>
                     </div>
                 </ScrollArea>
-                <div className="grid gap-2 py-4"></div>
+                <div className="grid gap-2 py-4" />
             </CredenzaContent>
         </Credenza>
     )

@@ -1,19 +1,19 @@
-import { Switch } from './ui/switch'
 import { cn } from '@/lib/utils'
+import { Switch } from './ui/switch'
 
 interface LabeledSwitchProps {
-    label: string
     checked: boolean
-    onCheckedChange: (checked: boolean) => void
     disabled?: boolean
+    label: string
+    onCheckedChange: (checked: boolean) => void
     size?: 'xs' | 'sm' | 'default'
 }
 
 export function LabeledSwitch({ label, checked, onCheckedChange, disabled = false, size = 'xs' }: LabeledSwitchProps) {
     return (
-        <label className="hover:ring-muted flex w-full items-center justify-between gap-2 rounded-md p-1 hover:ring-1">
+        <label className="flex w-full items-center justify-between gap-2 rounded-md p-1 hover:ring-1 hover:ring-muted">
             <span className={cn('text-xs', disabled && 'opacity-60')}>{label}</span>
-            <Switch size={size} checked={checked} onCheckedChange={onCheckedChange} disabled={disabled} />
+            <Switch checked={checked} disabled={disabled} onCheckedChange={onCheckedChange} size={size} />
         </label>
     )
 }

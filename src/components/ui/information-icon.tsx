@@ -1,6 +1,6 @@
-import * as React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
-import { LucideIcon } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
+import * as React from 'react'
 
 import { cn } from '@/lib/utils'
 import { HybridTooltip, HybridTooltipContent, HybridTooltipTrigger } from './hybrid-tooltip'
@@ -51,7 +51,7 @@ const iconColorVariants = cva('', {
     },
 })
 
-const tooltipTextVariants = cva('text-sm text-center', {
+const tooltipTextVariants = cva('text-center text-sm', {
     variants: {
         variant: {
             default: 'text-primary',
@@ -71,22 +71,22 @@ const tooltipTextVariants = cva('text-sm text-center', {
 export interface InformationIconProps
     extends React.HTMLAttributes<HTMLDivElement>,
         VariantProps<typeof informationIconVariants> {
-    icon: LucideIcon
-    title?: string
     description?: string
+    icon: LucideIcon
     iconOffset?: string
     showTitleIcon?: boolean
+    title?: string
 }
 
 const InformationIcon = React.forwardRef<HTMLDivElement, InformationIconProps>(
     ({ className, variant, size, icon: Icon, title, description, ...props }, ref) => {
         const content = (
-            <div ref={ref} className={cn(informationIconVariants({ variant, size }), className)} {...props}>
+            <div className={cn(informationIconVariants({ variant, size }), className)} ref={ref} {...props}>
                 <Icon className={cn(iconColorVariants({ variant, size }))} />
             </div>
         )
 
-        if (!title && !description) {
+        if (!(title || description)) {
             return <div className="group flex items-center">{content}</div>
         }
 
@@ -96,17 +96,17 @@ const InformationIcon = React.forwardRef<HTMLDivElement, InformationIconProps>(
                     <HybridTooltipTrigger className="opacity-100">{content}</HybridTooltipTrigger>
                     <HybridTooltipContent className="opacity-100">
                         {title && (
-                            <div className="flex items-center gap-2 justify-center">
+                            <div className="flex items-center justify-center gap-2">
                                 <Icon className={cn(iconColorVariants({ variant, size }))} />
                                 <p className={cn(tooltipTextVariants({ variant }))}>{title}</p>
                             </div>
                         )}
-                        {description && <p className="text-xs text-center whitespace-pre-line">{description}</p>}
+                        {description && <p className="whitespace-pre-line text-center text-xs">{description}</p>}
                     </HybridTooltipContent>
                 </HybridTooltip>
             </div>
         )
-    }
+    },
 )
 InformationIcon.displayName = 'InformationIcon'
 

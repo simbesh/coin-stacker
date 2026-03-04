@@ -1,9 +1,9 @@
 'use client'
 
+import { usePathname, useSearchParams } from 'next/navigation'
 import posthog from 'posthog-js'
 import { PostHogProvider } from 'posthog-js/react'
-import { usePathname, useSearchParams } from 'next/navigation'
-import { useEffect, type JSX } from 'react';
+import { type JSX, useEffect } from 'react'
 
 if (typeof window !== 'undefined') {
     posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {

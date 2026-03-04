@@ -1,5 +1,11 @@
 'use client'
 
+import { useLocalStorage, useWindowScroll } from '@uidotdev/usehooks'
+import { Home, Menu } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { useSelectedLayoutSegment } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import ClientOnly from '@/components/ClientOnly'
 import Feedback from '@/components/Feedback'
 import GeneralSettings from '@/components/GeneralSettings'
@@ -7,12 +13,6 @@ import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { LocalStorageKeys } from '@/lib/constants'
 import { cn } from '@/lib/utils'
-import { useLocalStorage, useWindowScroll } from '@uidotdev/usehooks'
-import { Home, Menu } from 'lucide-react'
-import Image from 'next/image'
-import Link from 'next/link'
-import { useSelectedLayoutSegment } from 'next/navigation'
-import { useEffect, useState } from 'react'
 import { AnimatedThemeToggler } from './magicui/animated-theme-toggler'
 import WithdrawalFeeDialog from './WithdrawalFeeDialog'
 
@@ -43,7 +43,7 @@ const NavBar = () => {
     useEffect(() => {
         if (y && y > 1) {
             setBarBg(
-                'bg-slate-50/40 dark:bg-slate-900/40 backdrop-blur dark:border-b-border dark:border drop-shadow-lg dark:drop-shadow-none'
+                'bg-slate-50/40 dark:bg-slate-900/40 backdrop-blur dark:border-b-border dark:border drop-shadow-lg dark:drop-shadow-none',
             )
         } else {
             setBarBg(defaultNavBackground)
@@ -55,7 +55,7 @@ const NavBar = () => {
             <div className={'block sm:hidden'}>
                 <Sheet onOpenChange={setSheetOpen} open={sheetOpen}>
                     <SheetTrigger asChild>
-                        <Button variant="outline" size="icon" aria-label="Open Navigation Menu">
+                        <Button aria-label="Open Navigation Menu" size="icon" variant="outline">
                             <Menu className="size-[1.2rem]" />
                         </Button>
                     </SheetTrigger>
@@ -66,14 +66,14 @@ const NavBar = () => {
                         <div className="flex flex-col">
                             {items.map((item) => (
                                 <Link
-                                    key={item.id}
-                                    href={item.href}
                                     className={cn(
-                                        'flex gap-2 py-4 ',
+                                        'flex gap-2 py-4',
                                         activeSegment === item.activeSegment
-                                            ? 'text-primary font-semibold'
-                                            : 'text-muted-foreground'
+                                            ? 'font-semibold text-primary'
+                                            : 'text-muted-foreground',
                                     )}
+                                    href={item.href}
+                                    key={item.id}
                                     onClick={() => {
                                         setSheetOpen(false)
                                     }}
@@ -86,31 +86,31 @@ const NavBar = () => {
                     </SheetContent>
                 </Sheet>
             </div>
-            <Link href={'/'} className={'ml-auto flex items-center gap-2 sm:ml-0'}>
-                <Image src={'/coinstacker-logo.png'} alt={'coinstacker-logo'} width={40} height={24} />
-                <span className="self-center whitespace-nowrap text-2xl font-semibold dark:text-white">
+            <Link className={'ml-auto flex items-center gap-2 sm:ml-0'} href={'/'}>
+                <Image alt={'coinstacker-logo'} height={24} src={'/coinstacker-logo.png'} width={40} />
+                <span className="self-center whitespace-nowrap font-semibold text-2xl dark:text-white">
                     CoinStacker
                 </span>
             </Link>
-            <div className="ml-12 mr-auto hidden w-full items-center sm:flex sm:w-auto" id="navbar-default">
+            <div className="mr-auto ml-12 hidden w-full items-center sm:flex sm:w-auto" id="navbar-default">
                 <div className="mt-4 flex rounded-lg border border-gray-100 p-4 font-medium sm:mt-0 sm:flex-row sm:space-x-4 sm:border-0 sm:p-0 dark:border-gray-700">
                     {items.map((item) => (
                         <Link
-                            key={item.id}
-                            href={item.href}
                             className={cn(
                                 'rounded-md p-3 hover:bg-slate-200 dark:hover:bg-slate-800',
                                 activeSegment === item.activeSegment
-                                    ? 'text-primary font-semibold'
-                                    : 'text-muted-foreground hover:text-secondary-foreground    '
+                                    ? 'font-semibold text-primary'
+                                    : 'text-muted-foreground hover:text-secondary-foreground',
                             )}
+                            href={item.href}
+                            key={item.id}
                         >
                             {item.title}
                         </Link>
                     ))}
                 </div>
             </div>
-            <div className={'ml-auto flex items-center gap-1 sm:gap-2 sm:ml-0'}>
+            <div className={'ml-auto flex items-center gap-1 sm:ml-0 sm:gap-2'}>
                 <WithdrawalFeeDialog defaultOpen={!binanceAnnouncementDismissed} />
                 <div className={'hidden sm:block'}>
                     <Feedback />

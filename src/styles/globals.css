@@ -1,7 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@100..700&display=swap');
-@import 'tailwindcss';
+@import url("https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@100..700&display=swap");
+@import "tailwindcss";
 
-@plugin 'tailwindcss-animate';
+@plugin "tailwindcss-animate";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -40,7 +40,7 @@
     --animate-accordion-down: accordion-down 0.2s ease-out;
     --animate-accordion-up: accordion-up 0.2s ease-out;
     --animate-breathe: breathe 1.5s ease-in-out infinite;
-    --font-mono: 'Roboto Mono', monospace;
+    --font-mono: "Roboto Mono", monospace;
 
     @keyframes accordion-down {
         from {
@@ -166,16 +166,16 @@
 }
 
 @utility container {
-    margin-inline: auto;
     padding-inline: 2rem;
+    padding-inline: 2rem;
+    margin-inline: auto;
+    margin-inline: auto;
     @media (width >= --theme(--breakpoint-sm)) {
         max-width: none;
     }
     @media (width >= 1400px) {
         max-width: 1400px;
     }
-    margin-inline: auto;
-    padding-inline: 2rem;
     @media (width >= --theme(--breakpoint-sm)) {
         max-width: none;
     }
@@ -321,28 +321,40 @@
     /* Chrome, Safari, Edge, Opera */
     input::-webkit-outer-spin-button,
     input::-webkit-inner-spin-button {
-        -webkit-appearance: none;
         margin: 0;
+        -webkit-appearance: none;
     }
 
     /* Firefox */
-    input[type='number'] {
+    input[type="number"] {
         -moz-appearance: textfield;
     }
 
     .dark .gradient-text {
-        background: linear-gradient(90deg, #fdbd19 0%, #fff 10%, #fff 90%, #fdbd19 100%);
-        -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        background: linear-gradient(
+            90deg,
+            #fdbd19 0%,
+            #fff 10%,
+            #fff 90%,
+            #fdbd19 100%
+        );
         background-position: 0;
+        -webkit-background-clip: text;
         background-size: 100%;
     }
 
     .gradient-text {
-        background: linear-gradient(90deg, #fdbd19 0%, #0f172b 10%, #0f172b 90%, #fdbd19 100%);
-        -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        background: linear-gradient(
+            90deg,
+            #fdbd19 0%,
+            #0f172b 10%,
+            #0f172b 90%,
+            #fdbd19 100%
+        );
         background-position: 0;
+        -webkit-background-clip: text;
         background-size: 100%;
     }
 }
@@ -358,6 +370,6 @@
 
 ::view-transition-old(root),
 ::view-transition-new(root) {
-    animation: none;
     mix-blend-mode: normal;
+    animation: none;
 }

@@ -1,5 +1,5 @@
 import { binance } from 'ccxt'
-import { ExchangeHandler } from '../types'
+import type { ExchangeHandler } from '../types'
 import { getOrderBook } from './ccxt-helper'
 
 export const getBinanceOrderBook: ExchangeHandler = async (base: string, quote: string) => {

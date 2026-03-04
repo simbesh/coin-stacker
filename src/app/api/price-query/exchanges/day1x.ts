@@ -1,12 +1,12 @@
 import { parseD1OrderBook } from '@/lib/utils'
-import { D1OrderBookResponse } from '@/types/types'
-import { ExchangeHandler, MarketNotFoundError, OrderBook } from '../types'
+import type { D1OrderBookResponse } from '@/types/types'
+import { type ExchangeHandler, MarketNotFoundError, type OrderBook } from '../types'
 
 const DAY1X_REST_ORDERBOOK_URL = 'https://exchange-api.day1x.io/api/coinmarketcap/orderbook'
 const DAY1X_WS_URL = 'wss://exchange-api.day1x.io/ws/talos'
 const DAY1X_SOCKET_TIMEOUT_MS = 8000
 const DAY1X_SOCKET_DEBUG = ['1', 'true', 'yes', 'on'].includes(
-    (process.env.DAY1X_SOCKET_DEBUG ?? '').trim().toLowerCase()
+    (process.env.DAY1X_SOCKET_DEBUG ?? '').trim().toLowerCase(),
 )
 
 const DAY1X_SOCKET_COUNTERPARTY = 'General_Tier' //

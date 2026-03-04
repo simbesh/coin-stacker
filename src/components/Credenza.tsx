@@ -1,7 +1,7 @@
 'use client'
 
-import * as React from 'react'
 import { useMediaQuery } from '@uidotdev/usehooks'
+import * as React from 'react'
 import {
     Dialog,
     DialogClose,
@@ -29,14 +29,14 @@ type BaseProps = {
 }
 
 interface RootCredenzaProps extends BaseProps {
-    open?: boolean
-    onOpenChange?: (open: boolean) => void
     defaultOpen?: boolean
+    onOpenChange?: (open: boolean) => void
+    open?: boolean
 }
 
 interface CredenzaProps extends BaseProps {
-    className?: string
     asChild?: true
+    className?: string
     onOpenAutoFocus?: (event: Event) => void
 }
 

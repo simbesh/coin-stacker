@@ -1,15 +1,15 @@
-import { HardblockTicker } from '@/types/types'
-import { ExchangeHandler, MarketNotFoundError } from '../types'
+import type { HardblockTicker } from '@/types/types'
+import { type ExchangeHandler, MarketNotFoundError } from '../types'
 
 export const getHardblockMockOrderBook: ExchangeHandler = async (
     base: string,
     quote: string,
     side?: string,
     amount?: string,
-    fee?: number
+    fee?: number,
 ) => {
     if (base === 'BTC' && quote === 'AUD' && fee !== undefined && amount !== undefined) {
-        const res = await fetch(`https://www.hardblock.com.au/sluh/ticker`, {
+        const res = await fetch('https://www.hardblock.com.au/sluh/ticker', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -27,8 +27,8 @@ export const getHardblockMockOrderBook: ExchangeHandler = async (
             const { status, buy, sell }: HardblockTicker = JSON.parse(text)
             if (status) {
                 return side === 'buy'
-                    ? { asks: [[buy, parseFloat(amount)]], bids: [] }
-                    : { bids: [[sell, parseFloat(amount)]], asks: [] }
+                    ? { asks: [[buy, Number.parseFloat(amount)]], bids: [] }
+                    : { bids: [[sell, Number.parseFloat(amount)]], asks: [] }
             }
         } catch (e) {
             throw e

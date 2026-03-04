@@ -1,14 +1,18 @@
 export interface OrderBook {
-    bids: any[]
     asks: any[]
-    timestamp?: number
+    bids: any[]
     datetime?: string
     nonce?: number
+    timestamp?: number
 }
 
-export interface ExchangeHandler {
-    (base: string, quote: string, side?: string, amount?: string, fee?: number): Promise<any>
-}
+export type ExchangeHandler = (
+    base: string,
+    quote: string,
+    side?: string,
+    amount?: string,
+    fee?: number,
+) => Promise<any>
 
 export class MarketNotFoundError extends Error {
     sentryIgnore = true

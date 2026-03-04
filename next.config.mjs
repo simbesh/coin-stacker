@@ -1,11 +1,13 @@
 import { withSentryConfig } from '@sentry/nextjs'
+
 /**
  * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially useful
  * for Docker builds.
  */
 await import('./src/env.mjs')
-import pkg from './package.json' with { type: 'json' }
+
 import child_process from 'child_process'
+import pkg from './package.json' with { type: 'json' }
 
 // starts a command line process to get the git hash
 const commitHash = child_process.execSync('git log --pretty=format:"%h" -n1').toString().trim()

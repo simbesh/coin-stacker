@@ -1,12 +1,12 @@
-import { CoinstashQuotes } from '@/types/types'
-import { ExchangeHandler } from '../types'
+import type { CoinstashQuotes } from '@/types/types'
+import type { ExchangeHandler } from '../types'
 
 export const getCoinstashMockOrderBook: ExchangeHandler = async (
     base: string,
     quote: string,
     side?: string,
     amount?: string,
-    fee?: number
+    fee?: number,
 ) => {
     if (fee !== undefined && amount !== undefined) {
         const res = await fetch(`https://api.coinstash.com.au/oracle/v1/quotes/last/${quote}`, {
@@ -23,14 +23,13 @@ export const getCoinstashMockOrderBook: ExchangeHandler = async (
         if (json.prices?.[baseLowerCase] !== undefined) {
             if (side === 'buy') {
                 return {
-                    asks: [[json.prices[baseLowerCase]!.buyPrice, parseFloat(amount)]],
+                    asks: [[json.prices[baseLowerCase]!.buyPrice, Number.parseFloat(amount)]],
                     bids: [],
                 }
-            } else {
-                return {
-                    bids: [[json.prices[baseLowerCase]!.sellPrice, parseFloat(amount)]],
-                    asks: [],
-                }
+            }
+            return {
+                bids: [[json.prices[baseLowerCase]!.sellPrice, Number.parseFloat(amount)]],
+                asks: [],
             }
         }
     }

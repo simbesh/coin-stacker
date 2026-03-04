@@ -1,23 +1,23 @@
 'use client'
 
+import { Settings, Zap } from 'lucide-react'
+import { useTheme } from 'next-themes'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Settings, Zap } from 'lucide-react'
-import { MovingLabel } from './MovingLabel'
-import { TextShimmer } from './ui/text-shimmer'
+import { LocalStorageKeys } from '@/lib/constants'
 import {
     Credenza,
-    CredenzaTrigger,
+    CredenzaClose,
     CredenzaContent,
+    CredenzaDescription,
     CredenzaHeader,
     CredenzaTitle,
-    CredenzaDescription,
-    CredenzaClose,
+    CredenzaTrigger,
 } from './Credenza'
-import { ScrollArea } from './ui/scroll-area'
-import { LocalStorageKeys } from '@/lib/constants'
 import ExchangeIcon from './ExchangeIcon'
-import { useTheme } from 'next-themes'
+import { MovingLabel } from './MovingLabel'
+import { ScrollArea } from './ui/scroll-area'
+import { TextShimmer } from './ui/text-shimmer'
 
 interface WithdrawalFeeCredenzaProps {
     defaultOpen: boolean
@@ -37,54 +37,54 @@ const WithdrawalFeeCredenza = ({ defaultOpen }: WithdrawalFeeCredenzaProps) => {
             <CredenzaTrigger asChild>
                 <MovingLabel
                     borderRadius="1.75rem"
-                    duration={3000}
-                    className="bg-card border border-mono/15 text-foreground inline-flex items-center gap-2.5 cursor-pointer"
+                    className="inline-flex cursor-pointer items-center gap-2.5 border border-mono/15 bg-card text-foreground"
                     containerClassName=""
+                    duration={3000}
                 >
                     <span className="mx-2 flex items-center gap-2 md:hidden">
                         <Zap className="size-4 text-amber-500" />
                     </span>
-                    <span className="mx-4 items-center gap-2 hidden md:flex lg:hidden">
+                    <span className="mx-4 hidden items-center gap-2 md:flex lg:hidden">
                         New
                         <Zap className="size-4 text-amber-500" />
                     </span>
-                    <span className="mx-4 items-center gap-2 hidden lg:flex">
+                    <span className="mx-4 hidden items-center gap-2 lg:flex">
                         New: Binance
                         <Zap className="size-4 text-amber-500" />
                     </span>
                 </MovingLabel>
             </CredenzaTrigger>
             <CredenzaContent
-                className="bg-card max-w-2xl p-6 transition-all duration-300"
+                className="max-w-2xl bg-card p-6 transition-all duration-300"
                 onOpenAutoFocus={(e) => e.preventDefault()}
             >
                 <CredenzaHeader className="space-y-4 px-0 sm:px-4">
                     <div className="flex items-center gap-2">
                         <ExchangeIcon exchange="binance" size={24} />
-                        <CredenzaTitle className="text-lg block sm:hidden mx-auto">New: Binance</CredenzaTitle>
-                        <CredenzaTitle className="text-xl hidden sm:block">Binance Added!</CredenzaTitle>
+                        <CredenzaTitle className="mx-auto block text-lg sm:hidden">New: Binance</CredenzaTitle>
+                        <CredenzaTitle className="hidden text-xl sm:block">Binance Added!</CredenzaTitle>
                         <Badge
-                            variant="secondary"
                             className="bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200"
+                            variant="secondary"
                         >
-                            <TextShimmer duration={1} className="[--base-color:#d97706] dark:[--base-color:#f59e0b]">
+                            <TextShimmer className="[--base-color:#d97706] dark:[--base-color:#f59e0b]" duration={1}>
                                 NEW
                             </TextShimmer>
                         </Badge>
                     </div>
 
-                    <CredenzaDescription className="text-left space-y-4 text-xs sm:text-base">
-                        <div className="flex justify-center w-full">
+                    <CredenzaDescription className="space-y-4 text-left text-xs sm:text-base">
+                        <div className="flex w-full justify-center">
                             <ExchangeIcon exchange="binance" imageClassName="size-12 sm:size-24 -my-2" />
                         </div>
                         <p className="leading-relaxed">
                             <strong>Binance</strong> is now available for price comparisons! As soon as the AUD markets
                             are live (expected soon: check{' '}
                             <a
+                                className="text-blue-600 underline hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                                 href="https://x.com/Binance_AUS"
-                                target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline"
+                                target="_blank"
                             >
                                 x.com/Binance_AUS
                             </a>{' '}
@@ -94,17 +94,17 @@ const WithdrawalFeeCredenza = ({ defaultOpen }: WithdrawalFeeCredenzaProps) => {
                 </CredenzaHeader>
                 <ScrollArea className="overflow-y-auto">
                     <div className="space-y-4">
-                        <div className="bg-muted/50 rounded-lg p-4 space-y-3">
+                        <div className="space-y-3 rounded-lg bg-muted/50 p-4">
                             <h4 className="font-semibold text-foreground">Trading Fee:</h4>
                             <ul className="space-y-2 text-xs sm:text-sm">
                                 <li className="flex items-start gap-2">
-                                    <div className="w-2 h-2 bg-amber-500 rounded-full mt-1.5"></div>
+                                    <div className="mt-1.5 h-2 w-2 rounded-full bg-amber-500" />
                                     <span>
                                         Default fee is set to <strong>0.1%</strong> (standard Binance taker fee)
                                     </span>
                                 </li>
                                 <li className="flex items-start gap-2">
-                                    <div className="w-2 h-2 bg-green-500 rounded-full mt-1.5"></div>
+                                    <div className="mt-1.5 h-2 w-2 rounded-full bg-green-500" />
                                     <span>
                                         If you have <strong>BNB fee payment enabled</strong>, edit your fee to{' '}
                                         <strong>0.075%</strong> for more accurate comparisons
@@ -113,19 +113,19 @@ const WithdrawalFeeCredenza = ({ defaultOpen }: WithdrawalFeeCredenzaProps) => {
                             </ul>
                         </div>
 
-                        <div className="bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 rounded-lg p-4 space-y-3">
-                            <p className="text-blue-800 dark:text-blue-200 text-xs sm:text-sm flex items-center gap-2">
+                        <div className="space-y-3 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950/50">
+                            <p className="flex items-center gap-2 text-blue-800 text-xs sm:text-sm dark:text-blue-200">
                                 <Settings className="size-4 shrink-0" />
                                 <span>
                                     <strong>Tip:</strong> Click the <strong>gear icon</strong> next to the exchange
                                     dropdown to customize your trading fees.
                                 </span>
                             </p>
-                            <div className="flex justify-center rounded-lg overflow-hidden">
-                                <div className="rounded-xl overflow-hidden border w-1/2">
+                            <div className="flex justify-center overflow-hidden rounded-lg">
+                                <div className="w-1/2 overflow-hidden rounded-xl border">
                                     <img
-                                        src={resolvedTheme === 'light' ? '/edit-fee-light.png' : '/edit-fee-dark.png'}
                                         alt="Edit fee settings"
+                                        src={resolvedTheme === 'light' ? '/edit-fee-light.png' : '/edit-fee-dark.png'}
                                     />
                                 </div>
                             </div>

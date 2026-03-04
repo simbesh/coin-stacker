@@ -1,14 +1,14 @@
 import '@/styles/globals.css'
 
+import { Analytics } from '@vercel/analytics/react'
+import { Inter } from 'next/font/google'
+import Link from 'next/link'
+import { NuqsAdapter } from 'nuqs/adapters/next/app'
+import { Suspense } from 'react'
 import { PHProvider, PostHogPageview } from '@/app/providers'
 import NavBar from '@/components/NavBar'
 import { ThemeProvider } from '@/components/theme-provider'
 import FlickeringGrid from '@/components/ui/flickering-grid'
-import { Analytics } from '@vercel/analytics/react'
-import Link from 'next/link'
-import { Inter } from 'next/font/google'
-import { NuqsAdapter } from 'nuqs/adapters/next/app'
-import { Suspense } from 'react'
 import { TouchProvider } from '@/components/ui/hybrid-tooltip'
 import { TooltipProvider } from '@/components/ui/tooltip'
 
@@ -64,7 +64,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     return (
         <html lang="en" suppressHydrationWarning>
             <body className={`font-sans ${inter.variable}`}>
-                <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+                <ThemeProvider attribute="class" defaultTheme="dark" disableTransitionOnChange enableSystem>
                     <TooltipProvider>
                         <TouchProvider>
                             <NavBar />
@@ -74,14 +74,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                             <PHProvider>
                                 <NuqsAdapter>
                                     <main
-                                        id="main"
                                         className={
                                             'flex min-h-dvh flex-col bg-linear-to-b from-slate-50 to-slate-100 p-2 dark:from-slate-900 dark:to-slate-950'
                                         }
+                                        id="main"
                                     >
                                         {children}
-                                        <footer className="z-20 mt-auto py-4 text-center text-xs text-slate-500">
-                                            <Link href="/privacy" className="hover:text-slate-700 dark:hover:text-slate-300">
+                                        <footer className="z-20 mt-auto py-4 text-center text-slate-500 text-xs">
+                                            <Link
+                                                className="hover:text-slate-700 dark:hover:text-slate-300"
+                                                href="/privacy"
+                                            >
                                                 Privacy
                                             </Link>
                                         </footer>
@@ -95,11 +98,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
                 <FlickeringGrid
                     className="fixed inset-0 z-0 h-screen w-screen opacity-50"
-                    squareSize={2}
-                    gridGap={10}
                     color="#fdc535"
-                    maxOpacity={0.6}
                     flickerChance={0.5}
+                    gridGap={10}
+                    maxOpacity={0.6}
+                    squareSize={2}
                 />
             </body>
         </html>

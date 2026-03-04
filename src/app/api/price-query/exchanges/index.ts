@@ -1,4 +1,4 @@
-import { ExchangeHandler } from '../types'
+import type { ExchangeHandler } from '../types'
 import { getBinanceOrderBook } from './binance'
 import { getBitarooOrderBook } from './bitaroo'
 import { getBTCMarketsOrderBook } from './btcmarkets'

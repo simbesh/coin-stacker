@@ -1,20 +1,18 @@
 'use client'
 
-import * as React from 'react'
-import { useEffect, useState } from 'react'
-import { RotateCcw, Settings2 } from 'lucide-react'
-
-import { round } from 'lodash'
-import { Button } from '@/components/ui/button'
-import { defaultExchangeFees, formatExchangeName } from '@/lib/utils'
-import { useLocalStorage } from '@uidotdev/usehooks'
-import { Credenza, CredenzaContent, CredenzaTrigger, CredenzaBody } from '@/components/Credenza'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
-import { LocalStorageKeys } from '@/lib/constants'
-import ExchangeIcon from '@/components/ExchangeIcon'
-import posthog from 'posthog-js'
 import { ScrollArea } from '@radix-ui/react-scroll-area'
+import { useLocalStorage } from '@uidotdev/usehooks'
+import { round } from 'lodash'
+import { RotateCcw, Settings2 } from 'lucide-react'
+import posthog from 'posthog-js'
+import { useEffect, useState } from 'react'
+import { Credenza, CredenzaBody, CredenzaContent, CredenzaTrigger } from '@/components/Credenza'
+import ExchangeIcon from '@/components/ExchangeIcon'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { LocalStorageKeys } from '@/lib/constants'
+import { defaultExchangeFees, formatExchangeName } from '@/lib/utils'
 
 export function FeeParams() {
     const [open, setOpen] = useState(false)
@@ -40,9 +38,9 @@ export function FeeParams() {
     }, [open])
 
     return (
-        <Credenza open={open} onOpenChange={setOpen}>
+        <Credenza onOpenChange={setOpen} open={open}>
             <CredenzaTrigger asChild>
-                <Button variant="outline" size="icon" className={'bg-transparent'}>
+                <Button className={'bg-transparent'} size="icon" variant="outline">
                     <Settings2 className="size-[1.2rem]" />
                 </Button>
             </CredenzaTrigger>
@@ -59,29 +57,29 @@ export function FeeParams() {
                             <div className="grid gap-2">
                                 {Object.entries(fees).map(([exchange, fee]) => (
                                     <div
-                                        key={exchange + '-fee-input-key'}
                                         className="grid grid-cols-9 items-center gap-4"
+                                        key={exchange + '-fee-input-key'}
                                     >
                                         <Label
-                                            htmlFor={exchange + '-fee-input'}
                                             className={'col-span-5 flex items-center justify-start gap-2'}
+                                            htmlFor={exchange + '-fee-input'}
                                         >
                                             <ExchangeIcon exchange={exchange} />
                                             {formatExchangeName(exchange)}
                                         </Label>
                                         <div className={'col-span-4 flex items-center'}>
                                             <Input
-                                                id={exchange + '-fee-input'}
-                                                type={'number'}
-                                                pattern={'(^\\.*)+(^0*)+^\\d+(\\.\\d+)?'}
                                                 className="h-8"
-                                                value={round(fee * 100, 2)}
+                                                id={exchange + '-fee-input'}
                                                 onChange={(e) =>
                                                     setFees((prev) => ({
                                                         ...prev,
                                                         [exchange]: round(Number(e.target.value) / 100, 4),
                                                     }))
                                                 }
+                                                pattern={'(^\\.*)+(^0*)+^\\d+(\\.\\d+)?'}
+                                                type={'number'}
+                                                value={round(fee * 100, 2)}
                                             />
                                             <Label className={'pointer-events-none -ml-10 px-3'}>%</Label>
                                         </div>
@@ -91,10 +89,10 @@ export function FeeParams() {
                         </div>
 
                         <Button
-                            variant="outline"
-                            className={'bg-transparent w-full gap-2 mt-4'}
                             aria-label="Reset fees to default"
+                            className={'mt-4 w-full gap-2 bg-transparent'}
                             onClick={() => setFees(defaultExchangeFees)}
+                            variant="outline"
                         >
                             <RotateCcw className="size-4" />
                             Reset to default

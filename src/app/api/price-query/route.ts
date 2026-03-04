@@ -1,6 +1,6 @@
-import { getBestOrders } from '@/lib/utils'
 import * as Sentry from '@sentry/nextjs'
 import { NextResponse } from 'next/server'
+import { getBestOrders } from '@/lib/utils'
 import { orderbookMethods, supportedExchanges } from './exchanges'
 import { DEFAULT_REMOTE_DISABLED_REASON, getRemoteDisabledExchanges } from './exchanges/remote-config'
 
@@ -14,10 +14,10 @@ export async function POST(request: Request): Promise<NextResponse<any>> {
         const remoteDisabledExchanges = await getRemoteDisabledExchanges(supportedExchanges)
         const remoteDisabledExchangeIds = new Set(remoteDisabledExchanges.map(({ id }) => id))
         const exchanges = supportedExchanges.filter(
-            (exchange) => !userOmittedExchanges.has(exchange) && !remoteDisabledExchangeIds.has(exchange)
+            (exchange) => !(userOmittedExchanges.has(exchange) || remoteDisabledExchangeIds.has(exchange)),
         )
         const promises = exchanges.map((exchange) =>
-            orderbookMethods[exchange]?.(base, quote, side, amount, fees[exchange])
+            orderbookMethods[exchange]?.(base, quote, side, amount, fees[exchange]),
         )
 
         const orderbooks: Record<string, { value?: any; error?: any }> = {}
@@ -52,12 +52,12 @@ export async function POST(request: Request): Promise<NextResponse<any>> {
 
         const { sortedBests, orderbookErrors } = getBestOrders(
             orderbooks,
-            parseFloat(amount),
+            Number.parseFloat(amount),
             fees,
             base,
             quote,
             side,
-            base
+            base,
         )
         best = sortedBests
         errors.push(...orderbookErrors)
@@ -69,7 +69,7 @@ export async function POST(request: Request): Promise<NextResponse<any>> {
                     error: {
                         name: reason ?? DEFAULT_REMOTE_DISABLED_REASON,
                     },
-                }))
+                })),
         )
     }
 

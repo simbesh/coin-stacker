@@ -82,7 +82,7 @@ function parseDisabledExchanges(config: unknown, validExchanges: Set<string>): R
 
     for (const entry of entries) {
         const normalized = normalizeDisabledExchange(entry)
-        if (!normalized || !validExchanges.has(normalized.id) || uniqueById.has(normalized.id)) {
+        if (!(normalized && validExchanges.has(normalized.id)) || uniqueById.has(normalized.id)) {
             continue
         }
         uniqueById.set(normalized.id, normalized)
@@ -118,7 +118,7 @@ export async function getRemoteDisabledExchanges(supportedExchanges: string[]): 
 
         if (!response.ok) {
             throw new Error(
-                `Unable to fetch remote exchange config (${response.status} ${response.statusText}). Body: ${previewBody(rawConfig)}`
+                `Unable to fetch remote exchange config (${response.status} ${response.statusText}). Body: ${previewBody(rawConfig)}`,
             )
         }
 
@@ -132,7 +132,7 @@ export async function getRemoteDisabledExchanges(supportedExchanges: string[]): 
         cachedDisabledExchanges = parseDisabledExchanges(config, new Set(supportedExchanges))
     } catch (error) {
         console.error(
-            `[remote-config] Failed to refresh remotely disabled exchanges (url: ${remoteConfigUrl}): ${describeError(error)}`
+            `[remote-config] Failed to refresh remotely disabled exchanges (url: ${remoteConfigUrl}): ${describeError(error)}`,
         )
     }
 

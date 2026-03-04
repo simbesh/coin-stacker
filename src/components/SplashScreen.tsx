@@ -1,16 +1,15 @@
-import React from 'react'
 import { cn } from '@/lib/utils'
 
 const SplashScreen = ({ isLoading }: { isLoading: boolean }) => {
     return (
         <div
-            id={'splash'}
             className={cn(
-                'min-w-screen fixed top-0 flex h-screen min-h-screen w-screen transition-all duration-300',
-                isLoading ? 'z-50 opacity-100' : 'z-[-10] opacity-0'
+                'fixed top-0 flex h-screen min-h-screen w-screen min-w-screen transition-all duration-300',
+                isLoading ? 'z-50 opacity-100' : 'z-[-10] opacity-0',
             )}
+            id={'splash'}
         >
-            <img src={'/coinstacker-logo-256.png'} className={'animate-breathe m-auto'} alt={'coinstacker-logo'} />
+            <img alt={'coinstacker-logo'} className={'m-auto animate-breathe'} src={'/coinstacker-logo-256.png'} />
         </div>
     )
 }

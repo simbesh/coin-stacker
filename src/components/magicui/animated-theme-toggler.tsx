@@ -1,9 +1,9 @@
 'use client'
 
 import { Moon, SunDim } from 'lucide-react'
+import { useTheme } from 'next-themes'
 import { useRef } from 'react'
 import { flushSync } from 'react-dom'
-import { useTheme } from 'next-themes'
 import { cn } from '@/lib/utils'
 import { Button } from '../ui/button'
 
@@ -16,7 +16,9 @@ export const AnimatedThemeToggler = ({ className }: props) => {
     const buttonRef = useRef<HTMLButtonElement | null>(null)
 
     const changeTheme = async () => {
-        if (!buttonRef.current) return
+        if (!buttonRef.current) {
+            return
+        }
 
         await document.startViewTransition(() => {
             flushSync(() => {
@@ -41,11 +43,11 @@ export const AnimatedThemeToggler = ({ className }: props) => {
                 duration: 700,
                 easing: 'ease-in-out',
                 pseudoElement: '::view-transition-new(root)',
-            }
+            },
         )
     }
     return (
-        <Button ref={buttonRef} onClick={changeTheme} className={cn(className)} variant="ghost" size="icon">
+        <Button className={cn(className)} onClick={changeTheme} ref={buttonRef} size="icon" variant="ghost">
             {resolvedTheme === 'light' ? <SunDim /> : <Moon />}
         </Button>
     )

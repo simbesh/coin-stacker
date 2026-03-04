@@ -5,7 +5,7 @@ export async function POST(request: Request): Promise<NextResponse<any>> {
     const userAgent = request.headers.get('user-agent')
 
     const { title, email, message } = await request.json()
-    const options = `&parse_mode=HTML&disable_web_page_preview=true`
+    const options = '&parse_mode=HTML&disable_web_page_preview=true'
     const url = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_API}/sendMessage?chat_id=${process.env.TELEGRAM_CHAT_ID}${options}&text=`
     let text = `
 <b>Title</b>: ${title}

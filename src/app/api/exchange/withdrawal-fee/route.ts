@@ -1,19 +1,19 @@
+import { binance, luno, okx } from 'ccxt'
+import coinspotFees from 'data/coinspot-fees.json'
+import { type NextRequest, NextResponse } from 'next/server'
 import { coinstashWithdrawFees } from '@/lib/constants/coinstash-withdraw-fees'
 import { swyftxWithdrawFees } from '@/lib/constants/swyftx-withdraw-fees'
-import coinspotFees from 'data/coinspot-fees.json'
-import { binance, luno, okx } from 'ccxt'
-import { NextRequest, NextResponse } from 'next/server'
 
 // Cache for 24 hours (86400 seconds)
-export const revalidate = 86400
+export const revalidate = 86_400
 
 // Mock withdrawal fees data - in production, this would come from an external API
 const withdrawalFees: Record<string, Record<string, number>> = {
     bitaroo: {
-        BTC: 0.00001,
+        BTC: 0.000_01,
     },
     hardblock: {
-        BTC: 0.00000204,
+        BTC: 0.000_002_04,
     },
     coinspot: coinspotFees,
 }
@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
                 headers: {
                     'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=86400',
                 },
-            }
+            },
         )
     } catch (error) {
         console.error('Error fetching withdrawal fees:', error)
@@ -94,7 +94,7 @@ async function getBTCMarketFee(): Promise<Record<string, number>> {
         const fees: Record<string, number> = {}
 
         data.forEach((item: { assetName: string; fee: string }) => {
-            fees[item.assetName] = parseFloat(item.fee)
+            fees[item.assetName] = Number.parseFloat(item.fee)
         })
 
         return fees
@@ -161,7 +161,7 @@ async function getOKXFee(): Promise<Record<string, number>> {
         apiKey: process.env.OKX_KEY,
         secret: process.env.OKX_SECRET,
         password: process.env.OKX_PASSWORD,
-        timeout: 10000,
+        timeout: 10_000,
         hostname: 'us.okx.com',
     })
     await exchange.loadMarkets()
@@ -188,7 +188,7 @@ async function getBinanceFee(): Promise<Record<string, number>> {
     const exchange = new binance({
         apiKey: process.env.BINANCE_KEY,
         secret: process.env.BINANCE_SECRET,
-        timeout: 10000,
+        timeout: 10_000,
     })
     await exchange.loadMarkets()
 
@@ -255,7 +255,7 @@ async function getLunoFee({ currency }: { currency: string }) {
     const signed = exchange.sign('/api/1/send_fee', 'private', 'GET')
     const response = await fetch(
         `https://api.luno.com/api/1/send_fee?amount=${amount}&currency=${currency}&address=${address}`,
-        { headers: signed.headers }
+        { headers: signed.headers },
     )
     const data = await response.json()
 

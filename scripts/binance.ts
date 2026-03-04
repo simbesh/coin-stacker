@@ -19,7 +19,7 @@ async function tst() {
                 acc[currency] = data.fee ?? 0
                 return acc
             },
-            {} as Record<string, number>
+            {} as Record<string, number>,
         )
     console.log(fees)
 

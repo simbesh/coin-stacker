@@ -1,16 +1,16 @@
 export const swyftxWithdrawFees: Record<string, number | null> = {
-    BTC: 0.00003,
+    BTC: 0.000_03,
     ETH: 0.0002,
     XRP: 0.2,
     USDT: 1.5,
-    BNB: 0.00001,
+    BNB: 0.000_01,
     SOL: 0.001,
     USDC: 1.8,
     TRX: 1,
     DOGE: 4,
     ADA: 0.8,
     LINK: 0.082,
-    WBTC: 0.000019,
+    WBTC: 0.000_019,
     HYPE: null, // Suspended
     XLM: 0.005,
     SUI: 0.06,
@@ -19,12 +19,12 @@ export const swyftxWithdrawFees: Record<string, number | null> = {
     AVAX: 0.008,
     LTC: 0.0001,
     TON: null, // Suspended
-    SHIB: 172789,
+    SHIB: 172_789,
     UNI: 0.21,
     DOT: 0.08,
     MNT: null, // Suspended
     AAVE: 0.0073,
-    PEPE: 205269,
+    PEPE: 205_269,
     ENA: 3.28,
     TAO: 0.0003,
     ETC: 0.004,
@@ -45,7 +45,7 @@ export const swyftxWithdrawFees: Record<string, number | null> = {
     WLD: 2.27,
     TRUMP: 0.072,
     FET: 3.18,
-    BONK: 18289,
+    BONK: 18_289,
     FIL: 0.001,
     QNT: 0.021,
     JUP: 1.3,
@@ -62,7 +62,7 @@ export const swyftxWithdrawFees: Record<string, number | null> = {
     PUMP: null, // Suspended
     S: 0.004,
     IMX: 3.88,
-    FLOKI: 21127,
+    FLOKI: 21_127,
     GRT: 23,
     CFX: 0.1,
     RAY: 0.2,
@@ -162,7 +162,7 @@ export const swyftxWithdrawFees: Record<string, number | null> = {
     ROSE: 0.1,
     ASTR: 2,
     BLUR: 27,
-    YFI: 0.00039,
+    YFI: 0.000_39,
     CELO: 0.003,
     ORDI: 1.2,
     ZETA: null, // Suspended
@@ -401,7 +401,7 @@ export const swyftxWithdrawFees: Record<string, number | null> = {
     REN: 0,
     DOP: null, // Suspended
     REP: 0.6,
-    LEVER: 14430,
+    LEVER: 14_430,
     LTO: 5,
     BILLY: null, // Suspended
     YFII: null, // Suspended
@@ -418,7 +418,7 @@ export const swyftxWithdrawFees: Record<string, number | null> = {
     OAX: 156,
     AMB: 0,
     COMBO: 0,
-    AKRO: 19097,
+    AKRO: 19_097,
     FOR: 2775,
     NYAN: null, // Suspended
     FTT: 2.41,

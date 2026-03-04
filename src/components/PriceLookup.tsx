@@ -1,5 +1,12 @@
 'use client'
 
+import { useLocalStorage } from '@uidotdev/usehooks'
+import { differenceInDays } from 'date-fns'
+import { cloneDeep, round } from 'lodash'
+import { CornerLeftUp, HelpCircle, Search, X } from 'lucide-react'
+import { useQueryState } from 'nuqs'
+import posthog from 'posthog-js'
+import React, { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import Coin from '@/components/CoinIcon'
 import { Combobox } from '@/components/Combobox'
 import ExchangeIcon from '@/components/ExchangeIcon'
@@ -19,21 +26,14 @@ import {
     OLD_KRAKEN_TAKER_FEE,
     overrideDefaultExchangeFees,
 } from '@/lib/utils'
-import { PriceQueryParams } from '@/types/types'
-import { useLocalStorage } from '@uidotdev/usehooks'
-import { CornerLeftUp, HelpCircle, Search, X } from 'lucide-react'
-import { useQueryState } from 'nuqs'
-import posthog from 'posthog-js'
-import React, { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
+import type { PriceQueryParams } from '@/types/types'
 import HowDialog from './HowDialog'
+import { LabeledSwitch } from './LabeledSwitch'
 import { mockData, mockQuery } from './mock-data'
+import PriceLookupTable from './PriceLookupTable'
 import TextSwitch from './TextSwitch'
 import { Button } from './ui/button'
 import { HybridTooltip, HybridTooltipContent, HybridTooltipTrigger } from './ui/hybrid-tooltip'
-import { differenceInDays } from 'date-fns'
-import { cloneDeep, round } from 'lodash'
-import { LabeledSwitch } from './LabeledSwitch'
-import PriceLookupTable from './PriceLookupTable'
 
 const DEBUG = process.env.NEXT_PUBLIC_MOCK_PRICES === 'true'
 
@@ -70,7 +70,7 @@ const PriceLookup = () => {
     const [hideFiltered, setHideFiltered] = useState(true)
     const [includeWithdrawalFees, setIncludeWithdrawalFees] = useLocalStorage(
         LocalStorageKeys.IncludeWithdrawalFees,
-        false
+        false,
     )
     const [amount, setAmount] = useQueryState('amount', { defaultValue: '' })
     const [localAmount, setLocalAmount] = useState('')
@@ -160,7 +160,7 @@ const PriceLookup = () => {
 
     const [enabledExchanges] = useLocalStorage<Record<string, boolean>>(
         LocalStorageKeys.EnabledExchanges,
-        defaultEnabledExchanges
+        defaultEnabledExchanges,
     )
     const [wayexBannerState, setWayexBannerState] = useLocalStorage<WayexBannerState>(WAYEX_BANNER_KEY, {
         dismissed: false,
@@ -176,7 +176,7 @@ const PriceLookup = () => {
                 getPrices({ side: localSide, amount: localAmountRef.current, coin: localCoin })
             }
         },
-        [localSide, localCoin, isLoading, setAmount, setSide, setCoin]
+        [localSide, localCoin, isLoading, setAmount, setSide, setCoin],
     )
 
     useEffect(() => {
@@ -220,18 +220,18 @@ const PriceLookup = () => {
             if (side === 'buy') {
                 const lowestAvgPrice = priceQueryResult.best.reduce(
                     (min, obj) => Math.min(min, obj.grossAveragePrice),
-                    Infinity
+                    Number.POSITIVE_INFINITY,
                 )
                 setBestAvgPrice(lowestAvgPrice)
             } else {
                 const highestAvgPrice = priceQueryResult.best.reduce(
                     (min, obj) => Math.max(min, obj.grossAveragePrice),
-                    -Infinity
+                    Number.NEGATIVE_INFINITY,
                 )
                 setBestAvgPrice(highestAvgPrice)
             }
             const removedOutliers: number[] = filterPriceOutliers(
-                priceQueryResult.best.map((best) => best.grossAveragePrice)
+                priceQueryResult.best.map((best) => best.grossAveragePrice),
             )
 
             // Calculate total including withdrawal fees for each result
@@ -266,8 +266,12 @@ const PriceLookup = () => {
             resultsWithWithdrawalFees.sort((a, b) => {
                 const aInOutliers = removedOutliers.includes(a.grossAveragePrice)
                 const bInOutliers = removedOutliers.includes(b.grossAveragePrice)
-                if (aInOutliers && !bInOutliers) return -1
-                if (!aInOutliers && bInOutliers) return 1
+                if (aInOutliers && !bInOutliers) {
+                    return -1
+                }
+                if (!aInOutliers && bInOutliers) {
+                    return 1
+                }
 
                 // Sort by the appropriate field based on side
                 const sortMultiplier = side === 'buy' ? 1 : -1
@@ -278,9 +282,9 @@ const PriceLookup = () => {
                 ...best,
                 dif: getDif(resultsWithWithdrawalFees, i),
                 pctDif: getDifPct(resultsWithWithdrawalFees, i) as string,
-                filteredReason: !removedOutliers.includes(best.grossAveragePrice)
-                    ? 'Price outlier: ' + getDifPct(resultsWithWithdrawalFees, i)
-                    : undefined,
+                filteredReason: removedOutliers.includes(best.grossAveragePrice)
+                    ? undefined
+                    : 'Price outlier: ' + getDifPct(resultsWithWithdrawalFees, i),
             }))
             setTableData(data)
         }
@@ -314,7 +318,9 @@ const PriceLookup = () => {
     }, [priceQueryResult.best, coin, fetchWithdrawalFees])
 
     function filterPriceOutliers(prices: number[]) {
-        if (prices.length === 0) return []
+        if (prices.length === 0) {
+            return []
+        }
 
         // Calculate median
         const sortedPrices = [...prices].sort((a, b) => a - b)
@@ -322,7 +328,9 @@ const PriceLookup = () => {
         const median =
             sortedPrices.length % 2 === 0 ? (sortedPrices[mid - 1]! + sortedPrices[mid]!) / 2 : sortedPrices[mid]
 
-        if (typeof median !== 'number') return prices
+        if (typeof median !== 'number') {
+            return prices
+        }
 
         // Calculate threshold bounds (±10% from median)
         const lowerBound = median * 0.9
@@ -336,8 +344,8 @@ const PriceLookup = () => {
         if (!amount) {
             return
         }
-        const floatAmount = parseFloat(amount)
-        if (!floatAmount || !coin) {
+        const floatAmount = Number.parseFloat(amount)
+        if (!(floatAmount && coin)) {
             return
         }
         const data = {
@@ -350,13 +358,13 @@ const PriceLookup = () => {
         function addToHistory(data: PriceQueryParams) {
             const exists = history.find((h) => h.coin === data.coin && h.side === data.side && h.amount && data.amount)
             let tempHistory
-            if (!exists) {
-                tempHistory = [data, ...history]
-            } else {
+            if (exists) {
                 tempHistory = [
                     data,
                     ...history.filter((h) => h.coin !== data.coin || h.side !== data.side || h.amount !== data.amount),
                 ]
+            } else {
+                tempHistory = [data, ...history]
             }
             setHistory(tempHistory.slice(0, 6))
         }
@@ -367,7 +375,7 @@ const PriceLookup = () => {
             if (DEBUG) {
                 setPriceQueryResult(mockData)
             } else {
-                const prices = await fetch(`api/price-query`, {
+                const prices = await fetch('api/price-query', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -418,7 +426,7 @@ const PriceLookup = () => {
     function getDifPct(
         bests: (PriceQueryResult & { totalIncFees?: number })[],
         i: number,
-        format: boolean = true
+        format = true,
     ): string | number {
         if (i !== 0) {
             const best = bests[0]
@@ -447,11 +455,13 @@ const PriceLookup = () => {
     }
 
     const resultsReady = priceQueryResult.best.length > 0 && resultInput
-    const submitDisabled = useMemo(() => !localAmount || !localCoin || isLoading, [localAmount, localCoin, isLoading])
+    const submitDisabled = useMemo(() => !(localAmount && localCoin) || isLoading, [localAmount, localCoin, isLoading])
 
     // Check if banner should be shown
     const showWayexBanner = useMemo(() => {
-        if (wayexBannerState.dismissed) return false
+        if (wayexBannerState.dismissed) {
+            return false
+        }
 
         if (!wayexBannerState.firstView) {
             // First time viewing - set the timestamp
@@ -480,18 +490,18 @@ const PriceLookup = () => {
             {showWayexBanner && (
                 <div className="relative z-20 w-full space-x-2 bg-linear-to-r from-blue-500 via-blue-300 to-blue-500 px-4 py-2 text-center text-sm sm:text-base dark:from-blue-800 dark:via-blue-500 dark:to-blue-800">
                     <a
+                        className="inline-flex cursor-pointer items-center hover:underline"
                         href={getExchangeUrl('wayex')}
                         target="_blank"
-                        className="inline-flex cursor-pointer items-center hover:underline"
                     >
                         🎉 New Exchange{' '}
-                        <ExchangeIcon exchange="wayex" withLabel className="mx-1 px-1" labelClassName="font-bold" /> has
+                        <ExchangeIcon className="mx-1 px-1" exchange="wayex" labelClassName="font-bold" withLabel /> has
                         been added!{' '}
                     </a>
                     <button
-                        onClick={handleDismissBanner}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 hover:bg-blue-600/50"
                         aria-label="Dismiss banner"
+                        className="absolute top-1/2 right-2 -translate-y-1/2 rounded-full p-1 hover:bg-blue-600/50"
+                        onClick={handleDismissBanner}
                     >
                         <X className="size-4" />
                     </button>
@@ -500,121 +510,121 @@ const PriceLookup = () => {
             <div className={'z-20 mb-10 flex w-full flex-col items-center justify-center'}>
                 <Card
                     className={
-                        'relative my-4 flex w-full max-w-2xl select-none flex-col items-center justify-center gap-4 border py-8 text-lg font-bold sm:mt-4'
+                        'relative my-4 flex w-full max-w-2xl select-none flex-col items-center justify-center gap-4 border py-8 font-bold text-lg sm:mt-4'
                     }
                 >
                     <PriceHistoryDropdown
-                        className={'absolute left-2 top-2 bg-transparent'}
+                        className={'absolute top-2 left-2 bg-transparent'}
                         raiseHistory={handleHistoryClick}
                     />
-                    <div className={'absolute right-2 top-2 flex gap-2'}>
+                    <div className={'absolute top-2 right-2 flex gap-2'}>
                         <Combobox
-                            className={'bg-card w-20'}
-                            optionType={'Quote'}
-                            value={quote}
-                            setValue={setQuote}
+                            className={'w-20 bg-card'}
                             options={['AUD', 'USD', 'USDT', 'USDC'].map((q) => ({
                                 value: q,
                                 label: (
-                                    <div key={q} className={'flex items-center gap-2 text-lg font-semibold'}>
+                                    <div className={'flex items-center gap-2 font-semibold text-lg'} key={q}>
                                         {q}
                                     </div>
                                 ),
                             }))}
+                            optionType={'Quote'}
+                            setValue={setQuote}
+                            value={quote}
                         />
                         <FeeParams />
                     </div>
-                    <div className="mt-8 sm:mt-0 w-full max-w-[16rem]">
-                        <TextSwitch side={localSide} setSide={setLocalSide} />
+                    <div className="mt-8 w-full max-w-[16rem] sm:mt-0">
+                        <TextSwitch setSide={setLocalSide} side={localSide} />
                     </div>
                     <div className={'flex gap-2'}>
                         <Input
-                            value={localAmount}
+                            className={'w-24 text-right text-lg ring-0 focus-visible:ring-0 sm:w-40'}
+                            onBlur={() => setAmount(localAmount)}
                             onChange={(e) => {
                                 setLocalAmount(e.target.value)
                                 localAmountRef.current = e.target.value
                             }}
-                            onBlur={() => setAmount(localAmount)}
                             type={'number'}
-                            className={'w-24 sm:w-40 text-right text-lg ring-0 focus-visible:ring-0'}
+                            value={localAmount}
                         />
                         <Combobox
-                            className={'bg-card w-[160px]'}
-                            optionType={'Coin'}
-                            value={localCoin}
-                            setValue={setLocalCoin}
+                            className={'w-[160px] bg-card'}
                             options={markets.map((market) => ({
                                 value: market,
                                 label: (
-                                    <div key={market} className={'flex items-center gap-2 text-lg font-semibold'}>
+                                    <div className={'flex items-center gap-2 font-semibold text-lg'} key={market}>
                                         <Coin symbol={market} />
                                         {market}
                                     </div>
                                 ),
                             }))}
+                            optionType={'Coin'}
+                            setValue={setLocalCoin}
+                            value={localCoin}
                         />
                     </div>
                     <div>
                         {quickSelectCoins.map((coin) => (
                             <Badge
-                                key={coin}
-                                variant={'outline'}
-                                onClick={() => setLocalCoin(coin)}
                                 className={'group h-8 cursor-pointer gap-2 border hover:border-slate-400'}
+                                key={coin}
+                                onClick={() => setLocalCoin(coin)}
+                                variant={'outline'}
                             >
-                                <Coin symbol={coin} className={cn('size-4 group-hover:text-slate-300')} />
+                                <Coin className={cn('size-4 group-hover:text-slate-300')} symbol={coin} />
                                 {coin}
                             </Badge>
                         ))}
                     </div>
                     <div className={'flex w-full justify-center'}>
                         <Button
-                            variant={'default'}
+                            aria-label="Search for prices"
                             className={
-                                'mx-4 flex w-full items-center gap-2 rounded-lg text-base font-bold text-black sm:w-44'
+                                'mx-4 flex w-full items-center gap-2 rounded-lg font-bold text-base text-black sm:w-44'
                             }
+                            disabled={submitDisabled}
+                            isLoading={isLoading}
                             onClick={() => {
                                 setAmount(localAmountRef.current)
                                 setSide(localSide)
                                 setCoin(localCoin)
                                 getPrices({ side: localSide, amount: localAmountRef.current, coin: localCoin })
                             }}
-                            disabled={submitDisabled}
-                            isLoading={isLoading}
-                            aria-label="Search for prices"
+                            variant={'default'}
                         >
-                            <Search strokeWidth={3} className={'size-4'} />
+                            <Search className={'size-4'} strokeWidth={3} />
                             Search
                         </Button>
                     </div>
                 </Card>
                 <div className="relative w-full max-w-4xl">
                     {resultsReady && (
-                        <div className="sm:absolute sm:-bottom-2 left-0 flex items-center gap-2 mx-auto w-fit mb-8 sm:mb-0">
+                        <div className="left-0 mx-auto mb-8 flex w-fit items-center gap-2 sm:absolute sm:-bottom-2 sm:mb-0">
                             <HowDialog />
                         </div>
                     )}
                     <div
                         className={cn(
-                            'mt-4 flex h-6 w-full items-center justify-start text-sm font-bold sm:justify-center',
-                            isLoading && 'opacity-30'
+                            'mt-4 flex h-6 w-full items-center justify-start font-bold text-sm sm:justify-center',
+                            isLoading && 'opacity-30',
                         )}
                     >
                         {resultsReady && (
                             <SummaryTab
-                                ref={summaryTabRef}
-                                side={resultInput.side}
                                 amount={resultInput.amount || ''}
                                 coin={resultInput.coin || ''}
                                 quote={resultInput.quote || ''}
+                                ref={summaryTabRef}
+                                side={resultInput.side}
                             />
                         )}
                     </div>
                     <div className="absolute right-0 bottom-0 flex flex-col items-end">
                         <div className="flex items-center gap-2">
                             <LabeledSwitch
-                                label="Withdrawal Fee"
                                 checked={includeWithdrawalFees}
+                                label="Withdrawal Fee"
                                 onCheckedChange={setIncludeWithdrawalFees}
                             />
                             <HybridTooltip>
@@ -629,23 +639,23 @@ const PriceLookup = () => {
                     </div>
                 </div>
                 <PriceLookupTable
-                    priceQueryResult={priceQueryResult}
-                    isLoading={isLoading}
-                    tableData={deferredTableData}
-                    hideFiltered={hideFiltered}
-                    setHideFiltered={setHideFiltered}
-                    withdrawalFees={finalWithdrawalFees}
-                    resultInput={resultInput}
-                    coin={resultInput?.coin || ''}
-                    quote={resultInput?.quote || quote}
                     bestAvgPrice={bestAvgPrice}
-                    loadingWithdrawalFees={loadingWithdrawalFees}
+                    coin={resultInput?.coin || ''}
+                    hideFiltered={hideFiltered}
                     includeWithdrawalFees={includeWithdrawalFees}
+                    isLoading={isLoading}
+                    loadingWithdrawalFees={loadingWithdrawalFees}
+                    priceQueryResult={priceQueryResult}
+                    quote={resultInput?.quote || quote}
+                    resultInput={resultInput}
+                    setHideFiltered={setHideFiltered}
+                    tableData={deferredTableData}
+                    withdrawalFees={finalWithdrawalFees}
                 />
                 {priceQueryResult.best.length > 0 && (
                     <div
                         className={
-                            'w-full max-w-4xl pb-4 pl-4 text-sm leading-4 text-slate-400 sm:pl-12 dark:text-slate-600 '
+                            'w-full max-w-4xl pb-4 pl-4 text-slate-400 text-sm leading-4 sm:pl-12 dark:text-slate-600'
                         }
                     >
                         <span className={'mt-2 flex w-fit items-start justify-start gap-1 px-2 dark:bg-slate-950'}>
@@ -683,21 +693,21 @@ const SummaryTab = React.forwardRef<
 >(({ side, amount, coin, quote }, ref) => {
     return (
         <div
-            ref={ref}
             className={cn(
-                'bg-card flex items-center gap-2 rounded-t-md border px-2 capitalize ',
-                side === 'buy' ? 'border-emerald-800' : 'border-red-800'
+                'flex items-center gap-2 rounded-t-md border bg-card px-2 capitalize',
+                side === 'buy' ? 'border-emerald-800' : 'border-red-800',
             )}
+            ref={ref}
         >
             <div
                 className={cn(
-                    side === 'buy' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
+                    side === 'buy' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400',
                 )}
             >
                 {side}
             </div>
             <div>{amount}</div>
-            <Coin symbol={coin} className={'size-6'} />
+            <Coin className={'size-6'} symbol={coin} />
             <div>{coin}</div>
             <div className="text-slate-500">for {quote}</div>
         </div>

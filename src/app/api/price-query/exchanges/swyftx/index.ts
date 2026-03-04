@@ -1,14 +1,14 @@
-import { SwOrdersResponse } from '@/types/types'
-import { ExchangeHandler } from '../../types'
-import { getCachedSwyftxKey, refreshSwyftxToken, updateCachedSwyftxKey } from './helpers'
 import { differenceInDays } from 'date-fns'
+import type { SwOrdersResponse } from '@/types/types'
+import type { ExchangeHandler } from '../../types'
+import { getCachedSwyftxKey, refreshSwyftxToken, updateCachedSwyftxKey } from './helpers'
 
 export const getSwyftxMockOrderBook: ExchangeHandler = async (
     base: string,
     quote: string,
     side?: string,
     amount?: string,
-    fee?: number
+    fee?: number,
 ) => {
     if (fee !== undefined) {
         let token
@@ -25,7 +25,7 @@ export const getSwyftxMockOrderBook: ExchangeHandler = async (
 
         if (token) {
             try {
-                const res = await fetch(`https://api.swyftx.com.au/orders/rate/`, {
+                const res = await fetch('https://api.swyftx.com.au/orders/rate/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -47,10 +47,13 @@ export const getSwyftxMockOrderBook: ExchangeHandler = async (
                     bids: [] as [number, number][],
                 }
                 if (side === 'buy') {
-                    orderbook.asks = [[parseFloat(json.price), parseFloat(json.amount)]]
+                    orderbook.asks = [[Number.parseFloat(json.price), Number.parseFloat(json.amount)]]
                 } else {
                     orderbook.bids = [
-                        [(parseFloat(json.amount) / parseFloat(json.total)) * (1 + fee), parseFloat(json.total)],
+                        [
+                            (Number.parseFloat(json.amount) / Number.parseFloat(json.total)) * (1 + fee),
+                            Number.parseFloat(json.total),
+                        ],
                     ]
                 }
                 return orderbook
