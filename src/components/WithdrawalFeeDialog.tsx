@@ -1,8 +1,11 @@
 'use client'
 
+import { useLocalStorage } from '@uidotdev/usehooks'
+import { addDays, isAfter, parseISO } from 'date-fns'
 import { Settings, Zap } from 'lucide-react'
 import Image from 'next/image'
 import { useTheme } from 'next-themes'
+import { useEffect, useMemo, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { LocalStorageKeys } from '@/lib/constants'
@@ -21,19 +24,48 @@ import { ScrollArea } from './ui/scroll-area'
 import { TextShimmer } from './ui/text-shimmer'
 
 interface WithdrawalFeeCredenzaProps {
-    defaultOpen: boolean
+    anchorDate: string
 }
 
-const WithdrawalFeeCredenza = ({ defaultOpen }: WithdrawalFeeCredenzaProps) => {
+const ANNOUNCEMENT_WINDOW_DAYS = 30
+
+const WithdrawalFeeCredenza = ({ anchorDate }: WithdrawalFeeCredenzaProps) => {
     const { resolvedTheme } = useTheme()
+    const [binanceAnnouncementDismissed, setBinanceAnnouncementDismissed] = useLocalStorage<boolean>(
+        LocalStorageKeys.BinanceAnnouncementDismissed,
+        false,
+    )
+    const [open, setOpen] = useState(false)
+    const isExpired = useMemo(() => {
+        const parsedAnchorDate = parseISO(anchorDate)
+
+        if (Number.isNaN(parsedAnchorDate.getTime())) {
+            return false
+        }
+
+        return isAfter(new Date(), addDays(parsedAnchorDate, ANNOUNCEMENT_WINDOW_DAYS))
+    }, [anchorDate])
+
+    useEffect(() => {
+        if (!(isExpired || binanceAnnouncementDismissed)) {
+            setOpen(true)
+        }
+    }, [binanceAnnouncementDismissed, isExpired])
+
+    if (isExpired) {
+        return null
+    }
+
     return (
         <Credenza
-            defaultOpen={defaultOpen}
-            onOpenChange={(open) => {
-                if (!open) {
-                    localStorage.setItem(LocalStorageKeys.BinanceAnnouncementDismissed, 'true')
+            onOpenChange={(nextOpen) => {
+                setOpen(nextOpen)
+
+                if (open && !nextOpen && !binanceAnnouncementDismissed) {
+                    setBinanceAnnouncementDismissed(true)
                 }
             }}
+            open={open}
         >
             <CredenzaTrigger asChild>
                 <MovingLabel

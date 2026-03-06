@@ -1,6 +1,6 @@
 'use client'
 
-import { useLocalStorage, useWindowScroll } from '@uidotdev/usehooks'
+import { useWindowScroll } from '@uidotdev/usehooks'
 import { Home, Menu } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -11,7 +11,6 @@ import Feedback from '@/components/Feedback'
 import GeneralSettings from '@/components/GeneralSettings'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
-import { LocalStorageKeys } from '@/lib/constants'
 import { cn } from '@/lib/utils'
 import { AnimatedThemeToggler } from './magicui/animated-theme-toggler'
 import WithdrawalFeeDialog from './WithdrawalFeeDialog'
@@ -32,13 +31,16 @@ const items = [
     //     icon: <LineChart />,
     // },
 ]
+
+const BINANCE_ANNOUNCEMENT_ANCHOR_DATE = '2026-01-06'
+
 const defaultNavBackground = 'bg-slate-50/40 dark:bg-slate-900/40 backdrop-blur dark:border dark:border-transparent'
+
 const NavBar = () => {
     const [sheetOpen, setSheetOpen] = useState(false)
     const activeSegment = useSelectedLayoutSegment()
     const [{ y }] = useWindowScroll()
     const [barBg, setBarBg] = useState(defaultNavBackground)
-    const [binanceAnnouncementDismissed] = useLocalStorage(LocalStorageKeys.BinanceAnnouncementDismissed, false)
 
     useEffect(() => {
         if (y && y > 1) {
@@ -111,7 +113,7 @@ const NavBar = () => {
                 </div>
             </div>
             <div className={'ml-auto flex items-center gap-1 sm:ml-0 sm:gap-2'}>
-                <WithdrawalFeeDialog defaultOpen={!binanceAnnouncementDismissed} />
+                <WithdrawalFeeDialog anchorDate={BINANCE_ANNOUNCEMENT_ANCHOR_DATE} />
                 <div className={'hidden sm:block'}>
                     <Feedback />
                 </div>
