@@ -12,6 +12,7 @@ import { Combobox } from '@/components/Combobox'
 import ExchangeIcon from '@/components/ExchangeIcon'
 import { FeeParams } from '@/components/fee-params'
 import { PriceHistoryDropdown } from '@/components/price-history-dropdown'
+import Spinner from '@/components/Spinner'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -583,6 +584,14 @@ const PriceLookup = () => {
         }))
     }
 
+    const [enabledExchangesCount, totalExchangesCount] = useMemo(() => {
+        return [Object.values(enabledExchanges).filter(Boolean).length, Object.keys(enabledExchanges).length]
+    }, [enabledExchanges])
+
+    const enabledExchangesText = useMemo(() => {
+        return `${enabledExchangesCount}/${totalExchangesCount} Exchanges enabled`
+    }, [enabledExchangesCount, totalExchangesCount])
+
     return (
         <>
             {showWayexBanner && (
@@ -606,10 +615,10 @@ const PriceLookup = () => {
                     </button>
                 </div>
             )}
-            <div className={'z-20 mb-10 flex w-full flex-col items-center justify-center'}>
+            <div className={'z-20 mb-8 flex w-full flex-col items-center justify-center'}>
                 <Card
                     className={
-                        'relative my-4 flex w-full max-w-2xl select-none flex-col items-center justify-center gap-4 border py-8 font-bold text-lg sm:mt-4'
+                        'relative my-4 flex w-full max-w-2xl select-none flex-col items-center justify-center gap-4 border py-8 pb-4 font-bold text-lg sm:mt-4'
                     }
                 >
                     <PriceHistoryDropdown
@@ -618,7 +627,7 @@ const PriceLookup = () => {
                     />
                     <div className={'absolute top-2 right-2 flex gap-2'}>
                         <Combobox
-                            className={'w-20 bg-card'}
+                            className={'w-fit bg-card'}
                             options={['AUD', 'USD', 'USDT', 'USDC'].map((q) => ({
                                 value: q,
                                 label: (
@@ -679,11 +688,9 @@ const PriceLookup = () => {
                     <div className={'flex w-full justify-center'}>
                         <Button
                             aria-label="Search for prices"
-                            className={
-                                'mx-4 flex w-full items-center gap-2 rounded-lg font-bold text-base text-black sm:w-44'
-                            }
+                            className={'mx-4 w-fit rounded-lg font-bold text-base text-black'}
+                            data-loading={isLoading}
                             disabled={submitDisabled}
-                            isLoading={isLoading}
                             onClick={() => {
                                 setAmount(localAmountRef.current)
                                 setSide(localSide)
@@ -692,10 +699,29 @@ const PriceLookup = () => {
                             }}
                             variant={'default'}
                         >
-                            <Search className={'size-4'} strokeWidth={3} />
-                            Search
+                            <span className={'grid place-items-center'}>
+                                <span
+                                    className={cn(
+                                        'col-start-1 row-start-1 flex items-center gap-2',
+                                        isLoading && 'invisible',
+                                    )}
+                                >
+                                    <Search className={'size-4'} strokeWidth={3} />
+                                    Compare Prices
+                                </span>
+                                <span
+                                    aria-hidden="true"
+                                    className={cn(
+                                        'invisible col-start-1 row-start-1 flex items-center justify-center',
+                                        isLoading && 'visible',
+                                    )}
+                                >
+                                    <Spinner className={'size-5'} />
+                                </span>
+                            </span>
                         </Button>
                     </div>
+                    <span className={'font-medium text-slate-600 text-xs'}>{enabledExchangesText}</span>
                 </Card>
                 <div className="relative w-full max-w-4xl">
                     {resultsReady && (

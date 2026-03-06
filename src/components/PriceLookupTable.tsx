@@ -266,7 +266,9 @@ const PriceLookupTable: React.FC<PriceLookupTableProps> = memo(
                                     className={cn(
                                         header.className,
                                         header.id === 'withdrawalFee' && !includeWithdrawalFees && 'opacity-50',
-                                        index === 0 && isStickyEnabled && 'sticky left-0 z-10 bg-background',
+                                        index === 0 &&
+                                            isStickyEnabled &&
+                                            'sticky left-0 z-10 overflow-hidden bg-background/70 sm:rounded-tl-lg',
                                     )}
                                     key={header.id}
                                 >
@@ -310,12 +312,12 @@ const PriceLookupTable: React.FC<PriceLookupTableProps> = memo(
                             >
                                 <TableCell
                                     className={cn(
-                                        'mr-0 ml-0 flex items-center justify-start p-0 py-1 text-center sm:p-0',
+                                        'relative mr-0 ml-0 flex items-center justify-start p-0 py-1 text-center sm:p-0',
                                         isStickyEnabled && 'sticky left-0 z-10',
                                         i === 0 && firstRowCellStyle,
                                     )}
                                 >
-                                    <div className="absolute inset-0 -z-10 bg-background" />
+                                    <div className="absolute inset-0 -z-10 bg-background/70" />
                                     <div
                                         className={cn('absolute inset-0 -z-0', {
                                             'border-green-500/30 bg-green-50/30 dark:bg-green-950/30':
@@ -368,7 +370,7 @@ const PriceLookupTable: React.FC<PriceLookupTableProps> = memo(
                                         {i === 0 && (
                                             <div
                                                 className={
-                                                    'ml-auto hidden w-fit rounded-full bg-green-100 px-2 py-0.5 font-sans text-green-600 text-xs sm:block dark:bg-green-900 dark:text-green-400'
+                                                    'ml-auto hidden items-center justify-center rounded-full bg-green-100 px-2 py-0.5 font-sans text-green-600 text-xs leading-none sm:inline-flex dark:bg-green-900 dark:text-green-400'
                                                 }
                                             >
                                                 Best
@@ -596,7 +598,7 @@ const PriceLookupTable: React.FC<PriceLookupTableProps> = memo(
                                 >
                                     <TableCell
                                         className={cn(
-                                            'mr-0 ml-0 flex items-center justify-start p-0 py-1 text-center sm:p-0',
+                                            'relative mr-0 ml-0 flex items-center justify-start p-0 py-1 text-center sm:p-0',
                                             isStickyEnabled && 'sticky left-0 z-10',
                                         )}
                                     >
