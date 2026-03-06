@@ -8,15 +8,21 @@ import posthog from 'posthog-js'
 import { useEffect, useState } from 'react'
 import { Credenza, CredenzaBody, CredenzaContent, CredenzaTrigger } from '@/components/Credenza'
 import ExchangeIcon from '@/components/ExchangeIcon'
+import ExchangeType from '@/components/ExchangeType'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
 import { LocalStorageKeys } from '@/lib/constants'
-import { defaultExchangeFees, formatExchangeName } from '@/lib/utils'
+import { cn, defaultEnabledExchanges, defaultExchangeFees, exchangeTypes, formatExchangeName } from '@/lib/utils'
 
 export function FeeParams() {
     const [open, setOpen] = useState(false)
     const [fees, setFees] = useLocalStorage<Record<string, number>>(LocalStorageKeys.ExchangeFees, defaultExchangeFees)
+    const [enabledExchanges, setEnabledExchanges] = useLocalStorage<Record<string, boolean>>(
+        LocalStorageKeys.EnabledExchanges,
+        defaultEnabledExchanges,
+    )
 
     useEffect(() => {
         const defaultExchangeKeys = Object.keys(defaultExchangeFees)
@@ -35,6 +41,24 @@ export function FeeParams() {
             }))
         }
     }, [fees, setFees])
+
+    useEffect(() => {
+        const defaultExchangeKeys = Object.keys(defaultEnabledExchanges)
+        const currentExchangeKeys = Object.keys(enabledExchanges)
+        const missingExchanges = defaultExchangeKeys.filter((x) => !currentExchangeKeys.includes(x))
+
+        if (missingExchanges.length > 0) {
+            const addedExchanges: Record<string, boolean> = {}
+            for (const exchange of missingExchanges) {
+                addedExchanges[exchange] = defaultEnabledExchanges[exchange] ?? false
+            }
+
+            setEnabledExchanges((prev) => ({
+                ...prev,
+                ...addedExchanges,
+            }))
+        }
+    }, [enabledExchanges, setEnabledExchanges])
 
     useEffect(() => {
         if (open) {
@@ -59,37 +83,66 @@ export function FeeParams() {
                                     Set your own fees if you are on a better tier.
                                 </p>
                             </div>
-                            <div className="grid gap-2">
-                                {Object.entries(fees).map(([exchange, fee]) => (
-                                    <div
-                                        className="grid grid-cols-9 items-center gap-4"
-                                        key={`${exchange}-fee-input-key`}
-                                    >
-                                        <Label
-                                            className={'col-span-5 flex items-center justify-start gap-2'}
-                                            htmlFor={`${exchange}-fee-input`}
+                            <div className="grid gap-1">
+                                {Object.entries(fees).map(([exchange, fee]) => {
+                                    const isEnabled = enabledExchanges[exchange] ?? true
+
+                                    return (
+                                        <div
+                                            className="grid grid-cols-[auto_minmax(0,1fr)_auto_7.5rem] items-center gap-3"
+                                            key={`${exchange}-fee-input-key`}
                                         >
-                                            <ExchangeIcon exchange={exchange} />
-                                            {formatExchangeName(exchange)}
-                                        </Label>
-                                        <div className={'col-span-4 flex items-center'}>
-                                            <Input
-                                                className="h-8"
-                                                id={`${exchange}-fee-input`}
-                                                onChange={(e) =>
-                                                    setFees((prev) => ({
+                                            <Switch
+                                                aria-label={`Toggle ${formatExchangeName(exchange)} exchange`}
+                                                checked={isEnabled}
+                                                onCheckedChange={(checked) =>
+                                                    setEnabledExchanges((prev) => ({
                                                         ...prev,
-                                                        [exchange]: round(Number(e.target.value) / 100, 4),
+                                                        [exchange]: checked,
                                                     }))
                                                 }
-                                                pattern={'(^\\.*)+(^0*)+^\\d+(\\.\\d+)?'}
-                                                type={'number'}
-                                                value={round(fee * 100, 2)}
+                                                size="sm"
                                             />
-                                            <Label className={'pointer-events-none -ml-10 px-3'}>%</Label>
+                                            <Button
+                                                aria-label={`Toggle ${formatExchangeName(exchange)} exchange`}
+                                                className={cn(
+                                                    'h-auto justify-start gap-2 px-0 hover:bg-transparent hover:ring-2 hover:ring-slate-200 dark:hover:ring-slate-800',
+                                                    !isEnabled && 'opacity-50 grayscale',
+                                                )}
+                                                onClick={() =>
+                                                    setEnabledExchanges((prev) => ({
+                                                        ...prev,
+                                                        [exchange]: !isEnabled,
+                                                    }))
+                                                }
+                                                variant="ghost"
+                                            >
+                                                <Label className="pointer-events-none flex min-w-0 items-center justify-start gap-2">
+                                                    <ExchangeIcon exchange={exchange} />
+                                                    {formatExchangeName(exchange)}
+                                                </Label>
+                                            </Button>
+                                            <ExchangeType type={exchangeTypes[exchange]} />
+                                            <div className={'flex items-center'}>
+                                                <Input
+                                                    className="h-8"
+                                                    disabled={!isEnabled}
+                                                    id={`${exchange}-fee-input`}
+                                                    onChange={(e) =>
+                                                        setFees((prev) => ({
+                                                            ...prev,
+                                                            [exchange]: round(Number(e.target.value) / 100, 4),
+                                                        }))
+                                                    }
+                                                    pattern={'(^\\.*)+(^0*)+^\\d+(\\.\\d+)?'}
+                                                    type={'number'}
+                                                    value={round(fee * 100, 2)}
+                                                />
+                                                <Label className={'pointer-events-none -ml-10 px-3'}>%</Label>
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    )
+                                })}
                             </div>
                         </div>
 

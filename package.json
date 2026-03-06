@@ -55,6 +55,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.0",
+    "@react-grab/mcp": "^0.1.23",
     "@tailwindcss/postcss": "^4.1.12",
     "@types/echarts": "^4.9.22",
     "@types/lodash": "^4.14.202",
@@ -64,6 +65,7 @@
     "autoprefixer": "^10.4.17",
     "husky": "^9.1.7",
     "postcss": "^8.4.35",
+    "react-grab": "^0.1.23",
     "tailwindcss": "^4.1.12",
     "typescript": "^5.3.3",
     "ultracite": "7.2.4"
