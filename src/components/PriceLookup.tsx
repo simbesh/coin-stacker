@@ -30,7 +30,6 @@ import type { PriceQueryParams } from '@/types/types'
 import HowDialog from './HowDialog'
 import { LabeledSwitch } from './LabeledSwitch'
 import { mockData, mockQuery } from './mock-data'
-import { NewExchangeBanner } from './NewExchangeBanner'
 import PriceLookupTable from './PriceLookupTable'
 import TextSwitch from './TextSwitch'
 import { Button } from './ui/button'
@@ -607,21 +606,6 @@ const PriceLookup = () => {
                     </button>
                 </div>
             )}
-            <NewExchangeBanner
-                anchorDate="2026-03-06"
-                dismissKey="kucoin"
-                iconSrc="https://www.google.com/s2/favicons?sz=64&domain=https://kucoin.com"
-                message="0.1% trading fees (or 0.08% if you use KCS token)"
-                title="KuCoin"
-            />
-            <NewExchangeBanner
-                anchorDate="2026-03-06"
-                dismissKey="pepperstonecrypto"
-                iconSrc="https://www.google.com/s2/favicons?sz=64&domain=https://pepperstonecrypto.com"
-                message="Flat 0.1% trading fees on all markets. Dynamic network fees"
-                title="Pepperstone Crypto"
-            />
-
             <div className={'z-20 mb-10 flex w-full flex-col items-center justify-center'}>
                 <Card
                     className={
