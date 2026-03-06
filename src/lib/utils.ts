@@ -80,8 +80,8 @@ export const defaultExchangeFees: Record<string, number> = {
     okx: 0.007,
     hardblock: 0,
     day1x: 0.001,
-    pepperstonecrypto: 0.001,
     wayex: 0.004,
+    // pepperstonecrypto: 0.001,
     // elbaite: 0.011,
 }
 
@@ -116,8 +116,8 @@ export const defaultEnabledExchanges: Record<string, boolean> = {
     okx: true,
     hardblock: true,
     day1x: true,
-    pepperstonecrypto: true,
     wayex: true,
+    // pepperstonecrypto: true,
     // elbaite: true,
 }
 
