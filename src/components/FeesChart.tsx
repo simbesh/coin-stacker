@@ -1,10 +1,9 @@
 'use client'
 
-import { useLocalStorage } from '@uidotdev/usehooks'
 import { type ComponentProps, useState } from 'react'
 import { Area, AreaChart, Brush, Legend, ResponsiveContainer, Tooltip, type TooltipProps, XAxis, YAxis } from 'recharts'
-import { LocalStorageKeys } from '@/lib/constants'
-import { cn, currencyFormat, defaultEnabledExchanges } from '@/lib/utils'
+import { useEnabledExchanges } from '@/lib/enabled-exchanges'
+import { cn, currencyFormat } from '@/lib/utils'
 
 const strokeWidth = 1.5
 interface FeeSeriesPoint {
@@ -302,10 +301,7 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>)
 
 const FeesChart = () => {
     const labels = allLabels
-    const [enabledExchanges] = useLocalStorage<Record<string, boolean>>(
-        LocalStorageKeys.EnabledExchanges,
-        defaultEnabledExchanges,
-    )
+    const { enabledExchanges } = useEnabledExchanges()
     const [seriesProps, setSeriesProps] = useState<Record<string, string | undefined | boolean>>(
         labels.reduce(
             (a: Record<string, undefined>, { key }: { key: string }) => {

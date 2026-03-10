@@ -21,6 +21,7 @@ import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { getExchangeLogo } from '@/exchange-config'
 import { LocalStorageKeys, markets } from '@/lib/constants'
+import { useEnabledExchanges } from '@/lib/enabled-exchanges'
 import {
     cn,
     currencyFormat,
@@ -287,10 +288,7 @@ const PriceLookup = () => {
         }
     }, [fees, setFees, tryUpdateFees])
 
-    const [enabledExchanges] = useLocalStorage<Record<string, boolean>>(
-        LocalStorageKeys.EnabledExchanges,
-        defaultEnabledExchanges,
-    )
+    const { enabledExchanges } = useEnabledExchanges()
     const [wayexBannerState, setWayexBannerState] = useLocalStorage<WayexBannerState>(WAYEX_BANNER_KEY, {
         dismissed: false,
         firstView: null,
