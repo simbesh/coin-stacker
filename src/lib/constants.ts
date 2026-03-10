@@ -39,7 +39,7 @@ const tradeUrl = (exchange: string, base: string, quote: string) => {
         case 'wayex':
             return 'https://www.wayex.com/trade'
         case 'pepperstonecrypto':
-            return 'https://pepperstonecrypto.com/trade/'
+            return `https://trade.pepperstonecrypto.com/trade/${base}-${quote}`
         // case 'elbaite':
         //     return 'https://www.elbaite.com/'
         default:
