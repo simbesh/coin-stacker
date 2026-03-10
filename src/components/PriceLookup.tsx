@@ -1,5 +1,7 @@
 'use client'
 
+import { CheckmarkSquare02Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useLocalStorage } from '@uidotdev/usehooks'
 import { differenceInDays } from 'date-fns'
 import { cloneDeep, round } from 'lodash'
@@ -11,11 +13,13 @@ import Coin from '@/components/CoinIcon'
 import { Combobox } from '@/components/Combobox'
 import ExchangeIcon from '@/components/ExchangeIcon'
 import { FeeParams } from '@/components/fee-params'
+import { NewExchangeBanner } from '@/components/NewExchangeBanner'
 import { PriceHistoryDropdown } from '@/components/price-history-dropdown'
 import Spinner from '@/components/Spinner'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { getExchangeLogo } from '@/exchange-config'
 import { LocalStorageKeys, markets } from '@/lib/constants'
 import {
     cn,
@@ -511,7 +515,7 @@ const PriceLookup = () => {
                                 }
                                 return acc
                             },
-                            []
+                            [],
                         ),
                     }),
                 })
@@ -596,6 +600,19 @@ const PriceLookup = () => {
         return `${enabledExchangesCount}/${totalExchangesCount} Exchanges enabled`
     }, [enabledExchangesCount, totalExchangesCount])
 
+    const pepperstoneCryptoBannerMessage = (
+        <ul className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <li className="flex items-start gap-1 sm:items-center sm:gap-2">
+                <HugeiconsIcon className="size-5 shrink-0 sm:size-6" icon={CheckmarkSquare02Icon} strokeWidth={2} />
+                <span>Flat 0.1% trade fees</span>
+            </li>
+            <li className="flex items-start gap-1 sm:items-center sm:gap-2">
+                <HugeiconsIcon className="size-5 shrink-0 sm:size-6" icon={CheckmarkSquare02Icon} strokeWidth={2} />
+                <span>Dynamic network withdrawal fees</span>
+            </li>
+        </ul>
+    )
+
     return (
         <>
             {showWayexBanner && (
@@ -620,6 +637,13 @@ const PriceLookup = () => {
                 </div>
             )}
             <div className={'z-20 mb-8 flex w-full flex-col items-center justify-center'}>
+                <NewExchangeBanner
+                    anchorDate="2026-03-10"
+                    dismissKey="pepperstonecrypto-new-exchange-banner"
+                    iconSrc={getExchangeLogo('pepperstonecrypto')}
+                    message={pepperstoneCryptoBannerMessage}
+                    title="Pepperstone Crypto"
+                />
                 <Card
                     className={
                         'relative my-4 flex w-full max-w-2xl select-none flex-col items-center justify-center gap-4 border py-8 pb-4 font-bold text-lg sm:mt-4'

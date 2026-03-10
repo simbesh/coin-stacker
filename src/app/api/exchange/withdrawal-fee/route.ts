@@ -83,7 +83,6 @@ export async function GET(request: NextRequest) {
             fees = await getLunoFee({ currency })
         } else if (exchange === 'pepperstonecrypto') {
             // TODO: Integrate Pepperstone Crypto withdrawal fees from official API/docs.
-            // TODO: Confirm whether withdrawals are coin-based, network-based, or spread-only.
             fees = {}
         } else if (exchange === 'digitalsurge') {
             fees = await getDigitalSurgeFee()
@@ -350,6 +349,5 @@ const exchangeFeeType = {
     // kucoin: 'dynamic',
     // TODO: Update wayex fee type once API is integrated ('dynamic', 'static', or 'free')
     // wayex: 'dynamic',
-    // TODO: Set pepperstonecrypto fee type once withdrawal fee integration is complete.
-    // pepperstonecrypto: 'dynamic',
+    //pepperstonecrypto: 'dynamic',
 }

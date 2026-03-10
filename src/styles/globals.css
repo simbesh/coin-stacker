@@ -34,8 +34,8 @@
     --color-card-foreground: hsl(var(--card-foreground));
 
     --radius-lg: var(--radius);
-    --radius-md: calc(var(--radius) - 2px);
-    --radius-sm: calc(var(--radius) - 4px);
+    --radius-md: calc(var(--radius) - 4px);
+    --radius-sm: calc(var(--radius) - 12px);
 
     --animate-accordion-down: accordion-down 0.2s ease-out;
     --animate-accordion-up: accordion-up 0.2s ease-out;
@@ -96,10 +96,6 @@
 
     --color-card: hsl(var(--card));
     --color-card-foreground: hsl(var(--card-foreground));
-
-    --radius-lg: var(--radius);
-    --radius-md: calc(var(--radius) - 2px);
-    --radius-sm: calc(var(--radius) - 4px);
 
     --animate-accordion-down: accordion-down 0.2s ease-out;
     --animate-accordion-up: accordion-up 0.2s ease-out;

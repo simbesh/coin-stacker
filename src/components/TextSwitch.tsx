@@ -36,7 +36,7 @@ const TextSwitch = ({
                     <button
                         aria-label={`Select ${label} Side`}
                         className={cn(
-                            'relative flex h-10 w-1/2 items-center justify-center rounded-sm font-bold capitalize',
+                            'relative flex h-10 w-1/2 items-center justify-center rounded-md font-bold capitalize',
                             isActive ? 'text-white' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200',
                         )}
                         key={key}
@@ -45,7 +45,7 @@ const TextSwitch = ({
                     >
                         {isActive && (
                             <motion.div
-                                className={cn('absolute inset-0 rounded-sm shadow', bgColor)}
+                                className={cn('absolute inset-0 rounded-md shadow', bgColor)}
                                 layoutId="activeTextSwitchBackground"
                                 transition={{ type: 'spring', duration: 0.5 }}
                             />

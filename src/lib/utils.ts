@@ -121,7 +121,7 @@ export const defaultEnabledExchanges: Record<string, boolean> = {
     hardblock: true,
     day1x: true,
     wayex: true,
-    pepperstonecrypto: false,
+    pepperstonecrypto: true,
     // elbaite: true,
 }
 
