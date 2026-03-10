@@ -16,7 +16,6 @@ src/app/api/price-query/
 │   ├── btcmarkets.ts       # BTC Markets exchange
 │   ├── independentreserve.ts
 │   ├── kraken.ts
-│   ├── kucoin.ts
 │   ├── luno.ts
 │   ├── okx.ts
 │   ├── coinspot.ts         # CoinSpot exchange
@@ -44,7 +43,6 @@ These exchanges use the CCXT library and share common logic:
 - `btcmarkets.ts`
 - `independentreserve.ts`
 - `kraken.ts`
-- `kucoin.ts`
 - `luno.ts`
 - `okx.ts`
 

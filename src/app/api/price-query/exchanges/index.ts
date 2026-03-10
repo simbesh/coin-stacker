@@ -11,7 +11,6 @@ import { getDigitalSurgeMockOrderBook } from './digitalsurge'
 import { getHardblockMockOrderBook } from './hardblock'
 import { getIndependentReserveOrderBook } from './independentreserve'
 import { getKrakenOrderBook } from './kraken'
-import { getKucoinOrderBook } from './kucoin'
 import { getLunoOrderBook } from './luno'
 import { getOkxOrderBook } from './okx'
 import { getPepperstoneCryptoOrderBook } from './pepperstonecrypto'
@@ -23,7 +22,6 @@ export const orderbookMethods: Record<string, ExchangeHandler> = {
     btcmarkets: getBTCMarketsOrderBook,
     independentreserve: getIndependentReserveOrderBook,
     kraken: getKrakenOrderBook,
-    kucoin: getKucoinOrderBook,
     luno: getLunoOrderBook,
     coinspot: getCoinSpotOrderBook,
     coinjar: getCoinJarOrderBook,
@@ -44,7 +42,6 @@ export const supportedExchanges = [
     'btcmarkets',
     'independentreserve',
     'kraken',
-    'kucoin',
     'luno',
     'coinspot',
     'coinjar',
