@@ -1,46 +1,20 @@
 'use client'
 
-import { useLocalStorage } from '@uidotdev/usehooks'
 import { Settings } from 'lucide-react'
-import { useEffect } from 'react'
 import ExchangeIcon from '@/components/ExchangeIcon'
 import Feedback from '@/components/Feedback'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Switch } from '@/components/ui/switch'
-import { LocalStorageKeys } from '@/lib/constants'
+import { useEnabledExchanges } from '@/lib/enabled-exchanges'
 import { cn, defaultEnabledExchanges } from '@/lib/utils'
 
 const GeneralSettings = () => {
-    const [enabledExchanges, setEnabledExchanges] = useLocalStorage<Record<string, boolean>>(
-        LocalStorageKeys.EnabledExchanges,
-        defaultEnabledExchanges,
-    )
-
-    useEffect(() => {
-        const defaultExchangeKeys = Object.keys(defaultEnabledExchanges)
-        const currentExchangeKeys = Object.keys(enabledExchanges)
-        const missingExchanges = defaultExchangeKeys.filter((x) => !currentExchangeKeys.includes(x))
-
-        if (missingExchanges.length > 0) {
-            const addedExchanges: Record<string, boolean> = {}
-            for (const exchange of missingExchanges) {
-                addedExchanges[exchange] = defaultEnabledExchanges[exchange] ?? false
-            }
-
-            setEnabledExchanges((prev) => ({
-                ...prev,
-                ...addedExchanges,
-            }))
-        }
-    }, [enabledExchanges, setEnabledExchanges])
+    const { enabledExchanges, setAllExchangesEnabled, setExchangeEnabled } = useEnabledExchanges()
 
     function handleExchangeToggle(exchange: string) {
-        setEnabledExchanges((prev) => ({
-            ...prev,
-            [exchange]: !prev[exchange],
-        }))
+        setExchangeEnabled(exchange, !(enabledExchanges[exchange] ?? false))
     }
 
     return (
@@ -85,18 +59,12 @@ const GeneralSettings = () => {
                 <div className={'my-4 flex w-full justify-end gap-2'}>
                     <Button
                         aria-label={`Disable All Exchanges (${Object.keys(defaultEnabledExchanges).length})`}
-                        onClick={() =>
-                            setEnabledExchanges(
-                                Object.fromEntries(
-                                    Object.entries(defaultEnabledExchanges).map(([key]) => [key, false]),
-                                ),
-                            )
-                        }
+                        onClick={() => setAllExchangesEnabled(false)}
                         variant={'secondary'}
                     >{`Disable All (${Object.keys(defaultEnabledExchanges).length})`}</Button>
                     <Button
                         aria-label="Enable All Exchanges"
-                        onClick={() => setEnabledExchanges(defaultEnabledExchanges)}
+                        onClick={() => setAllExchangesEnabled(true)}
                         variant={'secondary'}
                     >
                         Enable All

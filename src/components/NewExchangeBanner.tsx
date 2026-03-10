@@ -14,7 +14,7 @@ interface AlertBannerProps {
     anchorDate: string
     dismissKey: string
     iconSrc: string
-    message: string
+    message: string | React.ReactNode
     title: string
 }
 
@@ -133,49 +133,64 @@ export function NewExchangeBanner({ anchorDate, dismissKey, iconSrc, title, mess
     }
 
     return (
-        <div className="relative m-2 w-full overflow-hidden rounded-2xl border border-white/20 bg-transparent p-3 pr-10 text-white shadow-lg sm:max-w-lg">
-            <div
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-0 transition-opacity duration-300"
-                style={{
-                    ...gradientStyle,
-                    opacity: gradientStyle ? 1 : 0,
-                }}
-            />
-            <button
-                aria-label={`Dismiss ${title} announcement`}
-                className="absolute top-2 right-2 z-20 flex size-8 cursor-pointer items-center justify-center rounded-full text-white/80 transition-colors hover:bg-black/15 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
-                onClick={() => {
-                    if (dismissedExchanges.includes(dismissKey)) {
-                        return
-                    }
-
-                    setDismissedExchanges([...dismissedExchanges, dismissKey])
-                }}
-                type="button"
-            >
-                <X className="pointer-events-none size-5" />
-            </button>
-            <div className="relative z-10 flex items-start gap-3">
-                <Image
-                    alt=""
-                    className="h-10 w-10 rounded-md bg-white/10 p-1"
-                    height={40}
-                    src={sampledIconSrc}
-                    unoptimized
-                    width={40}
+        <div className="relative my-2 w-full max-w-xl sm:max-w-xl">
+            <div className="relative overflow-hidden rounded-2xl border border-white/20 bg-orange-600/95 p-3 pr-10 text-white shadow-lg dark:bg-slate-950/90">
+                <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(251,146,60,0.96)_0%,rgba(249,115,22,0.95)_45%,rgba(234,88,12,0.98)_100%)] dark:bg-[linear-gradient(135deg,rgba(30,41,59,0.96)_0%,rgba(15,23,42,0.94)_45%,rgba(2,6,23,0.98)_100%)]"
                 />
+                <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 transition-opacity duration-300"
+                    style={{
+                        ...gradientStyle,
+                        opacity: gradientStyle ? 1 : 0,
+                    }}
+                />
+                <button
+                    aria-label={`Dismiss ${title} announcement`}
+                    className="absolute top-2 right-2 z-20 flex size-8 cursor-pointer items-center justify-center rounded-full text-white/80 transition-colors hover:bg-black/15 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+                    onClick={() => {
+                        if (dismissedExchanges.includes(dismissKey)) {
+                            return
+                        }
 
-                <div className="min-w-0">
-                    <h2 className="font-semibold text-lg">
-                        {title}
-                        <span className="ml-2 rounded-sm bg-white/60 p-0.5 px-1 text-sm dark:bg-black/40">
-                            <TextShimmer className="[--base-color:#d97706] dark:[--base-color:#f59e0b]" duration={1}>
-                                NEW
-                            </TextShimmer>
-                        </span>
-                    </h2>
-                    <p className="mt-1 text-sm text-white">{message}</p>
+                        setDismissedExchanges([...dismissedExchanges, dismissKey])
+                    }}
+                    type="button"
+                >
+                    <X className="pointer-events-none size-5" />
+                </button>
+                <div className="relative z-10 flex items-start gap-3">
+                    <Image
+                        alt=""
+                        className="h-10 w-10 rounded-md bg-white/10 p-1"
+                        height={40}
+                        src={sampledIconSrc}
+                        unoptimized
+                        width={40}
+                    />
+
+                    <div className="min-w-0">
+                        <h2 className="font-semibold text-base sm:text-lg">
+                            {title}
+                            <span className="ml-2 rounded-sm bg-white/60 p-0.5 px-1 text-xs sm:text-sm dark:bg-black/40">
+                                <TextShimmer
+                                    className="hidden [--base-color:#d97706] sm:inline-block dark:[--base-color:#f59e0b]"
+                                    duration={2}
+                                >
+                                    NEW EXCHANGE
+                                </TextShimmer>
+                                <TextShimmer
+                                    className="inline-block [--base-color:#d97706] sm:hidden dark:[--base-color:#f59e0b]"
+                                    duration={2}
+                                >
+                                    NEW
+                                </TextShimmer>
+                            </span>
+                        </h2>
+                        <p className="mt-1 text-white text-xs sm:text-sm">{message}</p>
+                    </div>
                 </div>
             </div>
         </div>

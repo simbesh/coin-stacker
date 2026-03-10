@@ -2,34 +2,40 @@
 
 import { useMediaQuery } from '@uidotdev/usehooks'
 import { useEffect, useRef } from 'react'
+import { cn } from '@/lib/utils'
 
 export default function GradientText() {
     const refText = useRef<HTMLHeadingElement>(null)
     const isSmallDevice = useMediaQuery('only screen and (max-width : 768px)')
+
     useEffect(() => {
         if (!isSmallDevice) {
-            function getMousePos(evt: MouseEvent) {
-                return {
-                    x: evt.pageX,
-                    y: evt.pageY,
-                }
-            }
-
             document.onmousemove = moveMouse
 
             function moveMouse(evt: MouseEvent) {
-                const pos = getMousePos(evt)
                 if (refText.current) {
-                    refText.current.style.backgroundPosition = `${pos.x}px ${pos.y}px`
+                    const rect = refText.current.getBoundingClientRect()
+                    const x = evt.clientX - rect.left
+                    const y = evt.clientY - rect.top
+
+                    refText.current.style.backgroundPosition = `${x}px ${y}px`
                 }
+            }
+
+            return () => {
+                document.onmousemove = null
             }
         }
     }, [isSmallDevice])
 
     return (
         <h2
-            className="gradient-text mt-2 flex w-screen flex-wrap items-end justify-center gap-1 font-bold text-2xl text-slate-900 sm:text-3xl dark:text-slate-200"
+            className={cn(
+                'mt-2 flex w-full max-w-full flex-wrap items-end justify-center gap-1 px-2 font-bold text-2xl text-slate-900 sm:text-3xl dark:text-slate-200',
+                !isSmallDevice && 'gradient-text',
+            )}
             ref={refText}
+            style={isSmallDevice ? undefined : { backgroundSize: '100vw 100%' }}
         >
             {isSmallDevice ? (
                 <>

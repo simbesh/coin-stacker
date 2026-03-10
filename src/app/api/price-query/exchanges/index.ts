@@ -11,8 +11,10 @@ import { getDigitalSurgeMockOrderBook } from './digitalsurge'
 import { getHardblockMockOrderBook } from './hardblock'
 import { getIndependentReserveOrderBook } from './independentreserve'
 import { getKrakenOrderBook } from './kraken'
+import { getKucoinOrderBook } from './kucoin'
 import { getLunoOrderBook } from './luno'
 import { getOkxOrderBook } from './okx'
+import { getPepperstoneCryptoOrderBook } from './pepperstonecrypto'
 import { getSwyftxMockOrderBook } from './swyftx'
 import { getWayexOrderBook } from './wayex'
 
@@ -21,6 +23,7 @@ export const orderbookMethods: Record<string, ExchangeHandler> = {
     btcmarkets: getBTCMarketsOrderBook,
     independentreserve: getIndependentReserveOrderBook,
     kraken: getKrakenOrderBook,
+    kucoin: getKucoinOrderBook,
     luno: getLunoOrderBook,
     coinspot: getCoinSpotOrderBook,
     coinjar: getCoinJarOrderBook,
@@ -33,6 +36,7 @@ export const orderbookMethods: Record<string, ExchangeHandler> = {
     hardblock: getHardblockMockOrderBook,
     day1x: getDay1xOrderBook,
     wayex: getWayexOrderBook,
+    pepperstonecrypto: getPepperstoneCryptoOrderBook,
 }
 
 export const supportedExchanges = [
@@ -40,6 +44,7 @@ export const supportedExchanges = [
     'btcmarkets',
     'independentreserve',
     'kraken',
+    'kucoin',
     'luno',
     'coinspot',
     'coinjar',
@@ -52,4 +57,5 @@ export const supportedExchanges = [
     'hardblock',
     'day1x',
     'wayex',
+    'pepperstonecrypto',
 ]

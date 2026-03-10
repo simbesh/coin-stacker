@@ -28,6 +28,7 @@ const formattedExchangeNames: Record<string, string> = {
     btcmarkets: 'BTCMarkets',
     independentreserve: 'Independent Reserve',
     kraken: 'Kraken',
+    kucoin: 'KuCoin',
     luno: 'Luno',
     coinspot: 'CoinSpot',
     coinjar: 'CoinJar',
@@ -49,6 +50,7 @@ export const exchangeTypes: Record<string, 'orderbook' | 'broker'> = {
     btcmarkets: 'orderbook',
     independentreserve: 'orderbook',
     kraken: 'orderbook',
+    kucoin: 'orderbook',
     luno: 'orderbook',
     coinspot: 'orderbook',
     coinjar: 'orderbook',
@@ -69,6 +71,7 @@ export const defaultExchangeFees: Record<string, number> = {
     btcmarkets: 0.0085,
     independentreserve: 0.005,
     kraken: 0.004,
+    kucoin: 0.001,
     luno: 0.001,
     coinspot: 0.001,
     coinjar: 0.001,
@@ -81,7 +84,7 @@ export const defaultExchangeFees: Record<string, number> = {
     hardblock: 0,
     day1x: 0.001,
     wayex: 0.004,
-    // pepperstonecrypto: 0.001,
+    pepperstonecrypto: 0.001,
     // elbaite: 0.011,
 }
 
@@ -105,6 +108,7 @@ export const defaultEnabledExchanges: Record<string, boolean> = {
     btcmarkets: true,
     independentreserve: true,
     kraken: true,
+    kucoin: true,
     luno: true,
     coinspot: true,
     coinjar: true,
@@ -117,7 +121,7 @@ export const defaultEnabledExchanges: Record<string, boolean> = {
     hardblock: true,
     day1x: true,
     wayex: true,
-    // pepperstonecrypto: true,
+    pepperstonecrypto: true,
     // elbaite: true,
 }
 

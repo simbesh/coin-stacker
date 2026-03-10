@@ -14,15 +14,13 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { LocalStorageKeys } from '@/lib/constants'
-import { cn, defaultEnabledExchanges, defaultExchangeFees, exchangeTypes, formatExchangeName } from '@/lib/utils'
+import { useEnabledExchanges } from '@/lib/enabled-exchanges'
+import { cn, defaultExchangeFees, exchangeTypes, formatExchangeName } from '@/lib/utils'
 
 export function FeeParams() {
     const [open, setOpen] = useState(false)
     const [fees, setFees] = useLocalStorage<Record<string, number>>(LocalStorageKeys.ExchangeFees, defaultExchangeFees)
-    const [enabledExchanges, setEnabledExchanges] = useLocalStorage<Record<string, boolean>>(
-        LocalStorageKeys.EnabledExchanges,
-        defaultEnabledExchanges,
-    )
+    const { enabledExchanges, setExchangeEnabled } = useEnabledExchanges()
 
     useEffect(() => {
         const defaultExchangeKeys = Object.keys(defaultExchangeFees)
@@ -41,24 +39,6 @@ export function FeeParams() {
             }))
         }
     }, [fees, setFees])
-
-    useEffect(() => {
-        const defaultExchangeKeys = Object.keys(defaultEnabledExchanges)
-        const currentExchangeKeys = Object.keys(enabledExchanges)
-        const missingExchanges = defaultExchangeKeys.filter((x) => !currentExchangeKeys.includes(x))
-
-        if (missingExchanges.length > 0) {
-            const addedExchanges: Record<string, boolean> = {}
-            for (const exchange of missingExchanges) {
-                addedExchanges[exchange] = defaultEnabledExchanges[exchange] ?? false
-            }
-
-            setEnabledExchanges((prev) => ({
-                ...prev,
-                ...addedExchanges,
-            }))
-        }
-    }, [enabledExchanges, setEnabledExchanges])
 
     useEffect(() => {
         if (open) {
@@ -95,12 +75,7 @@ export function FeeParams() {
                                             <Switch
                                                 aria-label={`Toggle ${formatExchangeName(exchange)} exchange`}
                                                 checked={isEnabled}
-                                                onCheckedChange={(checked) =>
-                                                    setEnabledExchanges((prev) => ({
-                                                        ...prev,
-                                                        [exchange]: checked,
-                                                    }))
-                                                }
+                                                onCheckedChange={(checked) => setExchangeEnabled(exchange, checked)}
                                                 size="sm"
                                             />
                                             <Button
@@ -109,12 +84,7 @@ export function FeeParams() {
                                                     'h-auto justify-start gap-2 px-0 hover:bg-transparent hover:ring-2 hover:ring-slate-200 dark:hover:ring-slate-800',
                                                     !isEnabled && 'opacity-50 grayscale',
                                                 )}
-                                                onClick={() =>
-                                                    setEnabledExchanges((prev) => ({
-                                                        ...prev,
-                                                        [exchange]: !isEnabled,
-                                                    }))
-                                                }
+                                                onClick={() => setExchangeEnabled(exchange, !isEnabled)}
                                                 variant="ghost"
                                             >
                                                 <Label className="pointer-events-none flex min-w-0 items-center justify-start gap-2">
