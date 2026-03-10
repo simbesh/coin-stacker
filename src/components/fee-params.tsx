@@ -21,22 +21,25 @@ export function FeeParams() {
     const [open, setOpen] = useState(false)
     const [fees, setFees] = useLocalStorage<Record<string, number>>(LocalStorageKeys.ExchangeFees, defaultExchangeFees)
     const { enabledExchanges, setExchangeEnabled } = useEnabledExchanges()
+    const exchangeFeeEntries: [string, number][] = Object.entries(defaultExchangeFees).map(([exchange, defaultFee]) => [
+        exchange,
+        fees[exchange] ?? defaultFee,
+    ])
 
     useEffect(() => {
         const defaultExchangeKeys = Object.keys(defaultExchangeFees)
         const currentExchangeKeys = Object.keys(fees)
         const missingKeys = defaultExchangeKeys.filter((x) => !currentExchangeKeys.includes(x))
+        const removedKeys = currentExchangeKeys.filter((x) => !defaultExchangeKeys.includes(x))
 
-        if (missingKeys.length > 0) {
-            const addedFees: Record<string, number> = {}
-            for (const key of missingKeys) {
-                addedFees[key] = defaultExchangeFees[key] ?? 0
+        if (missingKeys.length > 0 || removedKeys.length > 0) {
+            const normalizedFees: Record<string, number> = {}
+
+            for (const key of defaultExchangeKeys) {
+                normalizedFees[key] = fees[key] ?? defaultExchangeFees[key] ?? 0
             }
 
-            setFees((prev) => ({
-                ...prev,
-                ...addedFees,
-            }))
+            setFees(normalizedFees)
         }
     }, [fees, setFees])
 
@@ -64,7 +67,7 @@ export function FeeParams() {
                                 </p>
                             </div>
                             <div className="grid gap-1">
-                                {Object.entries(fees).map(([exchange, fee]) => {
+                                {exchangeFeeEntries.map(([exchange, fee]) => {
                                     const isEnabled = enabledExchanges[exchange] ?? true
 
                                     return (

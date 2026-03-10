@@ -17,13 +17,16 @@ const inter = Inter({
     variable: '--font-sans',
 })
 
+const titlePrefix = process.env.NODE_ENV !== 'production' ? '[DEV] ' : ''
+const title = `${titlePrefix}CoinStacker`
+
 export const metadata = {
-    title: 'CoinStacker',
+    title,
     description: 'Australian Crypto Price Aggregator',
     openGraph: {
         url: 'https://coinstacker.com.au',
         type: 'website',
-        title: 'CoinStacker',
+        title,
         description: 'Australian Crypto Price Aggregator',
         images: [
             {
@@ -38,7 +41,7 @@ export const metadata = {
         card: 'summary_large_image',
         domain: 'coinstacker.com.au',
         url: 'https://coinstacker.com.au',
-        title: 'CoinStacker',
+        title,
         description: 'Australian Crypto Price Aggregator',
         images: [
             'https://opengraph.b-cdn.net/production/images/178c6278-ea1b-44d7-8fa7-e249c959486c.png?token=Auv-p_COy0vtMIaoFA74gBohN7st9GRM5jl0tJzaktY&height=630&width=1200&expires=33291583602',
