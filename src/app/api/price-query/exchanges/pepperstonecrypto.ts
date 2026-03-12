@@ -1,6 +1,6 @@
 import { type ExchangeHandler, MarketNotFoundError, type OrderBookLevel } from '../types'
 
-const PEPPERSTONE_CRYPTO_ORDERBOOK_URL = 'https://nodes.pepperstonecrypto.com/market/get-open-orders'
+const PEPPERSTONE_CRYPTO_ORDERBOOK_URL = 'https://nodes.pcrypto.com/market/get-open-orders'
 const PEPPERSTONE_CRYPTO_ORDERBOOK_DEPTH = 50
 
 type PepperstoneSide = 'BUY' | 'SELL'
