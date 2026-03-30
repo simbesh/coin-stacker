@@ -66,12 +66,6 @@ export async function GET(request: NextRequest) {
             fees = await getOKXFee()
         } else if (exchange === 'binance') {
             fees = await getBinanceFee()
-        } else if (exchange === 'day1x') {
-            fees = {
-                override: 0,
-            }
-            // } else if (exchange === 'coinspot') {
-            //     fees = await getCoinspotFee()
         } else if (exchange === 'luno') {
             if (!currency) {
                 return NextResponse.json({ error: 'Currency parameter is required' }, { status: 400 })
@@ -338,7 +332,6 @@ const exchangeFeeType = {
     digitalsurge: 'dynamic',
     coinstash: 'static',
     swyftx: 'static',
-    day1x: 'free',
     bitaroo: 'static',
     hardblock: 'static',
     // TODO: Update wayex fee type once API is integrated ('dynamic', 'static', or 'free')

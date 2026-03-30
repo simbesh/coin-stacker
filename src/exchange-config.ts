@@ -16,7 +16,6 @@ const EXCHANGE_URLS: Record<string, string> = {
     cointree: 'https://www.cointree.com',
     okx: 'https://www.okx.com',
     hardblock: 'https://www.hardblock.com.au',
-    day1x: 'https://www.day1x.io',
     pepperstonecrypto: 'https://pcrypto.com',
     wayex: 'https://www.wayex.com',
     // elbaite: 'https://www.elbaite.com',
@@ -24,7 +23,6 @@ const EXCHANGE_URLS: Record<string, string> = {
 const ALT_EXCHANGE_URLS: Record<string, string> = {
     coinjar: 'https://exchange.coinjar.com/assets/favicons/favicon.ico',
     swyftx: 'https://swyftx.com/favicon.ico',
-    day1x: 'https://icons.duckduckgo.com/ip3/www.day1x.io.ico',
 }
 
 export function getExchangeLogo(name: string) {
@@ -44,7 +42,6 @@ export const EXCHANGE_COLOUR: Record<string, string> = {
     kraken: '#5d45dc',
     liquid: '#0055ff',
     luno: '#0091ff',
-    day1x: '#1943c3',
     pepperstonecrypto: '#1b7fd6',
     wayex: '#00d4aa',
 }

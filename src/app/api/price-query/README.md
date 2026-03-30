@@ -21,7 +21,6 @@ src/app/api/price-query/
 │   ├── coinspot.ts         # CoinSpot exchange
 │   ├── coinjar.ts
 │   ├── bitaroo.ts
-│   ├── day1x.ts
 │   ├── wayex.ts
 │   ├── pepperstonecrypto.ts
 │   ├── coinstash.ts        # Quote-based exchanges
@@ -55,7 +54,6 @@ These exchanges have custom API implementations:
 - `coinspot.ts` - CoinSpot API
 - `coinjar.ts` - CoinJar API
 - `bitaroo.ts` - Bitaroo API (BTC/AUD only)
-- `day1x.ts` - Day1x API
 - `wayex.ts` - Wayex API (requires instrument lookup)
 - `pepperstonecrypto.ts` - Pepperstone Crypto API scaffold (TODO integration)
 

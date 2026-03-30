@@ -1,12 +1,7 @@
 import { type ClassValue, clsx } from 'clsx'
 import { round } from 'lodash'
 import { twMerge } from 'tailwind-merge'
-import type {
-    BrOrderBookResponse,
-    CjOrderBookResponse,
-    CsOrderBookResponseOk,
-    D1OrderBookResponse,
-} from '@/types/types'
+import type { BrOrderBookResponse, CjOrderBookResponse, CsOrderBookResponseOk } from '@/types/types'
 
 export const OLD_KRAKEN_TAKER_FEE = 0.0026
 
@@ -38,7 +33,6 @@ const formattedExchangeNames: Record<string, string> = {
     digitalsurge: 'DigitalSurge',
     okx: 'OKX',
     hardblock: 'HardBlock',
-    day1x: 'Day1x',
     pepperstonecrypto: 'Pepperstone Crypto',
     wayex: 'Wayex',
     // elbaite: 'Elbaite',
@@ -59,7 +53,6 @@ export const exchangeTypes: Record<string, 'orderbook' | 'broker'> = {
     digitalsurge: 'broker',
     okx: 'orderbook',
     hardblock: 'broker',
-    day1x: 'orderbook',
     pepperstonecrypto: 'orderbook',
     wayex: 'orderbook',
 }
@@ -79,7 +72,6 @@ export const defaultExchangeFees: Record<string, number> = {
     digitalsurge: 0.005,
     okx: 0.007,
     hardblock: 0,
-    day1x: 0.001,
     wayex: 0.004,
     pepperstonecrypto: 0.001,
     // elbaite: 0.011,
@@ -89,10 +81,6 @@ export const overrideDefaultExchangeFees: Record<string, { old: number; new: num
     okx: {
         old: 0.005,
         new: defaultExchangeFees.okx ?? 0.007,
-    },
-    day1x: {
-        old: 0.0025,
-        new: defaultExchangeFees.day1x ?? 0.001,
     },
     coinstash: {
         old: 0.0085,
@@ -115,7 +103,6 @@ export const defaultEnabledExchanges: Record<string, boolean> = {
     digitalsurge: true,
     okx: true,
     hardblock: true,
-    day1x: true,
     wayex: true,
     pepperstonecrypto: true,
     // elbaite: true,
@@ -156,13 +143,6 @@ export function parseBrOrderBook(data: BrOrderBookResponse): ParsedOrderBook {
     return {
         bids: data.buy.map(({ price, amount }) => parseOrderBookStringTuple([price, amount])) as [number, number][],
         asks: data.sell.map(({ price, amount }) => parseOrderBookStringTuple([price, amount])) as [number, number][],
-    }
-}
-
-export function parseD1OrderBook(data: D1OrderBookResponse): ParsedOrderBook {
-    return {
-        bids: data.bids.map(parseOrderBookStringTuple),
-        asks: data.asks.map(parseOrderBookStringTuple),
     }
 }
 

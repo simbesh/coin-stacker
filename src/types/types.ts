@@ -25,12 +25,6 @@ export interface BrOrderBookResponse {
     sell: BrOrderBookLevel[]
 }
 
-export interface D1OrderBookResponse {
-    asks: [string, string][]
-    bids: [string, string][]
-    timestamp: number
-}
-
 export interface WayexOrderBookResponse {
     // AlphaPoint L2 Snapshot returns an array where:
     // Even indices (0, 2, 4...) are bids
