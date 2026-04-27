@@ -6,7 +6,6 @@ import { getCoinJarOrderBook } from './coinjar'
 import { getCoinSpotOrderBook } from './coinspot'
 import { getCoinstashMockOrderBook } from './coinstash'
 import { getCointreeMockOrderBook } from './cointree'
-import { getDay1xOrderBook } from './day1x'
 import { getDigitalSurgeMockOrderBook } from './digitalsurge'
 import { getHardblockMockOrderBook } from './hardblock'
 import { getIndependentReserveOrderBook } from './independentreserve'
@@ -32,7 +31,6 @@ export const orderbookMethods: Record<string, ExchangeHandler> = {
     digitalsurge: getDigitalSurgeMockOrderBook,
     okx: getOkxOrderBook,
     hardblock: getHardblockMockOrderBook,
-    day1x: getDay1xOrderBook,
     wayex: getWayexOrderBook,
     pepperstonecrypto: getPepperstoneCryptoOrderBook,
 }
@@ -52,7 +50,6 @@ export const supportedExchanges = [
     'digitalsurge',
     'okx',
     'hardblock',
-    'day1x',
     'wayex',
     'pepperstonecrypto',
 ]

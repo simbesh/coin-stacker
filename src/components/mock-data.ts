@@ -106,15 +106,6 @@ export const mockData: MockPriceQueryResult = {
             feeRate: 0.0085,
         },
         {
-            exchange: 'day1x',
-            netCost: 17_782.0,
-            grossPrice: 177_642.0,
-            netPrice: 177_659.0,
-            grossAveragePrice: 177_642.0,
-            fees: 17.0,
-            feeRate: 0.0036,
-        },
-        {
             exchange: 'bitaroo',
             netCost: 17_831.0,
             grossPrice: 177_971.0,
