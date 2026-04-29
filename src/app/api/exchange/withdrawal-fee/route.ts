@@ -66,6 +66,10 @@ export async function GET(request: NextRequest) {
             fees = await getOKXFee()
         } else if (exchange === 'binance') {
             fees = await getBinanceFee()
+        } else if (exchange === 'kucoin') {
+            // TODO: Integrate KuCoin withdrawal fees via CCXT fetchCurrencies.
+            // TODO: Confirm whether authenticated or public endpoints should be used.
+            fees = {}
         } else if (exchange === 'luno') {
             if (!currency) {
                 return NextResponse.json({ error: 'Currency parameter is required' }, { status: 400 })
@@ -334,6 +338,8 @@ const exchangeFeeType = {
     swyftx: 'static',
     bitaroo: 'static',
     hardblock: 'static',
+    // TODO: Set kucoin fee type once withdrawal fee integration is complete.
+    // kucoin: 'dynamic',
     // TODO: Update wayex fee type once API is integrated ('dynamic', 'static', or 'free')
     // wayex: 'dynamic',
     //pepperstonecrypto: 'dynamic',

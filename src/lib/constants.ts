@@ -26,6 +26,8 @@ const tradeUrl = (exchange: string, base: string, quote: string) => {
             return `https://www.coinspot.com.au/trade/${base}`
         case 'kraken':
             return `https://pro.kraken.com/app/trade/${base}-${quote}`
+        case 'kucoin':
+            return `https://www.kucoin.com/trade/${base}-${quote}`
         case 'luno':
             return `https://www.luno.com/trade/markets/${base}${quote}`
         case 'bitaroo':
