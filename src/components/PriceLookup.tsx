@@ -230,28 +230,36 @@ const PriceLookup = () => {
     const [withdrawalFees, setWithdrawalFees] = useState<Record<string, WithdrawalFees>>({})
     const summaryTabRef = useRef<HTMLDivElement>(null)
     const lastAutoFetchKeyRef = useRef<string | null>(null)
+    const initialAutoFetchCheckedRef = useRef(false)
     const [loadingWithdrawalFees, setLoadingWithdrawalFees] = useState<Record<string, boolean>>({})
     const fetchedWithdrawalFeesRef = useRef<Set<string>>(new Set())
     const [finalWithdrawalFees, setFinalWithdrawalFees] = useState<Record<string, WithdrawalFees>>({})
+    const resultCoin = resultInput?.coin ?? ''
+    const resultSide = resultInput?.side ?? side
 
     useEffect(() => {
         const allFees: number[] = []
         const newWithdrawalFees = cloneDeep(withdrawalFees)
+        if (!resultCoin) {
+            setFinalWithdrawalFees(newWithdrawalFees)
+            return
+        }
+
         for (const data of Object.values(newWithdrawalFees)) {
-            if (data.feeType !== undefined && data.fees[coin] !== undefined) {
-                allFees.push(data.fees[coin])
+            if (data.feeType !== undefined && data.fees[resultCoin] !== undefined) {
+                allFees.push(data.fees[resultCoin])
             }
         }
         const medianFee = median(allFees)
         if (medianFee !== undefined) {
             for (const data of Object.values(newWithdrawalFees)) {
                 if (data.feeType === undefined) {
-                    data.fees[coin] = medianFee
+                    data.fees[resultCoin] = medianFee
                 }
             }
         }
         setFinalWithdrawalFees(newWithdrawalFees)
-    }, [withdrawalFees, coin])
+    }, [withdrawalFees, resultCoin])
 
     // Fetch withdrawal fees from API
     const fetchWithdrawalFees = useCallback(async (exchange: string, currency: string) => {
@@ -295,6 +303,20 @@ const PriceLookup = () => {
     })
 
     const getPrices = useCallback(getPricesImpl, [enabledExchanges, fees, quote, setHistory])
+    const handleCoinChange = useCallback(
+        (nextCoin: string) => {
+            setLocalCoin(nextCoin)
+            setCoin(nextCoin)
+        },
+        [setCoin],
+    )
+    const handleSideChange = useCallback(
+        (nextSide: 'buy' | 'sell') => {
+            setLocalSide(nextSide)
+            setSide(nextSide)
+        },
+        [setSide],
+    )
 
     const handleKeyPress = useCallback(
         (e: KeyboardEvent) => {
@@ -330,6 +352,12 @@ const PriceLookup = () => {
     }, [coin])
 
     useEffect(() => {
+        if (initialAutoFetchCheckedRef.current) {
+            return
+        }
+
+        initialAutoFetchCheckedRef.current = true
+
         if (!(coin && amount)) {
             lastAutoFetchKeyRef.current = null
             return
@@ -356,8 +384,7 @@ const PriceLookup = () => {
 
     useEffect(() => {
         if (priceQueryResult.best.length > 0) {
-            const resultSide = resultInput?.side ?? side
-            if (side === 'buy') {
+            if (resultSide === 'buy') {
                 const lowestAvgPrice = priceQueryResult.best.reduce(
                     (min, obj) => Math.min(min, obj.grossAveragePrice),
                     Number.POSITIVE_INFINITY,
@@ -379,9 +406,9 @@ const PriceLookup = () => {
                 ...best,
                 totalIncFees: calculateTotalWithWithdrawalFees(best, {
                     includeWithdrawalFees,
-                    coin,
+                    coin: resultCoin,
                     finalWithdrawalFees,
-                    side,
+                    side: resultSide,
                 }),
             }))
 
@@ -398,7 +425,7 @@ const PriceLookup = () => {
                 }
 
                 // Sort by the appropriate field based on side
-                const sortMultiplier = side === 'buy' ? 1 : -1
+                const sortMultiplier = resultSide === 'buy' ? 1 : -1
                 if (a[sortField] < b[sortField]) {
                     return -sortMultiplier
                 }
@@ -427,16 +454,16 @@ const PriceLookup = () => {
             }))
             setTableData(data)
         }
-    }, [priceQueryResult.best, includeWithdrawalFees, coin, side, finalWithdrawalFees, resultInput])
+    }, [priceQueryResult.best, includeWithdrawalFees, resultCoin, resultSide, finalWithdrawalFees])
 
     // Fetch withdrawal fees when price results change
     useEffect(() => {
-        if (priceQueryResult.best.length > 0 && coin) {
+        if (priceQueryResult.best.length > 0 && resultCoin) {
             const exchanges = [...new Set(priceQueryResult.best.map((row) => row.exchange))]
 
             // Only set loading and fetch for exchanges we haven't fetched yet
             const exchangesToFetch = exchanges.filter((exchange) => {
-                const key = `${exchange}-${coin}`
+                const key = `${exchange}-${resultCoin}`
                 return !fetchedWithdrawalFeesRef.current.has(key)
             })
 
@@ -448,9 +475,9 @@ const PriceLookup = () => {
 
                 Promise.all(
                     exchangesToFetch.map(async (exchange) => {
-                        const key = `${exchange}-${coin}`
+                        const key = `${exchange}-${resultCoin}`
                         fetchedWithdrawalFeesRef.current.add(key)
-                        await fetchWithdrawalFees(exchange, coin)
+                        await fetchWithdrawalFees(exchange, resultCoin)
                         setLoadingWithdrawalFees((prev) => ({ ...prev, [exchange]: false }))
                     }),
                 ).catch((error: unknown) => {
@@ -458,7 +485,7 @@ const PriceLookup = () => {
                 })
             }
         }
-    }, [priceQueryResult.best, coin, fetchWithdrawalFees])
+    }, [priceQueryResult.best, resultCoin, fetchWithdrawalFees])
 
     async function getPricesImpl({ side, amount, coin }: PriceQueryParams) {
         if (!amount) {
@@ -549,6 +576,7 @@ const PriceLookup = () => {
         }
     }
 
+    const showPriceLookupTable = isLoading || Boolean(resultInput)
     const resultsReady = priceQueryResult.best.length > 0 && resultInput
     const submitDisabled = useMemo(() => !(localAmount && localCoin) || isLoading, [localAmount, localCoin, isLoading])
 
@@ -669,7 +697,7 @@ const PriceLookup = () => {
                         <FeeParams />
                     </div>
                     <div className="mt-8 w-full max-w-[16rem] sm:mt-0">
-                        <TextSwitch setSide={setLocalSide} side={localSide} />
+                        <TextSwitch setSide={handleSideChange} side={localSide} />
                     </div>
                     <div className={'flex gap-2'}>
                         <Input
@@ -694,7 +722,7 @@ const PriceLookup = () => {
                                 ),
                             }))}
                             optionType={'Coin'}
-                            setValue={setLocalCoin}
+                            setValue={handleCoinChange}
                             value={localCoin}
                         />
                     </div>
@@ -703,7 +731,7 @@ const PriceLookup = () => {
                             <Badge
                                 className={'group h-8 cursor-pointer gap-2 border hover:border-slate-400'}
                                 key={coin}
-                                onClick={() => setLocalCoin(coin)}
+                                onClick={() => handleCoinChange(coin)}
                                 variant={'outline'}
                             >
                                 <Coin className={cn('size-4 group-hover:text-slate-300')} symbol={coin} />
@@ -749,60 +777,64 @@ const PriceLookup = () => {
                     </div>
                     <span className={'font-medium text-slate-600 text-xs'}>{enabledExchangesText}</span>
                 </Card>
-                <div className="relative w-full max-w-4xl">
-                    {resultsReady && (
-                        <div className="left-0 mx-auto mb-8 flex w-fit items-center gap-2 sm:absolute sm:-bottom-2 sm:mb-0">
-                            <HowDialog />
+                {showPriceLookupTable && (
+                    <>
+                        <div className="relative w-full max-w-4xl">
+                            {resultsReady && (
+                                <div className="left-0 mx-auto mb-8 flex w-fit items-center gap-2 sm:absolute sm:-bottom-2 sm:mb-0">
+                                    <HowDialog />
+                                </div>
+                            )}
+                            <div
+                                className={cn(
+                                    'mt-4 flex h-6 w-full items-center justify-start font-bold text-sm sm:justify-center',
+                                    isLoading && 'opacity-30',
+                                )}
+                            >
+                                {resultsReady && (
+                                    <SummaryTab
+                                        amount={resultInput.amount || ''}
+                                        coin={resultInput.coin || ''}
+                                        quote={resultInput.quote || ''}
+                                        ref={summaryTabRef}
+                                        side={resultInput.side}
+                                    />
+                                )}
+                            </div>
+                            <div className="absolute right-0 bottom-0 flex flex-col items-end">
+                                <div className="flex items-center gap-2">
+                                    <LabeledSwitch
+                                        checked={includeWithdrawalFees}
+                                        label="Withdrawal Fee"
+                                        onCheckedChange={setIncludeWithdrawalFees}
+                                    />
+                                    <HybridTooltip>
+                                        <HybridTooltipTrigger>
+                                            <HelpCircle className={'size-4'} />
+                                        </HybridTooltipTrigger>
+                                        <HybridTooltipContent className={'dark:border-slate-600'}>
+                                            <p>{`Add the exchanges ${resultInput?.coin ? ` ${resultInput.coin}` : ''} withdrawal fee to total price.`}</p>
+                                        </HybridTooltipContent>
+                                    </HybridTooltip>
+                                </div>
+                            </div>
                         </div>
-                    )}
-                    <div
-                        className={cn(
-                            'mt-4 flex h-6 w-full items-center justify-start font-bold text-sm sm:justify-center',
-                            isLoading && 'opacity-30',
-                        )}
-                    >
-                        {resultsReady && (
-                            <SummaryTab
-                                amount={resultInput.amount || ''}
-                                coin={resultInput.coin || ''}
-                                quote={resultInput.quote || ''}
-                                ref={summaryTabRef}
-                                side={resultInput.side}
-                            />
-                        )}
-                    </div>
-                    <div className="absolute right-0 bottom-0 flex flex-col items-end">
-                        <div className="flex items-center gap-2">
-                            <LabeledSwitch
-                                checked={includeWithdrawalFees}
-                                label="Withdrawal Fee"
-                                onCheckedChange={setIncludeWithdrawalFees}
-                            />
-                            <HybridTooltip>
-                                <HybridTooltipTrigger>
-                                    <HelpCircle className={'size-4'} />
-                                </HybridTooltipTrigger>
-                                <HybridTooltipContent className={'dark:border-slate-600'}>
-                                    <p>{`Add the exchanges ${resultInput?.coin ? ` ${resultInput.coin}` : ''} withdrawal fee to total price.`}</p>
-                                </HybridTooltipContent>
-                            </HybridTooltip>
-                        </div>
-                    </div>
-                </div>
-                <PriceLookupTable
-                    bestAvgPrice={bestAvgPrice}
-                    coin={resultInput?.coin || ''}
-                    hideFiltered={hideFiltered}
-                    includeWithdrawalFees={includeWithdrawalFees}
-                    isLoading={isLoading}
-                    loadingWithdrawalFees={loadingWithdrawalFees}
-                    priceQueryResult={priceQueryResult}
-                    quote={resultInput?.quote || quote}
-                    resultInput={resultInput}
-                    setHideFiltered={setHideFiltered}
-                    tableData={deferredTableData}
-                    withdrawalFees={finalWithdrawalFees}
-                />
+                        <PriceLookupTable
+                            bestAvgPrice={bestAvgPrice}
+                            coin={resultInput?.coin || ''}
+                            hideFiltered={hideFiltered}
+                            includeWithdrawalFees={includeWithdrawalFees}
+                            isLoading={isLoading}
+                            loadingWithdrawalFees={loadingWithdrawalFees}
+                            priceQueryResult={priceQueryResult}
+                            quote={resultInput?.quote || quote}
+                            resultInput={resultInput}
+                            setHideFiltered={setHideFiltered}
+                            tableData={deferredTableData}
+                            withdrawalFees={finalWithdrawalFees}
+                        />
+                    </>
+                )}
                 {priceQueryResult.best.length > 0 && (
                     <div
                         className={
