@@ -45,6 +45,22 @@ interface DigitalSurgeAssetResponse {
     results: DigitalSurgeAsset[]
 }
 
+interface KucoinCurrencyChain {
+    chainId?: string
+    chainName?: string
+    isWithdrawEnabled?: boolean
+    withdrawalMinFee?: string
+    withdrawMinFee?: string
+}
+
+interface KucoinCurrencyResponse {
+    code: string
+    data?: {
+        currency?: string
+        chains?: KucoinCurrencyChain[]
+    }
+}
+
 export async function GET(request: NextRequest) {
     try {
         const searchParams = request.nextUrl.searchParams
@@ -67,9 +83,10 @@ export async function GET(request: NextRequest) {
         } else if (exchange === 'binance') {
             fees = await getBinanceFee()
         } else if (exchange === 'kucoin') {
-            // TODO: Integrate KuCoin withdrawal fees via CCXT fetchCurrencies.
-            // TODO: Confirm whether authenticated or public endpoints should be used.
-            fees = {}
+            if (!currency) {
+                return NextResponse.json({ error: 'Currency parameter is required' }, { status: 400 })
+            }
+            fees = await getKucoinFee({ currency })
         } else if (exchange === 'luno') {
             if (!currency) {
                 return NextResponse.json({ error: 'Currency parameter is required' }, { status: 400 })
@@ -238,6 +255,48 @@ async function getBinanceFee(): Promise<Record<string, number>> {
     return fees
 }
 
+async function getKucoinFee({ currency }: { currency: string }): Promise<Record<string, number>> {
+    const normalizedCurrency = normalizeCoinSymbol(currency)
+    const response = await fetch(`https://api.kucoin.com/api/v3/currencies/${normalizedCurrency}`, {
+        next: { revalidate },
+    })
+
+    if (!response.ok) {
+        throw new Error(`KuCoin API error: ${response.status}`)
+    }
+
+    const data: KucoinCurrencyResponse = await response.json()
+    if (data.code !== '200000') {
+        throw new Error(`KuCoin API error: ${data.code}`)
+    }
+
+    const enabledChains = data.data?.chains?.filter((chain) => chain.isWithdrawEnabled !== false) ?? []
+    const preferredChain = getKucoinPreferredChain(enabledChains, normalizedCurrency)
+    const fee = preferredChain?.withdrawalMinFee ?? preferredChain?.withdrawMinFee
+
+    if (fee === undefined) {
+        return {}
+    }
+
+    const parsedFee = Number(fee)
+    if (!Number.isFinite(parsedFee)) {
+        return {}
+    }
+
+    return { [normalizedCurrency]: parsedFee }
+}
+
+function getKucoinPreferredChain(chains: KucoinCurrencyChain[], currency: string): KucoinCurrencyChain | undefined {
+    const normalizedCurrency = currency.toLowerCase()
+    const nativeChain = chains.find((chain) => {
+        const chainName = chain.chainName?.toLowerCase()
+        const chainId = chain.chainId?.toLowerCase()
+        return chainName === normalizedCurrency || chainId === normalizedCurrency
+    })
+
+    return nativeChain ?? chains[0]
+}
+
 // use binance as proxy for coinspot
 // async function getCoinspotFee(): Promise<Record<string, number>> {
 //     const exchange = new binance({
@@ -332,14 +391,13 @@ const exchangeFeeType = {
     independentreserve: 'dynamic',
     okx: 'dynamic',
     coinspot: 'dynamic',
+    kucoin: 'dynamic',
     luno: 'dynamic',
     digitalsurge: 'dynamic',
     coinstash: 'static',
     swyftx: 'static',
     bitaroo: 'static',
     hardblock: 'static',
-    // TODO: Set kucoin fee type once withdrawal fee integration is complete.
-    // kucoin: 'dynamic',
     // TODO: Update wayex fee type once API is integrated ('dynamic', 'static', or 'free')
     // wayex: 'dynamic',
     //pepperstonecrypto: 'dynamic',
