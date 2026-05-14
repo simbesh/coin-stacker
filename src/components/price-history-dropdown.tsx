@@ -24,7 +24,7 @@ export function PriceHistoryDropdown({ className, raiseHistory }: Props) {
         if (historyOpen) {
             posthog.capture('open-price-history', { 'history-count': history.length })
         }
-    }, [historyOpen, history.length])
+    }, [historyOpen])
 
     return (
         <Popover onOpenChange={setHistoryOpen} open={historyOpen}>

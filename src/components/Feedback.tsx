@@ -30,9 +30,11 @@ const Feedback = () => {
     useEffect(() => {
         if (!open) {
             // allow for dialog to close (animation) before resetting status
-            setTimeout(() => {
+            const timeoutId = setTimeout(() => {
                 setStatus(undefined)
             }, 1000)
+
+            return () => clearTimeout(timeoutId)
         }
     }, [open])
 

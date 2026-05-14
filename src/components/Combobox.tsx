@@ -19,6 +19,7 @@ interface Props {
 export function Combobox({ className, options, value, setValue, optionType = 'option' }: Props) {
     const [open, setOpen] = useState(false)
     const [searchValue, setSearchValue] = useState('')
+    const listId = `${optionType}-combobox-list`
     const isSmallDevice = useMediaQuery('only screen and (max-width : 768px)')
     const [temporaryValues, setTemporaryValues] = useLocalStorage<string[]>(`${optionType}-values`, [])
     const joinedOptions = useMemo(() => {
@@ -54,6 +55,7 @@ export function Combobox({ className, options, value, setValue, optionType = 'op
         <Popover onOpenChange={setOpen} open={open}>
             <PopoverTrigger asChild>
                 <Button
+                    aria-controls={listId}
                     aria-expanded={open}
                     aria-label={`Select ${optionType}`}
                     className={cn('w-[200px] justify-between', className)}
@@ -71,7 +73,7 @@ export function Combobox({ className, options, value, setValue, optionType = 'op
                         placeholder={`Search ${joinedOptions.length} ${optionType}s...`}
                         value={searchValue}
                     />
-                    <CommandList>
+                    <CommandList id={listId}>
                         {!hasManualOption && filteredOptions.length === 0 && (
                             <CommandEmpty>{`No ${optionType} found.`}</CommandEmpty>
                         )}
