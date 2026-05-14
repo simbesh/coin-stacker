@@ -30,6 +30,8 @@ const tradeUrl = (exchange: string, base: string, quote: string) => {
             return `https://www.kucoin.com/en-au/trade/${base}-${quote}`
         case 'luno':
             return `https://www.luno.com/trade/markets/${base}${quote}`
+        case 'coinbase':
+            return `https://www.coinbase.com/advanced-trade/spot/${base}-${quote}`
         case 'bitaroo':
             return 'https://trade.bitaroo.com.au/'
         case 'swyftx':

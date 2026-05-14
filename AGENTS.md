@@ -120,7 +120,7 @@ Follow these project-specific commands and conventions first.
 
 ## Security and Env
 - Env vars are validated via `src/env.mjs` (`@t3-oss/env-nextjs` + Zod).
-- Required server env currently includes `UMAMI_KEY` and `NODE_ENV`.
+- Required server env currently includes `NODE_ENV`.
 - Never hardcode secrets or commit private keys/tokens.
 - Be careful with outbound links (`rel="noopener"` when using `target="_blank"`).
 

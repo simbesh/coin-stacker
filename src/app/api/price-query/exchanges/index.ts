@@ -2,6 +2,7 @@ import type { ExchangeHandler } from '../types'
 import { getBinanceOrderBook } from './binance'
 import { getBitarooOrderBook } from './bitaroo'
 import { getBTCMarketsOrderBook } from './btcmarkets'
+import { getCoinbaseOrderBook } from './coinbase'
 import { getCoinJarOrderBook } from './coinjar'
 import { getCoinSpotOrderBook } from './coinspot'
 import { getCoinstashMockOrderBook } from './coinstash'
@@ -24,6 +25,7 @@ export const orderbookMethods: Record<string, ExchangeHandler> = {
     kraken: getKrakenOrderBook,
     kucoin: getKucoinOrderBook,
     luno: getLunoOrderBook,
+    coinbase: getCoinbaseOrderBook,
     coinspot: getCoinSpotOrderBook,
     coinjar: getCoinJarOrderBook,
     bitaroo: getBitarooOrderBook,
@@ -44,6 +46,7 @@ export const supportedExchanges = [
     'kraken',
     'kucoin',
     'luno',
+    'coinbase',
     'coinspot',
     'coinjar',
     'bitaroo',

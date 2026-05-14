@@ -101,6 +101,18 @@ const ln = [
     [11_200_000, 0.03],
 ]
 
+const cb = [
+    [0, 0.6],
+    [10_000, 0.4],
+    [50_000, 0.25],
+    [100_000, 0.2],
+    [1_000_000, 0.18],
+    [15_000_000, 0.16],
+    [75_000_000, 0.1],
+    [250_000_000, 0.06],
+    [400_000_000, 0.04],
+]
+
 const br = [
     [0, 0.19],
     [10_000, 0.15],
@@ -168,6 +180,7 @@ fillDataPoints(dataMap, cj, 'CoinJar')
 fillDataPoints(dataMap, cs, 'CoinSpot')
 fillDataPoints(dataMap, kr, 'Kraken')
 fillDataPoints(dataMap, ln, 'Luno')
+fillDataPoints(dataMap, cb, 'Coinbase')
 fillDataPoints(dataMap, br, 'Bitaroo')
 fillDataPoints(dataMap, sx, 'Swyftx')
 fillDataPoints(dataMap, cstash, 'Coinstash')
@@ -207,6 +220,13 @@ const allLabels = [
         gradientKey: 'coinspot-gradient',
         gradientStop: '65%',
         strokeDasharray: '30 15',
+    },
+    {
+        exchange: 'coinbase',
+        key: 'Coinbase',
+        colour: '#0052ff',
+        gradientKey: 'coinbase-gradient',
+        gradientStop: '35%',
     },
     {
         exchange: 'luno',
