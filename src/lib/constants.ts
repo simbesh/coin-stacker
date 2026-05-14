@@ -68,6 +68,8 @@ const affiliateUrl = (exchange: string, base: string, quote: string) => {
             return 'https://kraken.pxf.io/XmY53M'
         case 'luno':
             return 'https://www.luno.com/invite/EUBQ4W'
+        case 'coinbase':
+            return 'https://coinbase-consumer.sjv.io/bkVzj9'
         case 'bitaroo':
             return 'https://trade.bitaroo.com.au/'
         case 'swyftx':
