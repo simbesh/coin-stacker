@@ -10,6 +10,7 @@ import { Credenza, CredenzaBody, CredenzaContent, CredenzaTrigger } from '@/comp
 import ExchangeIcon from '@/components/ExchangeIcon'
 import ExchangeType from '@/components/ExchangeType'
 import { Button } from '@/components/ui/button'
+import { HybridTooltip, HybridTooltipContent, HybridTooltipTrigger } from '@/components/ui/hybrid-tooltip'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
@@ -69,6 +70,8 @@ export function FeeParams() {
                             <div className="grid gap-1">
                                 {exchangeFeeEntries.map(([exchange, fee]) => {
                                     const isEnabled = enabledExchanges[exchange] ?? true
+                                    const defaultFee = defaultExchangeFees[exchange] ?? 0
+                                    const isCustomFee = fee !== defaultFee
 
                                     return (
                                         <div
@@ -96,23 +99,64 @@ export function FeeParams() {
                                                 </Label>
                                             </Button>
                                             <ExchangeType type={exchangeTypes[exchange]} />
-                                            <div className={'flex items-center'}>
-                                                <Input
-                                                    className="h-8"
-                                                    disabled={!isEnabled}
-                                                    id={`${exchange}-fee-input`}
-                                                    onChange={(e) =>
-                                                        setFees((prev) => ({
-                                                            ...prev,
-                                                            [exchange]: round(Number(e.target.value) / 100, 4),
-                                                        }))
-                                                    }
-                                                    pattern={'(^\\.*)+(^0*)+^\\d+(\\.\\d+)?'}
-                                                    type={'number'}
-                                                    value={round(fee * 100, 2)}
-                                                />
-                                                <Label className={'pointer-events-none -ml-10 px-3'}>%</Label>
-                                            </div>
+                                            {isCustomFee ? (
+                                                <HybridTooltip>
+                                                    <HybridTooltipTrigger asChild>
+                                                        <div className="grid gap-1">
+                                                            <div className="flex items-center">
+                                                                <Input
+                                                                    aria-describedby={`${exchange}-custom-fee-label`}
+                                                                    className="h-8 border-primary/70 bg-primary/10 text-primary shadow-[0_0_0_1px_hsl(var(--primary)/0.35)] focus-visible:ring-primary/50"
+                                                                    disabled={!isEnabled}
+                                                                    id={`${exchange}-fee-input`}
+                                                                    onChange={(e) =>
+                                                                        setFees((prev) => ({
+                                                                            ...prev,
+                                                                            [exchange]: round(
+                                                                                Number(e.target.value) / 100,
+                                                                                4,
+                                                                            ),
+                                                                        }))
+                                                                    }
+                                                                    pattern={'(^\\.*)+(^0*)+^\\d+(\\.\\d+)?'}
+                                                                    type={'number'}
+                                                                    value={round(fee * 100, 2)}
+                                                                />
+                                                                <Label className="pointer-events-none -ml-10 px-3">
+                                                                    %
+                                                                </Label>
+                                                            </div>
+                                                            <span
+                                                                className="px-1 font-medium text-primary text-xs leading-none"
+                                                                id={`${exchange}-custom-fee-label`}
+                                                            >
+                                                                Custom rate
+                                                            </span>
+                                                        </div>
+                                                    </HybridTooltipTrigger>
+                                                    <HybridTooltipContent className="border-primary/40 bg-primary px-2.5 py-1.5 font-medium text-primary-foreground shadow-lg shadow-primary/20">
+                                                        Default rate: {round(defaultFee * 100, 2)}%
+                                                    </HybridTooltipContent>
+                                                </HybridTooltip>
+                                            ) : (
+                                                <div className="flex items-center">
+                                                    <Input
+                                                        className="h-8"
+                                                        disabled={!isEnabled}
+                                                        id={`${exchange}-fee-input`}
+                                                        onChange={(e) =>
+                                                            setFees((prev) => ({
+                                                                ...prev,
+                                                                [exchange]: round(Number(e.target.value) / 100, 4),
+                                                            }))
+                                                        }
+                                                        pattern={'(^\\.*)+(^0*)+^\\d+(\\.\\d+)?'}
+                                                        type={'number'}
+                                                        value={round(fee * 100, 2)}
+                                                    />
+                                                    <Label className="pointer-events-none -ml-10 px-3">%</Label>
+                                                </div>
+                                            )}
                                         </div>
                                     )
                                 })}

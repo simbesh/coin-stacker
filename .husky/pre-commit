@@ -4,14 +4,17 @@ set -e
 
 # Run bun test and allow it to fail unless output contains "No tests found!"
 BUN_TEST_OUTPUT=$(bun test 2>&1) || {
-  echo "$BUN_TEST_OUTPUT" | grep -q "No tests found!" && {
-    echo "$BUN_TEST_OUTPUT"
-    echo "No tests found. Proceeding with commit."
-  } || {
-    echo "$BUN_TEST_OUTPUT"
-    echo "bun test failed."
-    exit 1
-  }
+  case "$BUN_TEST_OUTPUT" in
+    *"No tests found!"*|*"0 test files matching"*)
+      echo "$BUN_TEST_OUTPUT"
+      echo "No tests found. Proceeding with commit."
+      ;;
+    *)
+      echo "$BUN_TEST_OUTPUT"
+      echo "bun test failed."
+      exit 1
+      ;;
+  esac
 }
 
 # Check if there are any staged files
