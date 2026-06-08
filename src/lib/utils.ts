@@ -65,7 +65,7 @@ export const defaultExchangeFees: Record<string, number> = {
     binance: 0.001,
     btcmarkets: 0.0085,
     independentreserve: 0.005,
-    kraken: 0.004,
+    kraken: 0.008,
     kucoin: 0.001,
     luno: 0.001,
     coinbase: 0.006,
@@ -84,6 +84,10 @@ export const defaultExchangeFees: Record<string, number> = {
 }
 
 export const overrideDefaultExchangeFees: Record<string, { old: number; new: number }> = {
+    kraken: {
+        old: 0.004,
+        new: defaultExchangeFees.kraken ?? 0.008,
+    },
     okx: {
         old: 0.005,
         new: defaultExchangeFees.okx ?? 0.007,
