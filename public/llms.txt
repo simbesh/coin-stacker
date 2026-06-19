@@ -1,0 +1,30 @@
+# CoinStacker
+
+> CoinStacker is an Australian crypto price aggregator for comparing buy and sell prices across supported exchanges.
+
+Use query strings to run lookups. Do not click UI elements, type into controls, or rely on browser automation when a lookup can be represented in the URL.
+
+To query prices, request the home page with these query parameters:
+
+- `side`: `buy` or `sell`. Defaults to `buy`.
+- `amount`: Crypto amount to price, for example `1`, `0.5`, or `100`.
+- `coin`: Base asset symbol, for example `BTC`, `ETH`, `SOL`, or `USDT`.
+- `quote`: Quote currency symbol. Defaults to `AUD`.
+
+Examples:
+
+- `/?side=buy&amount=1&coin=BTC&quote=AUD`: Compare exchanges for buying 1 BTC with AUD.
+- `/?side=sell&amount=2.5&coin=ETH&quote=AUD`: Compare exchanges for selling 2.5 ETH for AUD.
+- `/?amount=10&coin=SOL`: Compare exchanges for buying 10 SOL with the default AUD quote.
+
+When all required query parameters are present, the app automatically fetches results on initial page load. If results are needed, prefer loading a complete query-string URL and reading the rendered table after it finishes loading.
+
+## Site
+
+- [Home](/): Price comparison UI. Use query parameters rather than interactive controls.
+- [Exchange fees](/exchange-fees): Fee tier chart for supported exchanges.
+- [Privacy](/privacy): Privacy policy.
+
+## API
+
+- [Price query API](/api/price-query): Internal API used by the UI. Prefer the home page query-string URL for agent workflows because it preserves the user-facing calculation and table rendering.
