@@ -87,6 +87,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                                             <Link
                                                 className="hover:text-slate-700 dark:hover:text-slate-300"
                                                 href="/privacy"
+                                                prefetch={false}
                                             >
                                                 Privacy
                                             </Link>

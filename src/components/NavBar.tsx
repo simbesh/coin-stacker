@@ -79,6 +79,7 @@ const NavBar = () => {
                                     onClick={() => {
                                         setSheetOpen(false)
                                     }}
+                                    prefetch={false}
                                 >
                                     {item.icon}
                                     {item.title}
@@ -88,7 +89,7 @@ const NavBar = () => {
                     </SheetContent>
                 </Sheet>
             </div>
-            <Link className={'ml-auto flex items-center gap-2 sm:ml-0'} href={'/'}>
+            <Link className={'ml-auto flex items-center gap-2 sm:ml-0'} href={'/'} prefetch={false}>
                 <Image alt={'coinstacker-logo'} height={24} src={'/coinstacker-logo.png'} width={40} />
                 <span className="self-center whitespace-nowrap font-semibold text-2xl dark:text-white">
                     CoinStacker
@@ -106,6 +107,7 @@ const NavBar = () => {
                             )}
                             href={item.href}
                             key={item.id}
+                            prefetch={false}
                         >
                             {item.title}
                         </Link>
