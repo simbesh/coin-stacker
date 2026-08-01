@@ -5,6 +5,8 @@ import { orderbookMethods, supportedExchanges } from './exchanges'
 import { DEFAULT_REMOTE_DISABLED_REASON, getRemoteDisabledExchanges } from './exchanges/remote-config'
 import type { ExchangeResult } from './types'
 
+export const maxDuration = 30
+
 const PRICE_QUERY_TIMEOUT_MS = 15_000
 
 interface PriceQueryRequestBody {
