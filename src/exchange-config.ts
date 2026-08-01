@@ -12,7 +12,6 @@ const EXCHANGE_URLS: Record<string, string> = {
     kraken: 'https://www.kraken.com',
     kucoin: 'https://www.kucoin.com',
     liquid: 'https://www.liquid.com',
-    luno: 'https://www.luno.com',
     swyftx: 'https://www.swyftx.com',
     coinstash: 'https://www.coinstash.com.au',
     cointree: 'https://www.cointree.com',
@@ -23,7 +22,7 @@ const EXCHANGE_URLS: Record<string, string> = {
     // elbaite: 'https://www.elbaite.com',
 }
 const ALT_EXCHANGE_URLS: Record<string, string> = {
-    coinjar: 'https://exchange.coinjar.com/assets/favicons/favicon.ico',
+    coinjar: '/i/coinjar-favicon.ico',
     swyftx: 'https://swyftx.com/favicon.ico',
 }
 
@@ -45,7 +44,6 @@ export const EXCHANGE_COLOUR: Record<string, string> = {
     kraken: '#5d45dc',
     kucoin: '#01bc8d',
     liquid: '#0055ff',
-    luno: '#0091ff',
     pepperstonecrypto: '#1b7fd6',
     wayex: '#00d4aa',
 }

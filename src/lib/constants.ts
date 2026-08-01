@@ -28,8 +28,6 @@ const tradeUrl = (exchange: string, base: string, quote: string) => {
             return `https://pro.kraken.com/app/trade/${base}-${quote}`
         case 'kucoin':
             return `https://www.kucoin.com/en-au/trade/${base}-${quote}`
-        case 'luno':
-            return `https://www.luno.com/trade/markets/${base}${quote}`
         case 'coinbase':
             return `https://www.coinbase.com/advanced-trade/spot/${base}-${quote}`
         case 'bitaroo':
@@ -66,8 +64,6 @@ const affiliateUrl = (exchange: string, base: string, quote: string) => {
             return 'https://www.kucoin.com/en-au/r/af/rELAT3L'
         case 'kraken':
             return 'https://kraken.pxf.io/XmY53M'
-        case 'luno':
-            return 'https://www.luno.com/invite/EUBQ4W'
         case 'coinbase':
             return 'https://coinbase-consumer.sjv.io/bkVzj9'
         case 'bitaroo':

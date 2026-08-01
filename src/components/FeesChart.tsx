@@ -90,17 +90,6 @@ const kr = [
     [250_000_000, 0.06],
     [500_000_000, 0.04],
 ]
-const ln = [
-    [0, 0.1],
-    [350_000, 0.09],
-    [700_000, 0.08],
-    [1_400_000, 0.07],
-    [2_800_000, 0.06],
-    [5_600_000, 0.05],
-    [8_400_000, 0.04],
-    [11_200_000, 0.03],
-]
-
 const cb = [
     [0, 0.6],
     [10_000, 0.4],
@@ -179,7 +168,6 @@ fillDataPoints(dataMap, btcm, 'BtcMarkets')
 fillDataPoints(dataMap, cj, 'CoinJar')
 fillDataPoints(dataMap, cs, 'CoinSpot')
 fillDataPoints(dataMap, kr, 'Kraken')
-fillDataPoints(dataMap, ln, 'Luno')
 fillDataPoints(dataMap, cb, 'Coinbase')
 fillDataPoints(dataMap, br, 'Bitaroo')
 fillDataPoints(dataMap, sx, 'Swyftx')
@@ -227,14 +215,6 @@ const allLabels = [
         colour: '#0052ff',
         gradientKey: 'coinbase-gradient',
         gradientStop: '35%',
-    },
-    {
-        exchange: 'luno',
-        key: 'Luno',
-        colour: '#2639f2',
-        gradientKey: 'luno-gradient',
-        gradientStop: '65%',
-        strokeDasharray: '15 30',
     },
     { exchange: 'bitaroo', key: 'Bitaroo', colour: '#f6740e', gradientKey: 'bitaroo-gradient', gradientStop: '65%' },
     { exchange: 'swyftx', key: 'Swyftx', colour: '#7b7b7b', gradientKey: 'swyftx-gradient', gradientStop: '35%' },

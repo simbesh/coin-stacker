@@ -12,7 +12,6 @@ import { getHardblockMockOrderBook } from './hardblock'
 import { getIndependentReserveOrderBook } from './independentreserve'
 import { getKrakenOrderBook } from './kraken'
 import { getKucoinOrderBook } from './kucoin'
-import { getLunoOrderBook } from './luno'
 import { getOkxOrderBook } from './okx'
 import { getPepperstoneCryptoOrderBook } from './pepperstonecrypto'
 import { getSwyftxMockOrderBook } from './swyftx'
@@ -24,7 +23,6 @@ export const orderbookMethods: Record<string, ExchangeHandler> = {
     independentreserve: getIndependentReserveOrderBook,
     kraken: getKrakenOrderBook,
     kucoin: getKucoinOrderBook,
-    luno: getLunoOrderBook,
     coinbase: getCoinbaseOrderBook,
     coinspot: getCoinSpotOrderBook,
     coinjar: getCoinJarOrderBook,
@@ -45,7 +43,6 @@ export const supportedExchanges = [
     'independentreserve',
     'kraken',
     'kucoin',
-    'luno',
     'coinbase',
     'coinspot',
     'coinjar',

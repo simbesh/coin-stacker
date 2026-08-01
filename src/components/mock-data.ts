@@ -124,15 +124,6 @@ export const mockData: MockPriceQueryResult = {
             feeRate: 0.0128,
         },
         {
-            exchange: 'luno',
-            netCost: 18_294.0,
-            grossPrice: 182_760.0,
-            netPrice: 182_778.0,
-            grossAveragePrice: 182_760.0,
-            fees: 18.0,
-            feeRate: 0.0325,
-        },
-        {
             exchange: 'okx',
             netCost: 17_794.0,
             grossPrice: 177_051.0,

@@ -1,4 +1,4 @@
-import { binance, luno, okx } from 'ccxt'
+import { binance, okx } from 'ccxt'
 import coinspotFees from 'data/coinspot-fees.json'
 import { type NextRequest, NextResponse } from 'next/server'
 import { coinstashWithdrawFees } from '@/lib/constants/coinstash-withdraw-fees'
@@ -87,11 +87,6 @@ export async function GET(request: NextRequest) {
                 return NextResponse.json({ error: 'Currency parameter is required' }, { status: 400 })
             }
             fees = await getKucoinFee({ currency })
-        } else if (exchange === 'luno') {
-            if (!currency) {
-                return NextResponse.json({ error: 'Currency parameter is required' }, { status: 400 })
-            }
-            fees = await getLunoFee({ currency })
         } else if (exchange === 'pepperstonecrypto') {
             // TODO: Integrate Pepperstone Crypto withdrawal fees from official API/docs.
             fees = {}
@@ -319,36 +314,6 @@ function getKucoinPreferredChain(chains: KucoinCurrencyChain[], currency: string
 //     return fees
 // }
 
-const dummyAddresses: Record<string, string> = {
-    ETH: '0x0000000000000000000000000000000000000000',
-    BTC: '3NqxbRaZyU9hv6wP7Wr5GPHyS5bhNZzFpw',
-    XRP: 'r47bGjPxUWEdGmh9XhES4f2FUuDWEhxfbJ|||124',
-    USDT: '0x0000000000000000000000000000000000000000',
-    USDC: '0x0000000000000000000000000000000000000000',
-    SOL: '5aB7nyNJTuQZdKnhZXQHNhT16tBNevCuLRp14btvANxu',
-    AVAX: '0x9206cf2AE2Be546392550aC6801Ac4a874B05C4c',
-    default: '0x0000000000000000000000000000000000000000',
-}
-
-// The only exception to this is XRP, which has a fixed 0.03% send fee.
-async function getLunoFee({ currency }: { currency: string }) {
-    const amount = 1
-    const address = dummyAddresses[currency] ?? dummyAddresses.default
-    const exchange = new luno({
-        apiKey: process.env.LUNO_KEY,
-        secret: process.env.LUNO_SECRET,
-    })
-    await exchange.loadMarkets()
-    const signed = exchange.sign('/api/1/send_fee', 'private', 'GET')
-    const response = await fetch(
-        `https://api.luno.com/api/1/send_fee?amount=${amount}&currency=${currency}&address=${address}`,
-        { headers: signed.headers },
-    )
-    const data = await response.json()
-
-    return { [currency]: Number(data.fee) }
-}
-
 async function getDigitalSurgeFee(): Promise<Record<string, number>> {
     const response = await fetch('https://digitalsurge.com.au/api/public/broker/assets/')
     const data: DigitalSurgeAssetResponse = await response.json()
@@ -392,7 +357,6 @@ const exchangeFeeType = {
     okx: 'dynamic',
     coinspot: 'dynamic',
     kucoin: 'dynamic',
-    luno: 'dynamic',
     digitalsurge: 'dynamic',
     coinstash: 'static',
     swyftx: 'static',

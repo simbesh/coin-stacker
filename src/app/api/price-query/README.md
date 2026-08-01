@@ -17,7 +17,6 @@ src/app/api/price-query/
 │   ├── independentreserve.ts
 │   ├── kraken.ts
 │   ├── kucoin.ts
-│   ├── luno.ts
 │   ├── okx.ts
 │   ├── coinspot.ts         # CoinSpot exchange
 │   ├── coinjar.ts
@@ -44,7 +43,6 @@ These exchanges use the CCXT library and share common logic:
 - `independentreserve.ts`
 - `kraken.ts`
 - `kucoin.ts`
-- `luno.ts`
 - `okx.ts`
 
 All use the shared `ccxt-helper.ts` for common order book fetching logic.

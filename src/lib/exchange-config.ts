@@ -5,7 +5,6 @@ export const exchanges = [
     'CoinJar',
     'CoinSpot',
     'Kraken',
-    'Luno',
     'Bitaroo',
     'Swyftx',
 ]
@@ -30,9 +29,6 @@ export const exchangeConfig: Record<string, Record<string, string[]>> = {
     },
     Kraken: {
         markets: ['BTC/AUD', 'ETH/AUD', 'XRP/AUD', 'LTC/AUD'],
-    },
-    Luno: {
-        markets: ['BTC/AUD', 'ETH/AUD', 'SOL/AUD', 'ADA/AUD'],
     },
     Bitaroo: {
         markets: ['BTC/AUD'],
