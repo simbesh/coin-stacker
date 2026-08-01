@@ -5,7 +5,7 @@ import { HugeiconsIcon } from '@hugeicons/react'
 import { useLocalStorage } from '@uidotdev/usehooks'
 import { differenceInDays } from 'date-fns'
 import { cloneDeep, round } from 'lodash'
-import { CornerLeftUp, HelpCircle, Search, X } from 'lucide-react'
+import { CircleAlert, CornerLeftUp, HelpCircle, Search, X } from 'lucide-react'
 import { useQueryState } from 'nuqs'
 import posthog from 'posthog-js'
 import React, { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
@@ -211,6 +211,7 @@ const PriceLookup = () => {
     const [localCoin, setLocalCoin] = useState(coin)
     const [quote, setQuote] = useQueryState('quote', { defaultValue: 'AUD' })
     const [isLoading, setIsLoading] = useState(false)
+    const [priceQueryError, setPriceQueryError] = useState<string>()
     const [priceQueryResult, setPriceQueryResult] = useState<{
         best: PriceQueryResult[]
         errors: { name: string; error: { name?: string } }[]
@@ -227,6 +228,15 @@ const PriceLookup = () => {
     const deferredTableData = useDeferredValue(tableData)
 
     const [tryUpdateFees, setTryUpdateFees] = useState(false)
+
+    useEffect(() => {
+        if (!priceQueryError) {
+            return
+        }
+
+        const timeout = setTimeout(() => setPriceQueryError(undefined), 5000)
+        return () => clearTimeout(timeout)
+    }, [priceQueryError])
     const [withdrawalFees, setWithdrawalFees] = useState<Record<string, WithdrawalFees>>({})
     const summaryTabRef = useRef<HTMLDivElement>(null)
     const lastAutoFetchKeyRef = useRef<string | null>(null)
@@ -519,6 +529,7 @@ const PriceLookup = () => {
             return nextHistory.slice(0, 6)
         })
         setIsLoading(true)
+        setPriceQueryError(undefined)
         try {
             if (DEBUG) {
                 setPriceQueryResult(mockData)
@@ -544,22 +555,27 @@ const PriceLookup = () => {
                         ),
                     }),
                 })
+                if (!prices.ok) {
+                    throw new Error(`Price query failed with status ${prices.status}`)
+                }
                 const priceResult = await prices.json()
                 setPriceQueryResult(priceResult)
                 setResultInput({ side, amount, coin, quote })
             }
+            // Scroll to the SummaryTab
+            setTimeout(() => {
+                if (summaryTabRef.current) {
+                    const rect = summaryTabRef.current.getBoundingClientRect()
+                    const offsetTop = window.pageYOffset + rect.top - 80
+                    window.scrollTo({ top: offsetTop, left: 0, behavior: 'smooth' })
+                }
+            }, 300)
         } catch (_error) {
+            setPriceQueryError('Unable to get prices. Please try again.')
             return
+        } finally {
+            setIsLoading(false)
         }
-        // Scroll to the SummaryTab
-        setTimeout(() => {
-            if (summaryTabRef.current) {
-                const rect = summaryTabRef.current.getBoundingClientRect()
-                const offsetTop = window.pageYOffset + rect.top - 80
-                window.scrollTo({ top: offsetTop, left: 0, behavior: 'smooth' })
-            }
-        }, 300)
-        setIsLoading(false)
     }
 
     function handleHistoryClick(data: PriceQueryParams) {
@@ -856,6 +872,24 @@ const PriceLookup = () => {
                         >
                             or buy us a coffee! ☕
                         </a>
+                    </div>
+                )}
+                {priceQueryError && (
+                    <div
+                        aria-live="assertive"
+                        className="fixed right-4 bottom-4 z-50 flex max-w-sm items-center gap-3 rounded-lg border border-red-500/40 bg-red-950 px-4 py-3 text-red-50 shadow-xl"
+                        role="alert"
+                    >
+                        <CircleAlert aria-hidden="true" className="size-5 shrink-0 text-red-400" />
+                        <span className="font-medium text-sm">{priceQueryError}</span>
+                        <button
+                            aria-label="Dismiss error"
+                            className="ml-2 rounded p-1 text-red-200 hover:bg-red-900 hover:text-white"
+                            onClick={() => setPriceQueryError(undefined)}
+                            type="button"
+                        >
+                            <X aria-hidden="true" className="size-4" />
+                        </button>
                     </div>
                 )}
             </div>
