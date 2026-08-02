@@ -19,9 +19,11 @@ import Spinner from '@/components/Spinner'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { TextShimmer } from '@/components/ui/text-shimmer'
 import { getExchangeLogo } from '@/exchange-config'
 import { LocalStorageKeys, markets } from '@/lib/constants'
 import { useEnabledExchanges } from '@/lib/enabled-exchanges'
+import { readPriceQueryStream } from '@/lib/read-ndjson-stream'
 import {
     cn,
     currencyFormat,
@@ -32,6 +34,7 @@ import {
     OLD_KRAKEN_TAKER_FEE,
     overrideDefaultExchangeFees,
 } from '@/lib/utils'
+import type { PriceQueryBest, PriceQueryError, PriceQueryStreamEvent } from '@/types/price-query'
 import type { PriceQueryParams } from '@/types/types'
 import HowDialog from './HowDialog'
 import { LabeledSwitch } from './LabeledSwitch'
@@ -48,15 +51,7 @@ export interface WithdrawalFees {
     feeType?: 'dynamic' | 'static' | 'unavailable'
 }
 
-interface PriceQueryResult {
-    exchange: string
-    feeRate: number
-    fees: number
-    grossAveragePrice: number
-    grossPrice: number
-    netCost: number
-    netPrice: number
-}
+type PriceQueryResult = PriceQueryBest
 
 function calculateTotalWithWithdrawalFees(
     best: PriceQueryResult,
@@ -214,8 +209,9 @@ const PriceLookup = () => {
     const [priceQueryError, setPriceQueryError] = useState<string>()
     const [priceQueryResult, setPriceQueryResult] = useState<{
         best: PriceQueryResult[]
-        errors: { name: string; error: { name?: string } }[]
+        errors: PriceQueryError[]
     }>({ best: [], errors: [] })
+    const [priceQueryProgress, setPriceQueryProgress] = useState<{ completed: number; total: number }>()
     const [resultInput, setResultInput] = useState<PriceQueryParams | undefined>(DEBUG ? mockQuery : undefined)
     const [, setHistory] = useLocalStorage<PriceQueryParams[]>(LocalStorageKeys.PriceQueryHistory, [])
     const [fees, setFees] = useLocalStorage<Record<string, number>>(LocalStorageKeys.ExchangeFees, defaultExchangeFees)
@@ -238,9 +234,10 @@ const PriceLookup = () => {
         return () => clearTimeout(timeout)
     }, [priceQueryError])
     const [withdrawalFees, setWithdrawalFees] = useState<Record<string, WithdrawalFees>>({})
-    const summaryTabRef = useRef<HTMLDivElement>(null)
+    const queryBoxRef = useRef<HTMLDivElement>(null)
     const lastAutoFetchKeyRef = useRef<string | null>(null)
     const initialAutoFetchCheckedRef = useRef(false)
+    const activePriceQueryRef = useRef<AbortController | undefined>(undefined)
     const [loadingWithdrawalFees, setLoadingWithdrawalFees] = useState<Record<string, boolean>>({})
     const fetchedWithdrawalFeesRef = useRef<Set<string>>(new Set())
     const [finalWithdrawalFees, setFinalWithdrawalFees] = useState<Record<string, WithdrawalFees>>({})
@@ -346,6 +343,13 @@ const PriceLookup = () => {
             window.removeEventListener('keypress', handleKeyPress)
         }
     }, [handleKeyPress])
+
+    useEffect(
+        () => () => {
+            activePriceQueryRef.current?.abort()
+        },
+        [],
+    )
 
     useEffect(() => {
         setLocalAmount(amount)
@@ -530,6 +534,19 @@ const PriceLookup = () => {
         })
         setIsLoading(true)
         setPriceQueryError(undefined)
+        requestAnimationFrame(() => {
+            const queryBoxRect = queryBoxRef.current?.getBoundingClientRect()
+            if (queryBoxRect) {
+                window.scrollTo({
+                    top: window.scrollY + queryBoxRect.top - 80,
+                    left: 0,
+                    behavior: 'auto',
+                })
+            }
+        })
+        activePriceQueryRef.current?.abort()
+        const abortController = new AbortController()
+        activePriceQueryRef.current = abortController
         try {
             if (DEBUG) {
                 setPriceQueryResult(mockData)
@@ -537,6 +554,7 @@ const PriceLookup = () => {
                 const prices = await fetch('api/price-query', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    signal: abortController.signal,
                     body: JSON.stringify({
                         fees,
                         base: coin,
@@ -558,23 +576,47 @@ const PriceLookup = () => {
                 if (!prices.ok) {
                     throw new Error(`Price query failed with status ${prices.status}`)
                 }
-                const priceResult = await prices.json()
-                setPriceQueryResult(priceResult)
-                setResultInput({ side, amount, coin, quote })
-            }
-            // Scroll to the SummaryTab
-            setTimeout(() => {
-                if (summaryTabRef.current) {
-                    const rect = summaryTabRef.current.getBoundingClientRect()
-                    const offsetTop = window.pageYOffset + rect.top - 80
-                    window.scrollTo({ top: offsetTop, left: 0, behavior: 'smooth' })
+                if (!prices.body) {
+                    throw new Error('Price query response did not contain a stream')
                 }
-            }, 300)
-        } catch (_error) {
-            setPriceQueryError('Unable to get prices. Please try again.')
+
+                let hasSnapshot = false
+                const handleEvent = (event: PriceQueryStreamEvent): void => {
+                    if (event.type === 'start') {
+                        setPriceQueryResult({ best: [], errors: [] })
+                        setResultInput({ side, amount, coin, quote })
+                        setPriceQueryProgress({ completed: 0, total: event.total })
+                        return
+                    }
+
+                    setPriceQueryResult({ best: event.best, errors: event.errors })
+                    setPriceQueryProgress({ completed: event.completed, total: event.total })
+                    if (event.type === 'snapshot') {
+                        hasSnapshot = true
+                    } else {
+                        setIsLoading(false)
+                    }
+                }
+
+                try {
+                    await readPriceQueryStream(prices.body, handleEvent)
+                } catch (error) {
+                    if (hasSnapshot) {
+                        setPriceQueryError('Some exchanges did not finish. Showing partial results.')
+                    }
+                    throw error
+                }
+            }
+        } catch (error) {
+            if (!(error instanceof DOMException && error.name === 'AbortError')) {
+                setPriceQueryError((current) => current ?? 'Unable to get prices. Please try again.')
+            }
             return
         } finally {
-            setIsLoading(false)
+            if (activePriceQueryRef.current === abortController) {
+                activePriceQueryRef.current = undefined
+                setIsLoading(false)
+            }
         }
     }
 
@@ -690,6 +732,7 @@ const PriceLookup = () => {
                     className={
                         'relative my-4 flex w-full max-w-2xl select-none flex-col items-center justify-center gap-4 border py-8 pb-4 font-bold text-lg sm:mt-4'
                     }
+                    ref={queryBoxRef}
                 >
                     <PriceHistoryDropdown
                         className={'absolute top-2 left-2 bg-transparent'}
@@ -791,28 +834,30 @@ const PriceLookup = () => {
                             </span>
                         </Button>
                     </div>
-                    <span className={'font-medium text-slate-600 text-xs'}>{enabledExchangesText}</span>
+                    {isLoading ? (
+                        <TextShimmer className="text-xs" duration={1}>
+                            {priceQueryProgress
+                                ? `Checking exchanges… ${priceQueryProgress.completed} of ${priceQueryProgress.total}`
+                                : 'Checking exchanges…'}
+                        </TextShimmer>
+                    ) : (
+                        <span className={'font-medium text-slate-600 text-xs'}>{enabledExchangesText}</span>
+                    )}
                 </Card>
                 {showPriceLookupTable && (
-                    <>
+                    <div className={cn('flex w-full flex-col items-center', isLoading && 'min-h-dvh')}>
                         <div className="relative w-full max-w-4xl">
                             {resultsReady && (
                                 <div className="left-0 mx-auto mb-8 flex w-fit items-center gap-2 sm:absolute sm:-bottom-2 sm:mb-0">
                                     <HowDialog />
                                 </div>
                             )}
-                            <div
-                                className={cn(
-                                    'mt-4 flex h-6 w-full items-center justify-start font-bold text-sm sm:justify-center',
-                                    isLoading && 'opacity-30',
-                                )}
-                            >
+                            <div className="mt-4 flex h-6 w-full items-center justify-start font-bold text-sm sm:justify-center">
                                 {resultsReady && (
                                     <SummaryTab
                                         amount={resultInput.amount || ''}
                                         coin={resultInput.coin || ''}
                                         quote={resultInput.quote || ''}
-                                        ref={summaryTabRef}
                                         side={resultInput.side}
                                     />
                                 )}
@@ -849,7 +894,7 @@ const PriceLookup = () => {
                             tableData={deferredTableData}
                             withdrawalFees={finalWithdrawalFees}
                         />
-                    </>
+                    </div>
                 )}
                 {priceQueryResult.best.length > 0 && (
                     <div

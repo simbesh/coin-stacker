@@ -12,6 +12,7 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
 import { TextShimmer } from '@/components/ui/text-shimmer'
 import { getAfiliateOrTradeUrl } from '@/lib/constants'
 import { cn, currencyFormat, exchangeTypes, formatExchangeName, getExchangeUrl } from '@/lib/utils'
+import type { PriceQueryBest, PriceQueryError } from '@/types/price-query'
 import Coin from './CoinIcon'
 import ExchangeIcon from './ExchangeIcon'
 import FeeType, { type FeeTypeProps } from './FeeType'
@@ -19,15 +20,7 @@ import type { WithdrawalFees } from './PriceLookup'
 import Spinner from './Spinner'
 import { InformationIcon } from './ui/information-icon'
 
-interface PriceQueryResult {
-    exchange: string
-    feeRate: number
-    fees: number
-    grossAveragePrice: number
-    grossPrice: number
-    netCost: number
-    netPrice: number
-}
+type PriceQueryResult = PriceQueryBest
 
 interface PriceQueryParams {
     amount: string
@@ -201,7 +194,7 @@ interface PriceLookupTableProps {
     loadingWithdrawalFees: Record<string, boolean>
     priceQueryResult: {
         best: PriceQueryResult[]
-        errors: { name: string; error: { name?: string } }[]
+        errors: PriceQueryError[]
     }
     quote: string
     resultInput?: PriceQueryParams
@@ -235,29 +228,9 @@ const PriceLookupTable: React.FC<PriceLookupTableProps> = memo(
 
         return (
             <Card className={'relative mb-0! w-full max-w-4xl rounded-tl-none sm:rounded-tl-lg'}>
-                {isLoading && priceQueryResult.best.length > 0 && (
-                    <div className="absolute inset-0 z-50">
-                        <div className="flex size-full items-center justify-center">
-                            <div className={'rounded-md border border-accent bg-slate-50 p-5 dark:bg-slate-950'}>
-                                <Spinner className={'size-10 opacity-100'} />
-                            </div>
-                        </div>
-                    </div>
-                )}
-
                 <Table>
-                    {priceQueryResult.best.length === 0 && (
-                        <TableCaption className={'mb-4'}>
-                            <div>
-                                {isLoading ? (
-                                    <TextShimmer className="text-sm" duration={1}>
-                                        Getting prices...
-                                    </TextShimmer>
-                                ) : (
-                                    'No Data'
-                                )}
-                            </div>
-                        </TableCaption>
+                    {!isLoading && priceQueryResult.best.length === 0 && (
+                        <TableCaption className="mb-4">No Data</TableCaption>
                     )}
                     <TableHeader>
                         <TableRow className={'hover:bg-muted/0'}>
@@ -298,11 +271,10 @@ const PriceLookupTable: React.FC<PriceLookupTableProps> = memo(
                             ))}
                         </TableRow>
                     </TableHeader>
-                    <TableBody className={cn('font-semibold', isLoading && 'opacity-30')}>
+                    <TableBody className="font-semibold">
                         {tableData.map((row, i) => (
                             <TableRow
                                 className={cn('h-full border-2', {
-                                    'border-green-500/30 bg-green-50/30 dark:bg-green-950/30': i === 0 && isLoading,
                                     'border-green-400 bg-linear-to-t from-white to-green-100/30 dark:border-green-900 dark:bg-linear-to-t dark:from-background dark:to-green-900/40':
                                         i === 0 && !isLoading,
                                     'opacity-50': row.filteredReason,
@@ -314,14 +286,12 @@ const PriceLookupTable: React.FC<PriceLookupTableProps> = memo(
                                     className={cn(
                                         'relative mr-0 ml-0 flex items-center justify-start p-0 py-1 text-center sm:p-0',
                                         isStickyEnabled && 'sticky left-0 z-10',
-                                        i === 0 && firstRowCellStyle,
+                                        i === 0 && !isLoading && firstRowCellStyle,
                                     )}
                                 >
                                     <div className="absolute inset-0 -z-10 bg-background/70" />
                                     <div
                                         className={cn('absolute inset-0 -z-0', {
-                                            'border-green-500/30 bg-green-50/30 dark:bg-green-950/30':
-                                                i === 0 && isLoading,
                                             'border-green-400 bg-linear-to-t from-white to-green-100/30 dark:border-green-900 dark:bg-linear-to-t dark:from-background dark:to-green-900/40':
                                                 i === 0 && !isLoading,
                                         })}
@@ -362,12 +332,14 @@ const PriceLookupTable: React.FC<PriceLookupTableProps> = memo(
                                         </div>
                                     )}
                                 </TableCell>
-                                <TableCell className={cn('px-0 text-right', i === 0 ? cn(firstRowCellStyle, '') : '')}>
+                                <TableCell
+                                    className={cn('px-0 text-right', i === 0 && !isLoading && firstRowCellStyle)}
+                                >
                                     <ExchangeType type={exchangeTypes[row.exchange]} />
                                 </TableCell>
-                                <TableCell className={cn('text-right', i === 0 ? cn(firstRowCellStyle, '') : '')}>
+                                <TableCell className={cn('text-right', i === 0 && !isLoading && firstRowCellStyle)}>
                                     <div className="flex justify-end gap-2 font-bold font-mono antialiased">
-                                        {i === 0 && (
+                                        {i === 0 && !isLoading && (
                                             <div
                                                 className={
                                                     'ml-auto hidden items-center justify-center rounded-full bg-green-100 px-2 py-0.5 font-sans text-green-600 text-xs leading-none sm:inline-flex dark:bg-green-900 dark:text-green-400'
@@ -382,7 +354,7 @@ const PriceLookupTable: React.FC<PriceLookupTableProps> = memo(
                                                     withdrawalFees[row.exchange]?.feeType === undefined && (
                                                         <InformationIcon icon={TriangleAlert} variant="destructive" />
                                                     )}
-                                                {i === 0 ? (
+                                                {i === 0 && !isLoading ? (
                                                     <TextShimmer
                                                         className="[--base-color:var(--color-green-700)] [--base-gradient-color:var(--color-green-400)] dark:[--base-color:var(--color-green-500)] dark:[--base-gradient-color:var(--color-green-300)]"
                                                         duration={1.2}
@@ -484,7 +456,7 @@ const PriceLookupTable: React.FC<PriceLookupTableProps> = memo(
                                                         <div className="flex justify-between gap-4 border-t pt-1 font-semibold">
                                                             <span>Total:</span>
                                                             <span className="font-mono">
-                                                                {i === 0 ? (
+                                                                {i === 0 && !isLoading ? (
                                                                     <TextShimmer
                                                                         className="[--base-color:var(--color-green-700)] [--base-gradient-color:var(--color-green-400)] dark:[--base-color:var(--color-green-500)] dark:[--base-gradient-color:var(--color-green-300)]"
                                                                         duration={1.2}
@@ -508,7 +480,7 @@ const PriceLookupTable: React.FC<PriceLookupTableProps> = memo(
                                 <TableCell
                                     className={cn(
                                         'text-right font-bold font-mono antialiased',
-                                        bestAvgPrice === row.grossAveragePrice ? 'text-green-500' : '',
+                                        !isLoading && bestAvgPrice === row.grossAveragePrice ? 'text-green-500' : '',
                                     )}
                                 >
                                     {currencyFormat(row.grossAveragePrice, 'AUD', row.grossAveragePrice < 5 ? 4 : 2)}
@@ -642,7 +614,7 @@ const PriceLookupTable: React.FC<PriceLookupTableProps> = memo(
                                         className={'pl-4 text-left text-red-600 md:pl-8 lg:pl-16 dark:text-red-400'}
                                         colSpan={5}
                                     >
-                                        {error.name ?? error.toString()}
+                                        {error.message ?? error.name ?? 'Unknown error'}
                                     </TableCell>
                                 </TableRow>
                             ))}
