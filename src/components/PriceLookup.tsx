@@ -347,6 +347,8 @@ const PriceLookup = () => {
     useEffect(
         () => () => {
             activePriceQueryRef.current?.abort()
+            initialAutoFetchCheckedRef.current = false
+            lastAutoFetchKeyRef.current = null
         },
         [],
     )
