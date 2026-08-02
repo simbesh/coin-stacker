@@ -22,8 +22,13 @@ const EXCHANGE_URLS: Record<string, string> = {
     // elbaite: 'https://www.elbaite.com',
 }
 const ALT_EXCHANGE_URLS: Record<string, string> = {
+    btcmarkets: 'https://assets.btcmarkets.net/images/favicon.ico',
     coinjar: '/i/coinjar-favicon.ico',
     swyftx: 'https://swyftx.com/favicon.ico',
+}
+
+export const EXCHANGE_LOGO_BACKGROUNDS: Record<string, string> = {
+    btcmarkets: '#01271c',
 }
 
 export function getExchangeLogo(name: string) {
