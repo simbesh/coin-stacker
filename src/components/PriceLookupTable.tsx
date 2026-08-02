@@ -1,6 +1,7 @@
 import { useMediaQuery } from '@uidotdev/usehooks'
 import { round } from 'lodash'
 import { AlertTriangle, ChevronDown, ChevronUp, ExternalLink, Pin, TriangleAlert } from 'lucide-react'
+import { motion, useReducedMotion } from 'motion/react'
 import posthog from 'posthog-js'
 import type React from 'react'
 import { memo, useMemo, useState } from 'react'
@@ -75,6 +76,8 @@ const headers = [
 
 const firstRowCellStyle = 'text-green-600 dark:text-green-500'
 const PRICE_DIFFERENCE_REGEX = /([+-]?)\$?([\d,]+\.?\d*)/
+const ESTIMATED_ROW_HEIGHT = 72
+const MotionTableRow = motion.create(TableRow)
 
 // Function to get color gradient based on dollar difference
 const getChangeColor = (dif: string | undefined, tableData: TableRowData[]): string => {
@@ -219,7 +222,10 @@ const PriceLookupTable: React.FC<PriceLookupTableProps> = memo(
         includeWithdrawalFees,
     }) => {
         const isDesktop = useMediaQuery('(min-width: 768px)')
+        const supportsStickyExchangeColumn = useMediaQuery('(max-width: 820px)')
+        const prefersReducedMotion = useReducedMotion()
         const [isStickyEnabled, setIsStickyEnabled] = useState(true)
+        const isExchangeColumnSticky = supportsStickyExchangeColumn && isStickyEnabled
 
         // Memoize color calculations to prevent unnecessary recalculations
         const memoizedColors = useMemo(() => {
@@ -240,14 +246,14 @@ const PriceLookupTable: React.FC<PriceLookupTableProps> = memo(
                                         header.className,
                                         header.id === 'withdrawalFee' && !includeWithdrawalFees && 'opacity-50',
                                         index === 0 &&
-                                            isStickyEnabled &&
-                                            'sticky left-0 z-10 overflow-hidden bg-background/70 sm:rounded-tl-lg',
+                                            isExchangeColumnSticky &&
+                                            'sticky left-0 z-10 overflow-hidden bg-background sm:rounded-tl-lg',
                                     )}
                                     key={header.id}
                                 >
                                     <div className="flex items-center justify-between gap-2">
                                         <span>{header.title}</span>
-                                        {index === 0 && (
+                                        {index === 0 && supportsStickyExchangeColumn && (
                                             <Button
                                                 className="h-6 w-6 p-0 hover:bg-muted"
                                                 onClick={() => setIsStickyEnabled(!isStickyEnabled)}
@@ -273,29 +279,49 @@ const PriceLookupTable: React.FC<PriceLookupTableProps> = memo(
                     </TableHeader>
                     <TableBody className="font-semibold">
                         {tableData.map((row, i) => (
-                            <TableRow
+                            <MotionTableRow
+                                animate={{ opacity: 1, y: 0 }}
                                 className={cn('h-full border-2', {
                                     'border-green-400 bg-linear-to-t from-white to-green-100/30 dark:border-green-900 dark:bg-linear-to-t dark:from-background dark:to-green-900/40':
                                         i === 0 && !isLoading,
                                     'opacity-50': row.filteredReason,
                                     hidden: hideFiltered && row.filteredReason,
                                 })}
-                                key={`${row.exchange}_${row.netPrice}_${row.grossAveragePrice}`}
+                                initial={
+                                    prefersReducedMotion
+                                        ? false
+                                        : { opacity: 0, y: (tableData.length - i - 1) * ESTIMATED_ROW_HEIGHT }
+                                }
+                                key={row.exchange}
+                                layout="position"
+                                transition={
+                                    prefersReducedMotion
+                                        ? { duration: 0 }
+                                        : {
+                                              layout: { type: 'spring', stiffness: 105, damping: 19 },
+                                              opacity: { duration: 0.18 },
+                                              y: { type: 'spring', stiffness: 105, damping: 19 },
+                                          }
+                                }
                             >
                                 <TableCell
                                     className={cn(
                                         'relative mr-0 ml-0 flex items-center justify-start p-0 py-1 text-center sm:p-0',
-                                        isStickyEnabled && 'sticky left-0 z-10',
+                                        isExchangeColumnSticky && 'sticky left-0 z-10',
                                         i === 0 && !isLoading && firstRowCellStyle,
                                     )}
                                 >
-                                    <div className="absolute inset-0 -z-10 bg-background/70" />
-                                    <div
-                                        className={cn('absolute inset-0 -z-0', {
-                                            'border-green-400 bg-linear-to-t from-white to-green-100/30 dark:border-green-900 dark:bg-linear-to-t dark:from-background dark:to-green-900/40':
-                                                i === 0 && !isLoading,
-                                        })}
-                                    />
+                                    {isExchangeColumnSticky && (
+                                        <>
+                                            <div className="absolute inset-0 -z-10 bg-background" />
+                                            <div
+                                                className={cn('absolute inset-0 -z-0', {
+                                                    'border-green-400 bg-linear-to-t from-white to-green-100/30 dark:border-green-900 dark:bg-linear-to-t dark:from-background dark:to-green-900/40':
+                                                        i === 0 && !isLoading,
+                                                })}
+                                            />
+                                        </>
+                                    )}
                                     <a
                                         className={
                                             'group z-20 flex size-full items-center justify-start gap-1 p-2 underline hover:text-amber-500 sm:gap-2 sm:p-4 dark:hover:text-amber-400'
@@ -342,7 +368,7 @@ const PriceLookupTable: React.FC<PriceLookupTableProps> = memo(
                                         {i === 0 && !isLoading && (
                                             <div
                                                 className={
-                                                    'ml-auto hidden items-center justify-center rounded-full bg-green-100 px-2 py-0.5 font-sans text-green-600 text-xs leading-none sm:inline-flex dark:bg-green-900 dark:text-green-400'
+                                                    'ml-auto hidden h-6 items-center justify-center rounded-full bg-green-100 px-2 font-sans text-green-600 text-xs leading-none sm:inline-flex dark:bg-green-900 dark:text-green-400'
                                                 }
                                             >
                                                 Best
@@ -560,7 +586,7 @@ const PriceLookupTable: React.FC<PriceLookupTableProps> = memo(
                                         <div className="text-xs opacity-75">{row.pctDif}</div>
                                     </div>
                                 </TableCell>
-                            </TableRow>
+                            </MotionTableRow>
                         ))}
                         {!hideFiltered &&
                             priceQueryResult.errors.map(({ name, error }) => (
@@ -571,11 +597,15 @@ const PriceLookupTable: React.FC<PriceLookupTableProps> = memo(
                                     <TableCell
                                         className={cn(
                                             'relative mr-0 ml-0 flex items-center justify-start p-0 py-1 text-center sm:p-0',
-                                            isStickyEnabled && 'sticky left-0 z-10',
+                                            isExchangeColumnSticky && 'sticky left-0 z-10',
                                         )}
                                     >
-                                        <div className="absolute inset-0 -z-10 bg-background" />
-                                        <div className="absolute inset-0 -z-0 bg-red-700/20" />
+                                        {isExchangeColumnSticky && (
+                                            <>
+                                                <div className="absolute inset-0 -z-10 bg-background" />
+                                                <div className="absolute inset-0 -z-0 bg-red-700/20" />
+                                            </>
+                                        )}
                                         <a
                                             className={
                                                 'group z-20 flex size-full items-center justify-start gap-1 p-2 underline hover:text-amber-500 sm:gap-2 sm:p-4 dark:hover:text-amber-400'
