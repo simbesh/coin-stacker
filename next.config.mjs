@@ -29,6 +29,7 @@ const config = {
             },
         ]
     },
+    allowedDevOrigins: ['10.1.1.5'],
 }
 
 export default withSentryConfig(config, {
