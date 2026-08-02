@@ -1,3 +1,4 @@
+import { captureException } from '@sentry/nextjs'
 import { CheckCircle, MessageCircleHeart, Send } from 'lucide-react'
 import posthog from 'posthog-js'
 import { type FormEvent, useEffect, useState } from 'react'
@@ -38,37 +39,50 @@ const Feedback = () => {
         }
     }, [open])
 
-    function handleContact(event: FormEvent<HTMLFormElement>) {
+    async function handleContact(event: FormEvent<HTMLFormElement>) {
         event.preventDefault()
 
         posthog.capture('submit-feedback', contactFormData)
         setIsLoading(true)
-        fetch('api/contact', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(contactFormData),
-        })
-            .then((res) => res.json())
-            .then((data) => {
-                if (data.success) {
-                    setStatus('success')
-                } else {
-                    setStatus('error')
+        let responseStatus: number | undefined
+        try {
+            const response = await fetch('api/contact', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(contactFormData),
+            })
+            responseStatus = response.status
+            if (!response.ok) {
+                if (response.status >= 500) {
+                    throw new Error(`Feedback request failed with status ${response.status}`)
                 }
-            })
-            .catch(() => {
                 setStatus('error')
-            })
-            .finally(() => {
-                setContactFormData({
-                    title: '',
-                    email: '',
-                    message: '',
+                return
+            }
+
+            const data: unknown = await response.json()
+            if (!(data && typeof data === 'object' && 'success' in data && typeof data.success === 'boolean')) {
+                throw new Error('Feedback response was malformed')
+            }
+            setStatus(data.success ? 'success' : 'error')
+        } catch (error) {
+            if (navigator.onLine) {
+                captureException(error, {
+                    tags: { operation: 'submit-feedback' },
+                    extra: { responseStatus },
                 })
-                setIsLoading(false)
+            }
+            setStatus('error')
+        } finally {
+            setContactFormData({
+                title: '',
+                email: '',
+                message: '',
             })
+            setIsLoading(false)
+        }
     }
 
     return (

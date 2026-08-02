@@ -2,6 +2,7 @@
 
 import { CheckmarkSquare02Icon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
+import { captureException } from '@sentry/nextjs'
 import { useLocalStorage } from '@uidotdev/usehooks'
 import { differenceInDays } from 'date-fns'
 import { cloneDeep, round } from 'lodash'
@@ -45,6 +46,7 @@ import { Button } from './ui/button'
 import { HybridTooltip, HybridTooltipContent, HybridTooltipTrigger } from './ui/hybrid-tooltip'
 
 const DEBUG = process.env.NEXT_PUBLIC_MOCK_PRICES === 'true'
+const PRICE_QUERY_MAX_ATTEMPTS = 3
 
 export interface WithdrawalFees {
     fees: Record<string, number>
@@ -52,6 +54,21 @@ export interface WithdrawalFees {
 }
 
 type PriceQueryResult = PriceQueryBest
+
+const isWithdrawalFees = (value: unknown): value is WithdrawalFees => {
+    if (!(value && typeof value === 'object' && 'fees' in value && value.fees && typeof value.fees === 'object')) {
+        return false
+    }
+
+    const hasValidFees = Object.values(value.fees).every((fee) => typeof fee === 'number' && Number.isFinite(fee))
+    const hasValidFeeType =
+        !('feeType' in value) ||
+        value.feeType === undefined ||
+        value.feeType === 'dynamic' ||
+        value.feeType === 'static' ||
+        value.feeType === 'unavailable'
+    return hasValidFees && hasValidFeeType
+}
 
 function calculateTotalWithWithdrawalFees(
     best: PriceQueryResult,
@@ -238,6 +255,7 @@ const PriceLookup = () => {
     const lastAutoFetchKeyRef = useRef<string | null>(null)
     const initialAutoFetchCheckedRef = useRef(false)
     const activePriceQueryRef = useRef<AbortController | undefined>(undefined)
+    const priceQueryIdRef = useRef(0)
     const [loadingWithdrawalFees, setLoadingWithdrawalFees] = useState<Record<string, boolean>>({})
     const fetchedWithdrawalFeesRef = useRef<Set<string>>(new Set())
     const [finalWithdrawalFees, setFinalWithdrawalFees] = useState<Record<string, WithdrawalFees>>({})
@@ -273,10 +291,26 @@ const PriceLookup = () => {
         try {
             const response = await fetch(`/api/exchange/withdrawal-fee?exchange=${exchange}&currency=${currency}`)
             if (response.ok) {
-                const { fees, feeType } = await response.json()
+                let data: unknown
+                try {
+                    data = await response.json()
+                } catch (error) {
+                    captureException(error, {
+                        tags: { operation: 'withdrawal-fee-response' },
+                        extra: { exchange, currency, responseStatus: response.status },
+                    })
+                    return
+                }
+                if (!isWithdrawalFees(data)) {
+                    captureException(new Error('Withdrawal fee response was malformed'), {
+                        tags: { operation: 'withdrawal-fee-response' },
+                        extra: { exchange, currency, responseStatus: response.status },
+                    })
+                    return
+                }
                 setWithdrawalFees((prev) => ({
                     ...prev,
-                    [exchange]: { fees, feeType },
+                    [exchange]: data,
                 }))
             }
         } catch (error) {
@@ -511,111 +545,137 @@ const PriceLookup = () => {
         if (!(floatAmount && coin)) {
             return
         }
-        const data = {
-            side,
-            amount: floatAmount,
-            coin,
-        }
-        posthog.capture('price-lookup', data)
-
-        setHistory((prev) => {
-            const latest = prev[0]
-            if (latest?.coin === coin && latest.side === side && latest.amount === amount && latest.quote === quote) {
-                return prev
-            }
-
-            const exists = prev.find((h) => h.coin === coin && h.side === side && h.amount === amount)
-            const nextHistory = exists
-                ? [
-                      { quote, side, amount, coin },
-                      ...prev.filter((h) => h.coin !== coin || h.side !== side || h.amount !== amount),
-                  ]
-                : [{ quote, side, amount, coin }, ...prev]
-
-            return nextHistory.slice(0, 6)
-        })
-        setIsLoading(true)
-        setPriceQueryError(undefined)
-        requestAnimationFrame(() => {
-            const queryBoxRect = queryBoxRef.current?.getBoundingClientRect()
-            if (queryBoxRect) {
-                window.scrollTo({
-                    top: window.scrollY + queryBoxRect.top - 80,
-                    left: 0,
-                    behavior: 'auto',
-                })
-            }
-        })
-        activePriceQueryRef.current?.abort()
-        const abortController = new AbortController()
-        activePriceQueryRef.current = abortController
+        const queryId = priceQueryIdRef.current + 1
+        priceQueryIdRef.current = queryId
+        let activeAttemptController: AbortController | undefined
+        let hasSnapshot = false
+        let lastProgress: { completed: number; total: number } | undefined
         try {
+            activePriceQueryRef.current?.abort()
+            posthog.capture('price-lookup', { side, amount: floatAmount, coin })
+            setHistory((prev) => {
+                const latest = prev[0]
+                if (
+                    latest?.coin === coin &&
+                    latest.side === side &&
+                    latest.amount === amount &&
+                    latest.quote === quote
+                ) {
+                    return prev
+                }
+
+                const exists = prev.find((h) => h.coin === coin && h.side === side && h.amount === amount)
+                const nextHistory = exists
+                    ? [
+                          { quote, side, amount, coin },
+                          ...prev.filter((h) => h.coin !== coin || h.side !== side || h.amount !== amount),
+                      ]
+                    : [{ quote, side, amount, coin }, ...prev]
+
+                return nextHistory.slice(0, 6)
+            })
+            setIsLoading(true)
+            setPriceQueryError(undefined)
+            requestAnimationFrame(() => {
+                const queryBoxRect = queryBoxRef.current?.getBoundingClientRect()
+                if (queryBoxRect) {
+                    window.scrollTo({
+                        top: window.scrollY + queryBoxRect.top - 80,
+                        left: 0,
+                        behavior: 'auto',
+                    })
+                }
+            })
             if (DEBUG) {
                 setPriceQueryResult(mockData)
             } else {
-                const prices = await fetch('api/price-query', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    signal: abortController.signal,
-                    body: JSON.stringify({
-                        fees,
-                        base: coin,
-                        quote,
-                        side,
-                        amount: floatAmount,
-                        omitExchanges: Object.entries(defaultEnabledExchanges).reduce(
-                            (acc: string[], [key, defaultEnabled]) => {
-                                const isEnabled = enabledExchanges[key] ?? defaultEnabled
-                                if (!isEnabled) {
-                                    acc.push(key)
-                                }
-                                return acc
-                            },
-                            [],
-                        ),
-                    }),
+                const requestBody = JSON.stringify({
+                    fees,
+                    base: coin,
+                    quote,
+                    side,
+                    amount: floatAmount,
+                    omitExchanges: Object.entries(defaultEnabledExchanges).reduce(
+                        (acc: string[], [key, defaultEnabled]) => {
+                            const isEnabled = enabledExchanges[key] ?? defaultEnabled
+                            if (!isEnabled) {
+                                acc.push(key)
+                            }
+                            return acc
+                        },
+                        [],
+                    ),
                 })
-                if (!prices.ok) {
-                    throw new Error(`Price query failed with status ${prices.status}`)
-                }
-                if (!prices.body) {
-                    throw new Error('Price query response did not contain a stream')
-                }
 
-                let hasSnapshot = false
-                const handleEvent = (event: PriceQueryStreamEvent): void => {
-                    if (event.type === 'start') {
-                        setPriceQueryResult({ best: [], errors: [] })
-                        setResultInput({ side, amount, coin, quote })
-                        setPriceQueryProgress({ completed: 0, total: event.total })
-                        return
+                for (let attempt = 1; attempt <= PRICE_QUERY_MAX_ATTEMPTS; attempt += 1) {
+                    const abortController = new AbortController()
+                    activeAttemptController = abortController
+                    activePriceQueryRef.current = abortController
+                    const prices = await fetch('api/price-query', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        signal: abortController.signal,
+                        body: requestBody,
+                    })
+                    if (!prices.ok) {
+                        throw new Error(`Price query failed with status ${prices.status}`)
+                    }
+                    if (!prices.body) {
+                        throw new Error('Price query response did not contain a stream')
                     }
 
-                    setPriceQueryResult({ best: event.best, errors: event.errors })
-                    setPriceQueryProgress({ completed: event.completed, total: event.total })
-                    if (event.type === 'snapshot') {
-                        hasSnapshot = true
-                    } else {
-                        setIsLoading(false)
-                    }
-                }
+                    try {
+                        await readPriceQueryStream(prices.body, (event: PriceQueryStreamEvent): void => {
+                            if (priceQueryIdRef.current !== queryId) {
+                                return
+                            }
+                            if (event.type === 'start') {
+                                if (attempt === 1) {
+                                    setPriceQueryResult({ best: [], errors: [] })
+                                    setResultInput({ side, amount, coin, quote })
+                                }
+                                setPriceQueryProgress({ completed: 0, total: event.total })
+                                return
+                            }
 
-                try {
-                    await readPriceQueryStream(prices.body, handleEvent)
-                } catch (error) {
-                    if (hasSnapshot) {
-                        setPriceQueryError('Some exchanges did not finish. Showing partial results.')
+                            hasSnapshot ||= event.type === 'snapshot'
+                            lastProgress = { completed: event.completed, total: event.total }
+                            setPriceQueryResult({ best: event.best, errors: event.errors })
+                            setPriceQueryProgress(lastProgress)
+                            if (event.type === 'complete') {
+                                setIsLoading(false)
+                            }
+                        })
+                        break
+                    } catch (error) {
+                        const queryWasCancelled = abortController.signal.aborted || priceQueryIdRef.current !== queryId
+                        if (queryWasCancelled) {
+                            return
+                        }
+                        if (attempt < PRICE_QUERY_MAX_ATTEMPTS) {
+                            continue
+                        }
+                        throw error
                     }
-                    throw error
                 }
             }
         } catch (error) {
-            if (!(error instanceof DOMException && error.name === 'AbortError')) {
-                setPriceQueryError((current) => current ?? 'Unable to get prices. Please try again.')
+            const queryWasCancelled =
+                activeAttemptController?.signal.aborted === true || priceQueryIdRef.current !== queryId
+            if (!queryWasCancelled) {
+                captureException(error, {
+                    tags: { operation: 'price-query-client' },
+                    extra: { coin, side, quote, hasSnapshot, ...lastProgress },
+                })
+                setPriceQueryError(
+                    hasSnapshot
+                        ? 'Some exchanges did not finish. Showing partial results.'
+                        : 'Unable to get prices. Please try again.',
+                )
             }
             return
         } finally {
-            if (activePriceQueryRef.current === abortController) {
+            if (priceQueryIdRef.current === queryId) {
                 activePriceQueryRef.current = undefined
                 setIsLoading(false)
             }
